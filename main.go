@@ -27,17 +27,18 @@ Die flags sind:
 package main
 
 import (
+	"bytes"
 	"context"
 	"database/sql"
 	"errors"
 	"flag"
 	"fmt"
+	"html/template"
 	"io"
 	"log/slog"
 	"net/http"
 	"os"
 	"os/signal"
-	"strconv"
 	"strings"
 	"sync"
 	"time"
@@ -106,26 +107,16 @@ func run(ctx context.Context, stdout io.Writer, _ []string) error {
 	db.QueryRow(stmt).Scan(&db_version)
 	logger.Info("using database", slog.String("version", db_version))
 
+	tmpl, err := template.New("html").ParseFS(Templates, "templates/*.tmpl")
+	if err != nil {
+		logger.Error("template filesystem parse error", err)
+		os.Exit(1)
+	}
+
 	server := &http.Server{
 		Addr:     httpAddress,
 		ErrorLog: slog.NewLogLogger(logger.Handler(), slog.LevelInfo),
-		Handler: http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			query := r.URL.Query()
-			delay := query.Get("delay")
-
-			delayInSeconds, err := strconv.Atoi(delay)
-			if err != nil {
-				w.WriteHeader(http.StatusBadRequest)
-				w.Write([]byte("Malformed parameter"))
-			}
-			duration := time.Duration(delayInSeconds) * time.Second
-			time.Sleep(duration)
-
-			w.WriteHeader(http.StatusOK)
-			now := time.Now()
-			greeting := fmt.Sprintf("Hello from dinge at %v after %v\n", now.Format(time.ANSIC), delay)
-			w.Write([]byte(greeting))
-		}),
+		Handler:  routes(logger, tmpl),
 	}
 
 	var wg sync.WaitGroup
@@ -167,4 +158,74 @@ func environmentOrDefault(key string, defaultValue string) string {
 	}
 
 	return defaultValue
+}
+
+func serverError(w http.ResponseWriter, logger *slog.Logger, statusCode int, message string, source error) {
+	logger.Error(message, slog.String("source", source.Error()))
+	w.WriteHeader(statusCode)
+}
+
+type HandlerError struct {
+	Message    string
+	Source     error
+	StatusCode int
+}
+
+type HttpHandlerError interface {
+	error
+	Log(logger *slog.Logger)
+	Write(w http.ResponseWriter)
+}
+
+func (e *HandlerError) Error() string {
+	return e.Message
+}
+
+func (e *HandlerError) Log(logger *slog.Logger) {
+	logger.Error(e.Message, slog.String("source", e.Source.Error()))
+}
+
+func (e *HandlerError) Write(w http.ResponseWriter) {
+	w.WriteHeader(e.StatusCode)
+}
+
+type applicationHandler func(http.ResponseWriter, *http.Request) *HandlerError
+
+func (fn applicationHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	if err := fn(w, r); err != nil {
+		http.Error(w, http.StatusText(err.StatusCode), err.StatusCode)
+	}
+}
+
+func routes(logger *slog.Logger, template *template.Template) http.Handler {
+	mux := http.NewServeMux()
+	hi := applicationHandler(handleIndex(logger, template))
+
+	mux.Handle("GET /{$}", hi)
+
+	return mux
+}
+
+// Was hier fehlt ist die Middleware Kette, so dass Fehler ggf. von
+// dem Umschließenden Handler geloggt werden können.
+func handleIndex(logger *slog.Logger, template *template.Template) applicationHandler {
+	return func(w http.ResponseWriter, r *http.Request) *HandlerError {
+		logger.Info(template.DefinedTemplates())
+
+		buffer := new(bytes.Buffer)
+		err := template.ExecuteTemplate(buffer, "formx", nil)
+		if err != nil {
+			// serverError(w, logger, http.StatusInternalServerError, "template execution error", err)
+			return &HandlerError{
+				Message:    "template execution error",
+				Source:     err,
+				StatusCode: http.StatusInternalServerError,
+			}
+		}
+
+		w.WriteHeader(http.StatusOK)
+		buffer.WriteTo(w)
+
+		return nil
+	}
 }
