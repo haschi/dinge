@@ -1,0 +1,22 @@
+{
+	"name": "Dinge",
+	"build": {
+		"dockerfile": "Dockerfile"
+	},
+	"features": {
+		"ghcr.io/devcontainers/features/go:1": {
+			"version": "latest"
+		}
+	},
+	"containerEnv": {
+		"CGO_ENABLED": "1"
+	},
+	// Use 'forwardPorts' to make a list of ports inside the container available locally.
+	// "forwardPorts": [],
+	// Configure tool-specific properties.
+	"customizations": {
+		"vscode": {
+			"settings": {}
+		}
+	}
+}
