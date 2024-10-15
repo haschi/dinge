@@ -35,6 +35,7 @@ import (
 	"fmt"
 	"html/template"
 	"io"
+	"log"
 	"log/slog"
 	"net/http"
 	"os"
@@ -107,16 +108,33 @@ func run(ctx context.Context, stdout io.Writer, _ []string) error {
 	db.QueryRow(stmt).Scan(&db_version)
 	logger.Info("using database", slog.String("version", db_version))
 
-	tmpl, err := template.New("html").ParseFS(Templates, "templates/*.tmpl")
+	index, err := template.ParseFS(
+		Templates,
+		"templates/layout/*.tmpl",
+		"templates/pages/index/*.tmpl")
+
 	if err != nil {
-		logger.Error("template filesystem parse error", err)
-		os.Exit(1)
+		return err
+	}
+
+	form, err := template.ParseFS(
+		Templates,
+		"templates/layout/*tmpl",
+		"templates/pages/form/*.tmpl",
+	)
+
+	pages := map[string]*template.Template{}
+	pages["index"] = index
+	pages["form"] = form
+
+	if err != nil {
+		return err
 	}
 
 	server := &http.Server{
 		Addr:     httpAddress,
 		ErrorLog: slog.NewLogLogger(logger.Handler(), slog.LevelInfo),
-		Handler:  routes(logger, tmpl),
+		Handler:  routes(logger, index),
 	}
 
 	var wg sync.WaitGroup
@@ -193,6 +211,8 @@ type applicationHandler func(http.ResponseWriter, *http.Request) *HandlerError
 
 func (fn applicationHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	if err := fn(w, r); err != nil {
+		log.Println(err.Message)
+		log.Println(err.Source)
 		http.Error(w, http.StatusText(err.StatusCode), err.StatusCode)
 	}
 }
@@ -207,15 +227,18 @@ func routes(logger *slog.Logger, template *template.Template) http.Handler {
 }
 
 // Was hier fehlt ist die Middleware Kette, so dass Fehler ggf. von
-// dem Umschließenden Handler geloggt werden können.
-func handleIndex(logger *slog.Logger, template *template.Template) applicationHandler {
+// dem umschließenden Handler geloggt werden können.
+func handleIndex(_ *slog.Logger, template *template.Template) applicationHandler {
 	return func(w http.ResponseWriter, r *http.Request) *HandlerError {
-		logger.Info(template.DefinedTemplates())
 
-		buffer := new(bytes.Buffer)
-		err := template.ExecuteTemplate(buffer, "formx", nil)
+		var buffer bytes.Buffer
+
+		type Data struct {
+			ContentTemplate string
+		}
+
+		err := template.Execute(&buffer, Data{})
 		if err != nil {
-			// serverError(w, logger, http.StatusInternalServerError, "template execution error", err)
 			return &HandlerError{
 				Message:    "template execution error",
 				Source:     err,

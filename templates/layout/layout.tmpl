@@ -1,0 +1,26 @@
+
+<!doctype html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8">
+  <title>Dinge</title>
+</head>
+
+<body>
+  <header>
+    <h1>{{template "title" .}}</h1>
+  </header>
+  <nav>
+    <ul>
+      <li>Home</li>
+      <li>About</li>
+      <li>New</li>
+    </ul>
+  </nav>
+  <main>
+    {{template "content" .}}
+  </main>
+</body>
+
+</html>

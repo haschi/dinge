@@ -1,0 +1,32 @@
+{
+	"version": "2.0.0",
+	"type": "shell",
+	"command": "go",
+	"tasks": [
+		{
+			"label": "go: build package",
+			"command": "build",
+			"args": [
+				"build",
+				"${workspaceFolder}"
+			],
+			"problemMatcher": [
+				"$go"
+			],
+			"group": "build",
+			"detail": "cd /workspaces/dinge; go build ${workspaceFolder}"
+		},
+		{
+			"label": "go: run package",
+			"args": [
+				"run",
+				"${workspaceFolder}"
+			],
+			"problemMatcher": [
+				"$go"
+			],
+			"group": "build",
+			"detail": "cd /workspaces/dinge; go run ${workspaceFolder}"
+		}
+	]
+}
