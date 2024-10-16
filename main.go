@@ -27,13 +27,11 @@ Die flags sind:
 package main
 
 import (
-	"bytes"
 	"context"
 	"database/sql"
 	"errors"
 	"flag"
 	"fmt"
-	"html/template"
 	"io"
 	"log"
 	"log/slog"
@@ -44,6 +42,7 @@ import (
 	"sync"
 	"time"
 
+	"github.com/haschi/dinge/model"
 	_ "github.com/mattn/go-sqlite3"
 )
 
@@ -53,20 +52,20 @@ var Version string = "development"
 func main() {
 	ctx := context.Background()
 
-	if err := run(ctx, io.Writer(os.Stdout), os.Args); err != nil {
+	if err := run(ctx, os.Stdout, os.Args, os.LookupEnv); err != nil {
 		fmt.Println(err.Error())
 		os.Exit(1)
 	}
 }
 
-func run(ctx context.Context, stdout io.Writer, _ []string) error {
+func run(ctx context.Context, stdout io.Writer, _ []string, environment func(string) (string, bool)) error {
 	ctx, cancel := signal.NotifyContext(ctx, os.Interrupt)
 	defer cancel()
 
-	httpAddress := environmentOrDefault("HTTP_ADDRESS", "0.0.0.0:8443")
+	httpAddress := environmentOrDefault(environment, "HTTP_ADDRESS", "0.0.0.0:8443")
 	flag.StringVar(&httpAddress, "address", httpAddress, "HTTP network address")
 
-	datasource := environmentOrDefault("DATASOURCE", "dinge.db")
+	datasource := environmentOrDefault(environment, "DATASOURCE", "dinge.db")
 	flag.StringVar(&datasource, "datasource", datasource, "SQLite data source name")
 
 	var version bool
@@ -82,7 +81,6 @@ func run(ctx context.Context, stdout io.Writer, _ []string) error {
 
 	logger := slog.New(slog.NewTextHandler(stdout, nil))
 	logger.Info("starting server", slog.String("address", httpAddress))
-	logger.Info("using database", slog.String("datasource", datasource))
 
 	db, err := sql.Open("sqlite3", datasource)
 	if err != nil {
@@ -106,35 +104,21 @@ func run(ctx context.Context, stdout io.Writer, _ []string) error {
 	stmt := "SELECT sqlite_version()"
 	var db_version string
 	db.QueryRow(stmt).Scan(&db_version)
-	logger.Info("using database", slog.String("version", db_version))
 
-	index, err := template.ParseFS(
-		Templates,
-		"templates/layout/*.tmpl",
-		"templates/pages/index/*.tmpl")
+	logger.Info("using database",
+		slog.String("version", db_version),
+		slog.String("datasource", datasource))
 
 	if err != nil {
 		return err
 	}
 
-	form, err := template.ParseFS(
-		Templates,
-		"templates/layout/*tmpl",
-		"templates/pages/form/*.tmpl",
-	)
-
-	pages := map[string]*template.Template{}
-	pages["index"] = index
-	pages["form"] = form
-
-	if err != nil {
-		return err
-	}
+	respository := model.Repository{DB: db}
 
 	server := &http.Server{
 		Addr:     httpAddress,
 		ErrorLog: slog.NewLogLogger(logger.Handler(), slog.LevelInfo),
-		Handler:  routes(logger, index),
+		Handler:  routes(logger, respository),
 	}
 
 	var wg sync.WaitGroup
@@ -170,8 +154,8 @@ func run(ctx context.Context, stdout io.Writer, _ []string) error {
 	return nil
 }
 
-func environmentOrDefault(key string, defaultValue string) string {
-	if environmentValue, ok := os.LookupEnv(key); ok {
+func environmentOrDefault(environment func(string) (string, bool), key string, defaultValue string) string {
+	if environmentValue, ok := environment(key); ok {
 		return environmentValue
 	}
 
@@ -187,12 +171,6 @@ type HandlerError struct {
 	Message    string
 	Source     error
 	StatusCode int
-}
-
-type HttpHandlerError interface {
-	error
-	Log(logger *slog.Logger)
-	Write(w http.ResponseWriter)
 }
 
 func (e *HandlerError) Error() string {
@@ -217,38 +195,29 @@ func (fn applicationHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func routes(logger *slog.Logger, template *template.Template) http.Handler {
+func routes(logger *slog.Logger, r model.Repository) http.Handler {
 	mux := http.NewServeMux()
-	hi := applicationHandler(handleIndex(logger, template))
 
-	mux.Handle("GET /{$}", hi)
+	get := handleGet(logger, r)
+	mux.Handle("GET /{$}", get)
 
+	post := handlePost(logger, r)
+	mux.Handle("POST /{$}", post)
+
+	getDing := handleGetDing(r)
+	mux.Handle("GET /{id}", getDing)
+
+	postDing := handlePostDing(r)
+	mux.Handle("POST /{id}", postDing)
 	return mux
 }
 
-// Was hier fehlt ist die Middleware Kette, so dass Fehler ggf. von
-// dem umschließenden Handler geloggt werden können.
-func handleIndex(_ *slog.Logger, template *template.Template) applicationHandler {
-	return func(w http.ResponseWriter, r *http.Request) *HandlerError {
+type Form struct {
+	Code   string
+	Anzahl int
+}
 
-		var buffer bytes.Buffer
-
-		type Data struct {
-			ContentTemplate string
-		}
-
-		err := template.Execute(&buffer, Data{})
-		if err != nil {
-			return &HandlerError{
-				Message:    "template execution error",
-				Source:     err,
-				StatusCode: http.StatusInternalServerError,
-			}
-		}
-
-		w.WriteHeader(http.StatusOK)
-		buffer.WriteTo(w)
-
-		return nil
-	}
+type Data struct {
+	LetzteEinträge []model.Ding
+	Form           Form
 }

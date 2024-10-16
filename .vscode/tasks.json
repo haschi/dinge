@@ -5,7 +5,6 @@
 	"tasks": [
 		{
 			"label": "go: build package",
-			"command": "build",
 			"args": [
 				"build",
 				"${workspaceFolder}"

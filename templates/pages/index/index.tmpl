@@ -1,11 +1,38 @@
-{{define "title"}}Index{{end}}
+{{define "title"}}Dinge Index{{end}}
 {{define "content"}}
-<p>Content from index.tmpl</p>
 <div>
-  <a href="#">Dinge hinzufügen</a>
+  <form action="/" method="post">
+    <div>
+      <label for="input_code">Code</label>
+      <input id="input_code" type="text" name="code" required value="{{.Form.Code}}" placeholder="Z.B EAN oder ASIN" />
+    </div>
+    <div>
+      <label for="input_anzahl">Anzahl</label>
+      <input id="input_anzahl" type="number" name="anzahl" value="{{.Form.Anzahl}}" required />
+    </div>
+    <button type="submit">Hinzufügen</button>
+  </form>
 </div>
+<hr />
 <div>
-  <h2>Alle Dinge</h2>
-  <p>Hier ist nich nichts zu sehen.</p>
+  <h2>Zuletzt erfasst</h2>
+  <table>
+    <tr>
+      <th>Id</th>
+      <th>Name</th>
+      <th>Code</th>
+      <th>Anzahl</th>
+      <th>Aktionen</th>
+    </tr>
+    {{range .LetzteEinträge}}
+    <tr>
+      <td>{{.Id}}</td>
+      <td>{{.Name}}</td>
+      <td>{{.Code}}</td>
+      <td>{{.Anzahl}}</td>
+      <td><a href="/{{.Id}}">Bearbeiten</a></td>
+    </tr>
+    {{end}}
+  </table>
 </div>
 {{end}}
