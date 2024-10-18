@@ -6,238 +6,247 @@ import (
 	"html/template"
 	"log/slog"
 	"net/http"
+	"net/url"
 	"strconv"
-
-	"github.com/haschi/dinge/model"
+	"strings"
 )
 
 // Was hier fehlt ist die Middleware Kette, so dass Fehler ggf. von
 // dem umschließenden Handler geloggt werden können.
-func handleGet(_ *slog.Logger, repository model.Repository) applicationHandler {
+func (a DingeApplication) HandleGet(w http.ResponseWriter, r *http.Request) {
+
+	// Kommt nach DingeApplication
+	var index, err = template.ParseFS(
+		Templates,
+		"templates/layout/*.tmpl",
+		"templates/pages/index/*.tmpl")
+
+	if err != nil {
+		a.Error(w, r, err)
+		return
+	}
+
+	dinge, err := a.Repository.GetLatest()
+	if err != nil {
+		a.Error(w, r, err)
+		return
+	}
+
+	data := Data{
+		LetzteEinträge: dinge,
+		Form:           Form{Anzahl: 1},
+	}
+
+	if err := render(w, http.StatusOK, index, data); err != nil {
+		a.Error(w, r, err)
+		return
+	}
+}
+
+func NotBlank(value string) bool {
+	return strings.TrimSpace(value) != ""
+}
+
+func PositiveInteger(value int) bool {
+	return value >= 0
+}
+
+func formIsValid(errors map[string]string) bool {
+	return len(errors) == 0
+}
+
+func FormGetStringValidate(form *url.Values, errors map[string]string, field string, message string, validator func(string) bool) string {
+	var value = form.Get(field)
+	if !validator(value) {
+		errors[field] = message
+		return ""
+	}
+	return value
+}
+
+func FormGetIntValidate(form *url.Values, errors map[string]string, field string, message string, validator func(int) bool) int {
+	var str = form.Get(field)
+
+	value, err := strconv.Atoi(str)
+	if err != nil || !validator(value) {
+		errors[field] = message
+		return 0
+	}
+
+	return value
+}
+
+func (a DingeApplication) HandlePost(w http.ResponseWriter, r *http.Request) {
 
 	var index, err = template.ParseFS(
 		Templates,
 		"templates/layout/*.tmpl",
 		"templates/pages/index/*.tmpl")
 
-	return func(w http.ResponseWriter, r *http.Request) *HandlerError {
-		if err != nil {
-			return &HandlerError{
-				Message:    "template parsing error",
-				StatusCode: http.StatusInternalServerError,
-				Source:     err,
-			}
-		}
+	if err != nil {
+		a.Error(w, r, err)
+	}
 
-		var buffer bytes.Buffer
+	err = r.ParseForm()
+	if err != nil {
+		a.Error(w, r, err)
+		return
+	}
 
-		dinge, err := repository.GetLatest()
+	var validationError = make(map[string]string)
+
+	code := FormGetStringValidate(&r.PostForm, validationError, "code", "Das Feld darf nicht leer sein", NotBlank)
+
+	anzahl := FormGetIntValidate(&r.PostForm, validationError, "anzahl", "Das Feld muss eine Zahl größer 0 enthalten", PositiveInteger)
+
+	if !formIsValid(validationError) {
+		// a.Error(w, r, fmt.Errorf("fehler in den übermittelten Daten"))
+
+		dinge, err := a.Repository.GetLatest()
 		if err != nil {
-			return &HandlerError{
-				Message:    "repository error",
-				Source:     err,
-				StatusCode: http.StatusInternalServerError,
-			}
+			a.Error(w, r, err)
+			return
 		}
 
 		data := Data{
 			LetzteEinträge: dinge,
-			Form:           Form{Anzahl: 1},
+			Form: Form{
+				Code:   r.PostForm.Get("code"),
+				Anzahl: anzahl,
+			},
+			FieldErrors: validationError,
 		}
 
-		err = index.Execute(&buffer, data)
-		if err != nil {
-			return &HandlerError{
-				Message:    "template execution error",
-				Source:     err,
-				StatusCode: http.StatusInternalServerError,
-			}
-		}
-
-		w.WriteHeader(http.StatusOK)
-		buffer.WriteTo(w)
-
-		return nil
+		render(w, http.StatusUnprocessableEntity, index, data)
+		return
 	}
+
+	a.Logger.Info("got post form",
+		slog.String("code", code),
+		slog.Int("anzahl", anzahl))
+
+	id, err := a.Repository.Insert(r.Context(), code, anzahl)
+	if err != nil {
+		a.Error(w, r, err)
+		return
+	}
+
+	a.Logger.Info("insert database record", slog.Int64("id", id))
+
+	http.Redirect(w, r, "/", http.StatusSeeOther)
+
+	return
 }
 
-func handlePost(logger *slog.Logger, repository model.Repository) applicationHandler {
-
-	var _, err = template.ParseFS(
-		Templates,
-		"templates/layout/*.tmpl",
-		"templates/pages/index/*.tmpl")
-
-	return func(w http.ResponseWriter, r *http.Request) *HandlerError {
-		if err != nil {
-			return &HandlerError{
-				Message:    "template parsing error",
-				Source:     err,
-				StatusCode: http.StatusInternalServerError,
-			}
-		}
-
-		err = r.ParseForm()
-		if err != nil {
-			return &HandlerError{
-				Message:    "form parsing error",
-				Source:     err,
-				StatusCode: http.StatusBadRequest,
-			}
-		}
-
-		var code = r.PostForm.Get("code")
-		var anzahl_str = r.PostForm.Get("anzahl")
-		anzahl, err := strconv.Atoi(anzahl_str)
-		if err != nil {
-			return &HandlerError{
-				Message:    "can not convert to integer: 'anzahl'",
-				Source:     err,
-				StatusCode: http.StatusUnprocessableEntity,
-			}
-		}
-
-		logger.Info("got post form",
-			slog.String("code", code),
-			slog.Int("anzahl", anzahl))
-
-		id, err := repository.Insert(r.Context(), code, anzahl)
-		if err != nil {
-			return &HandlerError{
-				Message:    "can not insert record",
-				Source:     err,
-				StatusCode: http.StatusInternalServerError,
-			}
-		}
-
-		logger.Info("insert database record", slog.Int64("id", id))
-
-		// dinge, err := repository.GetLatest()
-		// if err != nil {
-		// 	return &HandlerError{
-		// 		Message:    "error reading from repository",
-		// 		Source:     err,
-		// 		StatusCode: http.StatusInternalServerError,
-		// 	}
-		// }
-
-		// Im Fehlerfall die Form mit den alten Werten füllen
-		// und Fehlermeldungen hinzufügen.
-		// var buffer bytes.Buffer
-
-		// err = index.Execute(&buffer, Data{
-		// 	LetzteEinträge: dinge,
-		// 	Form: Form{
-		// 		Anzahl: anzahl,
-		// 		Code:   code,
-		// 	},
-		// })
-
-		// if err != nil {
-		// 	return &HandlerError{
-		// 		Message:    "template execution error",
-		// 		Source:     err,
-		// 		StatusCode: http.StatusInternalServerError,
-		// 	}
-		// }
-
-		// w.WriteHeader(http.StatusOK)
-		// buffer.WriteTo(w)
-
-		http.Redirect(w, r, "/", http.StatusSeeOther)
-
-		return nil
-	}
+type PostDingForm struct {
+	Id     int64
+	Name   string
+	Code   string
+	Anzahl int
 }
 
-func handleGetDing(repository model.Repository) applicationHandler {
+type PostDingData struct {
+	Form   PostDingForm
+	Errors map[string]string
+}
+
+func (a DingeApplication) HandleGetDing(w http.ResponseWriter, r *http.Request) {
 
 	var page, err = template.ParseFS(
 		Templates,
 		"templates/layout/*.tmpl",
 		"templates/pages/ding/*.tmpl")
 
-	return func(w http.ResponseWriter, r *http.Request) *HandlerError {
-		if err != nil {
-			return &HandlerError{
-				Message:    "error parsing template",
-				Source:     err,
-				StatusCode: http.StatusInternalServerError,
-			}
-		}
+	if err != nil {
+		a.Error(w, r, err)
+		return
+	}
 
-		id, err := strconv.ParseInt(r.PathValue("id"), 10, 64)
-		if err != nil || id < 1 {
-			http.NotFound(w, r)
-			return nil
-		}
+	id, err := strconv.ParseInt(r.PathValue("id"), 10, 64)
+	if err != nil || id < 1 {
+		a.Error(w, r, err)
+		return
+	}
 
-		ding, err := repository.GetById(id)
-		if err != nil {
-			return &HandlerError{
-				Message:    "not found",
-				Source:     err,
-				StatusCode: http.StatusNotFound,
-			}
-		}
+	ding, err := a.Repository.GetById(id)
+	if err != nil {
+		a.Error(w, r, err)
+		return
+	}
 
-		var buffer bytes.Buffer
-		if err := page.Execute(&buffer, ding); err != nil {
-			return &HandlerError{
-				Message:    "error executing template",
-				Source:     err,
-				StatusCode: http.StatusInternalServerError,
-			}
-		}
+	data := PostDingData{
+		Form: PostDingForm{
+			Id:     id,
+			Name:   ding.Name,
+			Code:   ding.Code,
+			Anzahl: ding.Anzahl,
+		},
+	}
 
-		w.WriteHeader(http.StatusOK)
-		buffer.WriteTo(w)
-		return nil
+	if err := render(w, http.StatusOK, page, data); err != nil {
+		a.Error(w, r, err)
+		return
 	}
 }
 
-func handlePostDing(repository model.Repository) applicationHandler {
-	var _, err = template.ParseFS(
+func render(w http.ResponseWriter, status int, page *template.Template, data any) error {
+	var buffer bytes.Buffer
+	if err := page.Execute(&buffer, data); err != nil {
+		return err
+	}
+
+	w.WriteHeader(status)
+	buffer.WriteTo(w)
+	return nil
+}
+
+func (a DingeApplication) HandlePostDing(w http.ResponseWriter, r *http.Request) {
+	var page, err = template.ParseFS(
 		Templates,
 		"templates/layout/*.tmpl",
 		"templates/pages/ding/*.tmpl")
 
-	return func(w http.ResponseWriter, r *http.Request) *HandlerError {
-		if err != nil {
-			return &HandlerError{
-				Message:    "error parsing template",
-				Source:     err,
-				StatusCode: http.StatusInternalServerError,
-			}
-		}
-
-		id, err := strconv.ParseInt(r.PathValue("id"), 10, 64)
-		if err != nil || id < 1 {
-			http.NotFound(w, r)
-			return nil
-		}
-
-		err = r.ParseForm()
-		if err != nil {
-			return &HandlerError{
-				Message:    "form parsing error",
-				Source:     err,
-				StatusCode: http.StatusBadRequest,
-			}
-		}
-
-		var name = r.PostForm.Get("name")
-
-		err = repository.NamenAktualisieren(id, name)
-		if err != nil {
-			return &HandlerError{
-				Message:    "not found",
-				Source:     err,
-				StatusCode: http.StatusNotFound,
-			}
-		}
-
-		http.Redirect(w, r, fmt.Sprintf("/%v", id), http.StatusSeeOther)
-		return nil
+	if err != nil {
+		a.Error(w, r, err)
+		return
 	}
+
+	id, err := strconv.ParseInt(r.PathValue("id"), 10, 64)
+	if err != nil || id < 1 {
+		http.NotFound(w, r)
+		return
+	}
+
+	err = r.ParseForm()
+	if err != nil {
+		a.Error(w, r, err)
+		return
+	}
+
+	validationErrors := make(map[string]string)
+	name := FormGetStringValidate(&r.PostForm, validationErrors, "name", "Das Feld darf nicht leer sein", NotBlank)
+
+	if !formIsValid(validationErrors) {
+		data := PostDingData{
+			Form: PostDingForm{
+				Id:     id,
+				Name:   name,
+				Code:   "",
+				Anzahl: 0,
+			},
+			Errors: validationErrors,
+		}
+
+		if err := render(w, http.StatusOK, page, data); err != nil {
+			a.Error(w, r, err)
+			return
+		}
+	}
+
+	err = a.Repository.NamenAktualisieren(id, name)
+	if err != nil {
+		a.Error(w, r, err)
+	}
+
+	http.Redirect(w, r, fmt.Sprintf("/%v", id), http.StatusSeeOther)
 }

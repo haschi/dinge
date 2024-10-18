@@ -33,7 +33,6 @@ import (
 	"flag"
 	"fmt"
 	"io"
-	"log"
 	"log/slog"
 	"net/http"
 	"os"
@@ -113,12 +112,15 @@ func run(ctx context.Context, stdout io.Writer, _ []string, environment func(str
 		return err
 	}
 
-	respository := model.Repository{DB: db}
+	application := DingeApplication{
+		Repository: model.Repository{DB: db},
+		Logger:     logger,
+	}
 
 	server := &http.Server{
 		Addr:     httpAddress,
 		ErrorLog: slog.NewLogLogger(logger.Handler(), slog.LevelInfo),
-		Handler:  routes(logger, respository),
+		Handler:  routes(application),
 	}
 
 	var wg sync.WaitGroup
@@ -162,53 +164,35 @@ func environmentOrDefault(environment func(string) (string, bool), key string, d
 	return defaultValue
 }
 
-func serverError(w http.ResponseWriter, logger *slog.Logger, statusCode int, message string, source error) {
-	logger.Error(message, slog.String("source", source.Error()))
-	w.WriteHeader(statusCode)
+type DingeApplication struct {
+	Logger     *slog.Logger
+	Repository model.Repository
 }
 
-type HandlerError struct {
-	Message    string
-	Source     error
-	StatusCode int
+func (a DingeApplication) Error(w http.ResponseWriter, r *http.Request, err error) {
+	a.Logger.Error(err.Error(),
+		slog.String("method", r.Method),
+		slog.String("uri", r.URL.RequestURI()))
+
+	http.Error(w,
+		http.StatusText(http.StatusInternalServerError),
+		http.StatusInternalServerError)
 }
 
-func (e *HandlerError) Error() string {
-	return e.Message
-}
-
-func (e *HandlerError) Log(logger *slog.Logger) {
-	logger.Error(e.Message, slog.String("source", e.Source.Error()))
-}
-
-func (e *HandlerError) Write(w http.ResponseWriter) {
-	w.WriteHeader(e.StatusCode)
-}
-
-type applicationHandler func(http.ResponseWriter, *http.Request) *HandlerError
-
-func (fn applicationHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	if err := fn(w, r); err != nil {
-		log.Println(err.Message)
-		log.Println(err.Source)
-		http.Error(w, http.StatusText(err.StatusCode), err.StatusCode)
-	}
-}
-
-func routes(logger *slog.Logger, r model.Repository) http.Handler {
+func routes(dinge DingeApplication) http.Handler {
 	mux := http.NewServeMux()
 
-	get := handleGet(logger, r)
-	mux.Handle("GET /{$}", get)
+	mux.HandleFunc("GET /{$}", dinge.HandleGet)
 
-	post := handlePost(logger, r)
-	mux.Handle("POST /{$}", post)
+	mux.HandleFunc("POST /{$}", dinge.HandlePost)
 
-	getDing := handleGetDing(r)
-	mux.Handle("GET /{id}", getDing)
+	mux.HandleFunc("GET /favicon.ico", func(w http.ResponseWriter, r *http.Request) {
+		http.NotFound(w, r)
+	})
 
-	postDing := handlePostDing(r)
-	mux.Handle("POST /{id}", postDing)
+	mux.HandleFunc("GET /{id}", dinge.HandleGetDing)
+
+	mux.HandleFunc("POST /{id}", dinge.HandlePostDing)
 	return mux
 }
 
@@ -220,4 +204,5 @@ type Form struct {
 type Data struct {
 	LetzteEinträge []model.Ding
 	Form           Form
+	FieldErrors    map[string]string
 }

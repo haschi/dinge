@@ -1,19 +1,23 @@
 {{define "title"}}Ding Details{{end}}
 {{define "content"}}
 <div>
-  <form action="/{{.Id}}" method="post">
-    <input type="hidden" name="id" value="{{.Id}}">
+  <form action="/{{.Form.Id}}" method="post">
+    <input type="hidden" name="id" value="{{.Form.Id}}">
     <div>
       <label for="input_name">Name</label>
-      <input id="input_name" type="text" name="name" value="{{.Name}}" required>
+      {{with .Errors.name}}
+      <p>{{.}}</p>
+      {{end}}
+      <input id="input_name" type="text" name="name" value="{{.Form.Name}}"
+      required>
     </div>
     <div>
       <label for="input_code">Code</label>
-      <input id="input_code" type="text" name="code" value="{{.Code}}" required readonly />
+      <input id="input_code" type="text" name="code" value="{{.Form.Code}}" required readonly />
     </div>
     <div>
       <label for="input_anzahl">Anzahl</label>
-      <input id="input_anzahl" type="number" name="anzahl" value="{{.Anzahl}}" required readonly />
+      <input id="input_anzahl" type="number" name="anzahl" value="{{.Form.Anzahl}}" required readonly />
     </div>
     <button type="submit">Aktualisieren</button>
   </form>
