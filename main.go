@@ -42,6 +42,7 @@ import (
 	"time"
 
 	"github.com/haschi/dinge/model"
+	"github.com/haschi/dinge/validation"
 	_ "github.com/mattn/go-sqlite3"
 )
 
@@ -70,6 +71,7 @@ func run(ctx context.Context, stdout io.Writer, _ []string, environment func(str
 	var version bool
 	flag.BoolVar(&version, "version", false, "print version information")
 	flag.BoolVar(&version, "v", false, "print version information (shorthand)")
+
 	flag.Parse()
 
 	if version {
@@ -179,30 +181,13 @@ func (a DingeApplication) Error(w http.ResponseWriter, r *http.Request, err erro
 		http.StatusInternalServerError)
 }
 
-func routes(dinge DingeApplication) http.Handler {
-	mux := http.NewServeMux()
-
-	mux.HandleFunc("GET /{$}", dinge.HandleGet)
-
-	mux.HandleFunc("POST /{$}", dinge.HandlePost)
-
-	mux.HandleFunc("GET /favicon.ico", func(w http.ResponseWriter, r *http.Request) {
-		http.NotFound(w, r)
-	})
-
-	mux.HandleFunc("GET /{id}", dinge.HandleGetDing)
-
-	mux.HandleFunc("POST /{id}", dinge.HandlePostDing)
-	return mux
-}
-
 type Form struct {
 	Code   string
 	Anzahl int
 }
 
 type Data struct {
-	LetzteEinträge []model.Ding
-	Form           Form
-	FieldErrors    map[string]string
+	LetzteEinträge   []model.Ding
+	Form             Form
+	ValidationErrors validation.ErrorMap
 }

@@ -1,0 +1,15 @@
+{{define "title"}}Entnehmen{{end}}
+{{define "content"}}
+<section>
+  <form action="/entnehmen/code" method="get">
+    <div>
+      <label for="code-input">Code</label>
+      <input id="code-input" type="text" name="code" autocomplete="off" autofocus required>
+      {{with .ValidationErrors.code}}
+      <p class="error">{{.}}</p>
+      {{end}}
+    </div>
+    <button type="submit">Weiter</button>
+  </form>
+</section>
+{{end}}

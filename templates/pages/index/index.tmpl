@@ -1,46 +1,38 @@
 {{define "title"}}Dinge Index{{end}}
 {{define "content"}}
-<div>
+<section>
   <form action="/" method="post">
-    <div>
-      <label for="input_code">Code</label>
-      {{with .FieldErrors.code}}
-      <p>{{.}}</p>
-      {{end}}
-      <input id="input_code" type="text" name="code" value="{{.Form.Code}}" placeholder="Z.B EAN oder ASIN" />
-    </div>
-    <div>
-      <label for="input_anzahl">Anzahl</label>
-      {{with .FieldErrors.anzahl}}
-      <p>{{.}}</p>
-      {{end}}
-      <input id="input_anzahl" type="number" name="anzahl" value="{{.Form.Anzahl}}" />
-    </div>
+    <h2>Dinge einlagern</h2>
+    <p>Gebe den <span class="tooltip">Produktcode
+        <span class="tooltiptext">In der Regel ein EAN bzw. GTIN Produktcode. Dieser befindet sich auf der
+          Verpackung des Produkts.</span></span> und die Menge eines Dings ein, das Du einlagerst.</p>
+    <label for="code-input">Produktcode</label>
+    <input id="code-input" type="text" name="code" value="{{.Form.Code}}" autocomplete="off" autofocus required>
+    <span></span>
+    {{with .ValidationErrors.code}}
+    <p class="error">{{.}}</p>
+    {{end}}
+
+
+    <label for="anzahl-input">Anzahl</label>
+    <input id="anzahl-input" type="number" name="anzahl" value="{{.Form.Anzahl}}" required min="1" max="99">
+    <span></span>
+    {{with .ValidationErrors.anzahl}}
+    <p class="error">{{.}}</p>
+    {{end}}
+
     <button type="submit">Hinzufügen</button>
   </form>
-</div>
-<hr />
-<div>
-  <h2>Zuletzt erfasst</h2>
-  <table>
-    <tr>
-      <th>Id</th>
-      <th>Name</th>
-      <th>Code</th>
-      <th>Anzahl</th>
-      <th>Aktionen</th>
-    </tr>
-    {{range .LetzteEinträge}}
-    <tr>
-      <td>{{.Id}}</td>
-      <td>{{.Name}}</td>
-      <td>{{.Code}}</td>
-      <td>{{.Anzahl}}</td>
-      <td>
-        <a href="/{{.Id}}">Bearbeiten</a>
-      </td>
-    </tr>
-    {{end}}
-  </table>
-</div>
+</section>
+
+<section>
+  {{range .LetzteEinträge}}
+  <aside>
+    <img src="https://picsum.photos/800/450?random{{.Id}}" alt="">
+    <h2>{{.Name}}</h2>
+    <p>{{.Code}}</p>
+    <a href="/{{.Id}}"></a>
+  </aside>
+  {{end}}
+</section>
 {{end}}

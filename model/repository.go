@@ -3,6 +3,7 @@ package model
 import (
 	"context"
 	"database/sql"
+	"errors"
 	"fmt"
 	"time"
 )
@@ -30,6 +31,41 @@ func (r Repository) GetById(id int64) (Ding, error) {
 	}
 
 	return ding, nil
+}
+
+func (r Repository) GetByCode(code string) (Ding, error) {
+	suchen := `SELECT id, name, code, anzahl FROM dinge
+	WHERE code = ?`
+
+	var ding Ding
+	row := r.QueryRow(suchen, code)
+	if err := row.Scan(&ding.Id, &ding.Name, &ding.Code, &ding.Anzahl); err != nil {
+		return ding, err
+	}
+
+	return ding, nil
+}
+
+func (r Repository) MengeAktualisieren(ctx context.Context, id int64, menge int) error {
+	tx, err := r.BeginTx(ctx, nil)
+	if err != nil {
+		return err
+	}
+
+	defer tx.Rollback()
+	suchen := `SELECT anzahl FROM dinge
+	WHERE id = ?`
+	var alteAnzahl int
+	row := r.QueryRow(suchen, id)
+	if err := row.Scan(&alteAnzahl); err != nil {
+		return err
+	}
+
+	if alteAnzahl+menge < 0 {
+		return errors.New("Zuviele")
+	}
+
+	return r.Update(id, alteAnzahl+menge)
 }
 
 func (r Repository) Insert(ctx context.Context, code string, anzahl int) (int64, error) {
@@ -124,7 +160,7 @@ func (r Repository) GetLatest() ([]Ding, error) {
 
 	statement := `SELECT id, name, code, anzahl, aktualisiert FROM dinge
 		ORDER BY aktualisiert DESC
-		LIMIT 10`
+		LIMIT 12`
 
 	rows, err := r.Query(statement)
 	if err != nil {

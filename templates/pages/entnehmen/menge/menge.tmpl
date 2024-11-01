@@ -1,0 +1,19 @@
+{{define "title"}}Entnehmen{{end}}
+{{define "content"}}
+<section>
+  <form action="/entnehmen/{{.Ding.Id}}" method="post">
+    <img src="https://picsum.photos/800/450?random{{.Ding.Id}}" alt="">
+    <h4>{{.Ding.Name}}</h4>
+    <p>{{.Ding.Code}}</p>
+    <div>
+      <label for="menge-input">Menge</label>
+      <input id="menge-input" type="number" name="menge" autocomplete="off" autofocus required min="1"
+        max="{{.Ding.Anzahl}}" value="{{.Menge}}">
+      {{with .ValidationErrors.code}}
+      <p class="error">{{.}}</p>
+      {{end}}
+    </div>
+    <button type="submit">Weiter</button>
+  </form>
+</section>
+{{end}}

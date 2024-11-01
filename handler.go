@@ -6,9 +6,16 @@ import (
 	"html/template"
 	"log/slog"
 	"net/http"
-	"net/url"
 	"strconv"
-	"strings"
+
+	"github.com/haschi/dinge/model"
+	"github.com/haschi/dinge/validation"
+)
+
+const (
+	Name   = "name"
+	Anzahl = "anzahl"
+	Code   = "code"
 )
 
 // Was hier fehlt ist die Middleware Kette, so dass Fehler ggf. von
@@ -17,7 +24,7 @@ func (a DingeApplication) HandleGet(w http.ResponseWriter, r *http.Request) {
 
 	// Kommt nach DingeApplication
 	var index, err = template.ParseFS(
-		Templates,
+		TemplatesFileSystem,
 		"templates/layout/*.tmpl",
 		"templates/pages/index/*.tmpl")
 
@@ -43,63 +50,34 @@ func (a DingeApplication) HandleGet(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func NotBlank(value string) bool {
-	return strings.TrimSpace(value) != ""
-}
-
-func PositiveInteger(value int) bool {
-	return value >= 0
-}
-
-func formIsValid(errors map[string]string) bool {
-	return len(errors) == 0
-}
-
-func FormGetStringValidate(form *url.Values, errors map[string]string, field string, message string, validator func(string) bool) string {
-	var value = form.Get(field)
-	if !validator(value) {
-		errors[field] = message
-		return ""
-	}
-	return value
-}
-
-func FormGetIntValidate(form *url.Values, errors map[string]string, field string, message string, validator func(int) bool) int {
-	var str = form.Get(field)
-
-	value, err := strconv.Atoi(str)
-	if err != nil || !validator(value) {
-		errors[field] = message
-		return 0
-	}
-
-	return value
-}
-
 func (a DingeApplication) HandlePost(w http.ResponseWriter, r *http.Request) {
 
 	var index, err = template.ParseFS(
-		Templates,
+		TemplatesFileSystem,
 		"templates/layout/*.tmpl",
 		"templates/pages/index/*.tmpl")
 
 	if err != nil {
 		a.Error(w, r, err)
+		return
 	}
 
-	err = r.ParseForm()
+	form := validation.Form{Request: r}
+
+	var code string
+	var anzahl int
+
+	err = form.Scan(
+		validation.Field(Code, validation.String(&code), validation.IsNotBlank),
+		validation.Field(Anzahl, validation.Integer(&anzahl), validation.Min(1)),
+	)
+
 	if err != nil {
 		a.Error(w, r, err)
 		return
 	}
 
-	var validationError = make(map[string]string)
-
-	code := FormGetStringValidate(&r.PostForm, validationError, "code", "Das Feld darf nicht leer sein", NotBlank)
-
-	anzahl := FormGetIntValidate(&r.PostForm, validationError, "anzahl", "Das Feld muss eine Zahl größer 0 enthalten", PositiveInteger)
-
-	if !formIsValid(validationError) {
+	if !form.IsValid() {
 		// a.Error(w, r, fmt.Errorf("fehler in den übermittelten Daten"))
 
 		dinge, err := a.Repository.GetLatest()
@@ -111,10 +89,10 @@ func (a DingeApplication) HandlePost(w http.ResponseWriter, r *http.Request) {
 		data := Data{
 			LetzteEinträge: dinge,
 			Form: Form{
-				Code:   r.PostForm.Get("code"),
+				Code:   code,
 				Anzahl: anzahl,
 			},
-			FieldErrors: validationError,
+			ValidationErrors: form.ValidationErrors,
 		}
 
 		render(w, http.StatusUnprocessableEntity, index, data)
@@ -122,8 +100,8 @@ func (a DingeApplication) HandlePost(w http.ResponseWriter, r *http.Request) {
 	}
 
 	a.Logger.Info("got post form",
-		slog.String("code", code),
-		slog.Int("anzahl", anzahl))
+		slog.String(string(Code), code),
+		slog.Int(string(Anzahl), anzahl))
 
 	id, err := a.Repository.Insert(r.Context(), code, anzahl)
 	if err != nil {
@@ -134,26 +112,24 @@ func (a DingeApplication) HandlePost(w http.ResponseWriter, r *http.Request) {
 	a.Logger.Info("insert database record", slog.Int64("id", id))
 
 	http.Redirect(w, r, "/", http.StatusSeeOther)
-
-	return
 }
 
 type PostDingForm struct {
-	Id     int64
 	Name   string
 	Code   string
 	Anzahl int
 }
 
 type PostDingData struct {
-	Form   PostDingForm
-	Errors map[string]string
+	Id               int64
+	Form             PostDingForm
+	ValidationErrors validation.ErrorMap
 }
 
 func (a DingeApplication) HandleGetDing(w http.ResponseWriter, r *http.Request) {
 
 	var page, err = template.ParseFS(
-		Templates,
+		TemplatesFileSystem,
 		"templates/layout/*.tmpl",
 		"templates/pages/ding/*.tmpl")
 
@@ -175,8 +151,8 @@ func (a DingeApplication) HandleGetDing(w http.ResponseWriter, r *http.Request) 
 	}
 
 	data := PostDingData{
+		Id: id,
 		Form: PostDingForm{
-			Id:     id,
 			Name:   ding.Name,
 			Code:   ding.Code,
 			Anzahl: ding.Anzahl,
@@ -202,7 +178,7 @@ func render(w http.ResponseWriter, status int, page *template.Template, data any
 
 func (a DingeApplication) HandlePostDing(w http.ResponseWriter, r *http.Request) {
 	var page, err = template.ParseFS(
-		Templates,
+		TemplatesFileSystem,
 		"templates/layout/*.tmpl",
 		"templates/pages/ding/*.tmpl")
 
@@ -217,24 +193,26 @@ func (a DingeApplication) HandlePostDing(w http.ResponseWriter, r *http.Request)
 		return
 	}
 
-	err = r.ParseForm()
+	form := validation.Form{Request: r}
+
+	var result PostDingForm
+
+	err = form.Scan(
+		validation.Field(Name, validation.String(&result.Name), validation.IsNotBlank),
+		validation.Field(Code, validation.String(&result.Code), validation.IsNotBlank),
+		validation.Field(Anzahl, validation.Integer(&result.Anzahl), validation.Min(1)),
+	)
+
 	if err != nil {
 		a.Error(w, r, err)
 		return
 	}
 
-	validationErrors := make(map[string]string)
-	name := FormGetStringValidate(&r.PostForm, validationErrors, "name", "Das Feld darf nicht leer sein", NotBlank)
-
-	if !formIsValid(validationErrors) {
+	if !form.IsValid() {
 		data := PostDingData{
-			Form: PostDingForm{
-				Id:     id,
-				Name:   name,
-				Code:   "",
-				Anzahl: 0,
-			},
-			Errors: validationErrors,
+			Id:               id,
+			Form:             result,
+			ValidationErrors: form.ValidationErrors,
 		}
 
 		if err := render(w, http.StatusOK, page, data); err != nil {
@@ -243,7 +221,167 @@ func (a DingeApplication) HandlePostDing(w http.ResponseWriter, r *http.Request)
 		}
 	}
 
-	err = a.Repository.NamenAktualisieren(id, name)
+	err = a.Repository.NamenAktualisieren(id, result.Name)
+	if err != nil {
+		a.Error(w, r, err)
+	}
+
+	http.Redirect(w, r, fmt.Sprintf("/%v", id), http.StatusSeeOther)
+}
+
+func handleAbout(w http.ResponseWriter, r *http.Request) {
+	var page, err = template.ParseFS(
+		TemplatesFileSystem,
+		"templates/layout/*.tmpl",
+		"templates/pages/about/*.tmpl")
+
+	if err != nil {
+		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
+		return
+	}
+
+	render(w, http.StatusOK, page, nil)
+}
+
+func handleGetEntnehmen(w http.ResponseWriter, r *http.Request) {
+	var page, err = template.ParseFS(
+		TemplatesFileSystem,
+		"templates/layout/*.tmpl",
+		"templates/pages/entnehmen/*.tmpl")
+
+	if err != nil {
+		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
+		return
+	}
+
+	render(w, http.StatusOK, page, nil)
+}
+
+func (a DingeApplication) handleGetEntnehmenCode(w http.ResponseWriter, r *http.Request) {
+	code := r.FormValue("code")
+
+	ding, err := a.Repository.GetByCode(code)
+	if err != nil {
+
+		var page, err = template.ParseFS(
+			TemplatesFileSystem,
+			"templates/layout/*.tmpl",
+			"templates/pages/entnehmen/*.tmpl")
+
+		var data struct {
+			ValidationErrors validation.ErrorMap
+		}
+
+		data.ValidationErrors = map[string]string{}
+		data.ValidationErrors["code"] = "Unbekannter Produktcode"
+
+		if err = render(w, http.StatusNotFound, page, data); err != nil {
+			a.Error(w, r, err)
+		}
+
+		return
+	}
+
+	a.Logger.Info("Ding gefunden", slog.String("code", code), slog.Any("ding", ding))
+
+	url := fmt.Sprintf("/entnehmen/%v/menge", ding.Id)
+	http.Redirect(w, r, url, http.StatusSeeOther)
+}
+
+func (a DingeApplication) handleGetEntnehmenMenge(w http.ResponseWriter, r *http.Request) {
+
+	id, err := strconv.ParseInt(r.PathValue("id"), 10, 64)
+	if err != nil || id < 1 {
+		a.Error(w, r, err)
+		return
+	}
+
+	ding, err := a.Repository.GetById(id)
+	if err != nil {
+		a.Error(w, r, err)
+		return
+	}
+
+	data := struct {
+		Ding             model.Ding
+		Menge            int
+		ValidationErrors validation.ErrorMap
+	}{
+		Ding:  ding,
+		Menge: 1,
+	}
+
+	page, err := template.ParseFS(
+		TemplatesFileSystem,
+		"templates/layout/*.tmpl",
+		"templates/pages/entnehmen/menge/*.tmpl")
+
+	if err != nil {
+		a.Error(w, r, err)
+		return
+	}
+
+	if err := render(w, http.StatusOK, page, data); err != nil {
+		a.Error(w, r, err)
+		return
+	}
+
+}
+
+func (a DingeApplication) handlePostEntnehmen(w http.ResponseWriter, r *http.Request) {
+
+	id, err := strconv.ParseInt(r.PathValue("id"), 10, 64)
+	if err != nil || id < 1 {
+		a.Error(w, r, err)
+		return
+	}
+
+	form := validation.Form{Request: r}
+
+	var menge int
+
+	err = form.Scan(
+		validation.Field("menge", validation.Integer(&menge), validation.Min(1)),
+	)
+
+	if err != nil {
+		a.Error(w, r, err)
+		return
+	}
+
+	if !form.IsValid() {
+		page, err := template.ParseFS(
+			TemplatesFileSystem,
+			"templates/layout/*.tmpl",
+			"templates/pages/entnehmen/menge/*.tmpl")
+
+		if err != nil {
+			a.Error(w, r, err)
+			return
+		}
+
+		ding, err := a.Repository.GetById(id)
+		if err != nil {
+			a.Error(w, r, err)
+			return
+		}
+		data := struct {
+			Ding             model.Ding
+			Menge            int
+			ValidationErrors validation.ErrorMap
+		}{
+			Ding:             ding,
+			Menge:            1,
+			ValidationErrors: form.ValidationErrors,
+		}
+
+		if err := render(w, http.StatusOK, page, data); err != nil {
+			a.Error(w, r, err)
+			return
+		}
+	}
+
+	err = a.Repository.MengeAktualisieren(r.Context(), id, -menge)
 	if err != nil {
 		a.Error(w, r, err)
 	}
