@@ -114,7 +114,7 @@ func run(ctx context.Context, stdout io.Writer, _ []string, environment func(str
 		return err
 	}
 
-	application := DingeApplication{
+	application := DingeResource{
 		Repository: model.Repository{DB: db},
 		Logger:     logger,
 	}
@@ -164,21 +164,6 @@ func environmentOrDefault(environment func(string) (string, bool), key string, d
 	}
 
 	return defaultValue
-}
-
-type DingeApplication struct {
-	Logger     *slog.Logger
-	Repository model.Repository
-}
-
-func (a DingeApplication) Error(w http.ResponseWriter, r *http.Request, err error) {
-	a.Logger.Error(err.Error(),
-		slog.String("method", r.Method),
-		slog.String("uri", r.URL.RequestURI()))
-
-	http.Error(w,
-		http.StatusText(http.StatusInternalServerError),
-		http.StatusInternalServerError)
 }
 
 type Form struct {

@@ -1,0 +1,27 @@
+{{define "title"}}Dinge einlagern{{end}}
+{{define "content"}}
+<section>
+  <form action="/dinge" method="post">
+    <h2>Dinge einlagern</h2>
+    <p>Gebe den <span class="tooltip">Produktcode
+        <span class="tooltiptext">In der Regel ein EAN bzw. GTIN Produktcode. Dieser befindet sich auf der
+          Verpackung des Produkts.</span></span> und die Menge eines Dings ein, das Du einlagerst.</p>
+    <label for="code-input">Produktcode</label>
+    <input id="code-input" type="text" name="code" value="{{.Form.Code}}" autocomplete="off" autofocus required>
+    <span></span>
+    {{with .ValidationErrors.code}}
+    <p class="error">{{.}}</p>
+    {{end}}
+
+
+    <label for="anzahl-input">Anzahl</label>
+    <input id="anzahl-input" type="number" name="anzahl" value="{{.Form.Anzahl}}" required min="1" max="99">
+    <span></span>
+    {{with .ValidationErrors.anzahl}}
+    <p class="error">{{.}}</p>
+    {{end}}
+
+    <button type="submit">Hinzufügen</button>
+  </form>
+</section>
+{{end}}

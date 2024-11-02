@@ -1,0 +1,19 @@
+{{define "title"}}Ding Details{{end}}
+{{define "content"}}
+<section>
+  <form action="/dinge/{{.Ding.Id}}" method="post">
+    <img src="https://picsum.photos/800/450?random{{.Ding.Id}}" alt="">
+    <h4>{{.Ding.Name}}</h4>
+    <p>{{.Ding.Code}}</p>
+    <div>
+      <label for="name-input">Name</label>
+      <input id="input-name" type="text" name="name" value="{{.Ding.Name}}" autocomplete="off" autofocus required>
+      {{with .ValidationErrors.name}}
+      <p class="error">{{.}}</p>
+      {{end}}
+    </div>
+
+    <button type="submit">Aktualisieren</button>
+  </form>
+</section>
+{{end}}

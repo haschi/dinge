@@ -9,7 +9,7 @@ import (
 )
 
 type Ding struct {
-	Id           int
+	Id           int64
 	Name         string
 	Code         string
 	Anzahl       int
@@ -68,11 +68,16 @@ func (r Repository) MengeAktualisieren(ctx context.Context, id int64, menge int)
 	return r.Update(id, alteAnzahl+menge)
 }
 
-func (r Repository) Insert(ctx context.Context, code string, anzahl int) (int64, error) {
+type InsertResult struct {
+	Created bool
+	Id      int64
+}
+
+func (r Repository) Insert(ctx context.Context, code string, anzahl int) (InsertResult, error) {
 
 	tx, err := r.BeginTx(ctx, nil)
 	if err != nil {
-		return 0, err
+		return InsertResult{}, err
 	}
 
 	defer tx.Rollback()
@@ -86,29 +91,33 @@ func (r Repository) Insert(ctx context.Context, code string, anzahl int) (int64,
 
 	if err := row.Scan(&id, &alteAnzahl); err != nil {
 
+		// Prüfen, ob ErrNoRows. Dann das da:
 		statement := `INSERT INTO dinge(name, code, anzahl, aktualisiert)
 		VALUES(?, ?, ?, datetime('now', 'utc'))`
 
 		result, err := r.Exec(statement, "", code, anzahl)
 		if err != nil {
-			return 0, err
+			return InsertResult{}, err
 		}
 
 		id, err := result.LastInsertId()
 		if err != nil {
-			return 0, err
+			return InsertResult{}, err
 		}
 
 		tx.Commit()
-		return id, nil
+		return InsertResult{Created: true, Id: id}, nil
+
+		// sonst Fehler: Form Nochmal anzeigen mit Fehlermeldung.
 	}
 
+	// Ding ist schon vorhanden und muss aktualisiert werden.
 	if err := r.Update(id, alteAnzahl+anzahl); err != nil {
-		return 0, err
+		return InsertResult{}, err
 	}
 
 	tx.Commit()
-	return id, nil
+	return InsertResult{Created: false, Id: id}, nil
 }
 
 func (r Repository) NamenAktualisieren(id int64, name string) error {

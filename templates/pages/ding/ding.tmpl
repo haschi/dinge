@@ -1,25 +1,16 @@
 {{define "title"}}Ding Details{{end}}
 {{define "content"}}
-<section>
-  <form action="/{{.Id}}" method="post">
+<article>
+  <img src="https://picsum.photos/800/450?random{{.Id}}" alt="">
 
-    <div>
-      <label for="name-input">Name</label>
-      <input id="input-name" type="text" name="name" value="{{.Form.Name}}" autocomplete="off" autofocus>
-      {{with .ValidationErrors.name}}
-      <p class="error">{{.}}</p>
-      {{end}}
-    </div>
+  <h4>{{.Form.Name}}<sup>{{.Form.Anzahl}}</sup></h4>
+  <p>{{.Form.Code}}</p>
+  <p>{{.Form.Anzahl}}</p>
 
-    <div>
-      <label for="input-code">Code</label>
-      <input id="input-code" type="text" name="code" value="{{.Form.Code}}" required readonly />
-    </div>
-    <div>
-      <label for="input_anzahl">Anzahl</label>
-      <input id="input_anzahl" type="number" name="anzahl" value="{{.Form.Anzahl}}" required readonly />
-    </div>
-    <button type="submit">Aktualisieren</button>
-  </form>
-</section>
+  <nav>
+    <a href="/dinge/{{.Id}}/edit">Bearbeiten</a>
+    <a href="/dinge/{{.Id}}">Einlagern</a>
+    <a href="/dinge/{{.Id}}">Entnehmen</a>
+  </nav>
+</article>
 {{end}}
