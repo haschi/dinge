@@ -2,7 +2,6 @@ package main
 
 import (
 	"fmt"
-	"html/template"
 	"log/slog"
 	"net/http"
 	"strconv"
@@ -16,74 +15,36 @@ type DingeResource struct {
 	Repository model.Repository
 }
 
-func (a DingeResource) ServerError(w http.ResponseWriter, r *http.Request, err error) {
-	a.Logger.Error(err.Error(),
-		slog.String("method", r.Method),
-		slog.String("uri", r.URL.RequestURI()))
-
-	http.Error(w,
-		http.StatusText(http.StatusInternalServerError),
-		http.StatusInternalServerError)
+func ResponseWrapper(logger *slog.Logger, handler func(r *http.Request) Renderer) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		response := handler(r)
+		if err := response(w); err != nil {
+			logger.Error(err.Error(),
+				slog.String("method", r.Method),
+				slog.String("uri", r.URL.RequestURI()))
+		}
+	}
 }
 
 // Was hier fehlt ist die Middleware Kette, so dass Fehler ggf. von
 // dem umschließenden Handler geloggt werden können.
 
 // Liefert eine HTML Form zum Erzeugen eines neuen Dings.
-func (a DingeResource) NewForm(w http.ResponseWriter, r *http.Request) {
+func (a DingeResource) NewForm(r *http.Request) Renderer {
 
-	var index, err = template.ParseFS(
-		TemplatesFileSystem,
-		"templates/layout/*.tmpl",
-		"templates/pages/new/*.tmpl")
-
-	if err != nil {
-		a.ServerError(w, r, err)
-		return
+	data := FormData[CreateData]{
+		Form: CreateData{Anzahl: 1},
 	}
 
-	form := struct {
-		Code   string
-		Anzahl int
-	}{
-		Code:   "",
-		Anzahl: 1,
-	}
-
-	data := struct {
-		Form struct {
-			Code   string
-			Anzahl int
-		}
-		ValidationErrors validation.ErrorMap
-	}{
-		Form: form,
-	}
-
-	if err := render(w, http.StatusOK, index, data); err != nil {
-		a.ServerError(w, r, err)
-		return
-	}
+	return HtmlResponse("new", data, http.StatusOK)
 }
 
 // Zeigt eine Liste aller Dinge
-func (a DingeResource) Index(w http.ResponseWriter, r *http.Request) {
-
-	// Kommt nach DingeApplication
-	var index, err = template.ParseFS(
-		TemplatesFileSystem,
-		"templates/layout/*.tmpl",
-		"templates/pages/index/*.tmpl")
-
-	if err != nil {
-		a.ServerError(w, r, err)
-		return
-	}
+func (a DingeResource) Index(r *http.Request) Renderer {
 
 	dinge, err := a.Repository.GetLatest()
 	if err != nil {
-		a.ServerError(w, r, err)
-		return
+		return ServerError(err)
 	}
 
 	data := Data{
@@ -91,10 +52,17 @@ func (a DingeResource) Index(w http.ResponseWriter, r *http.Request) {
 		Form:           Form{Anzahl: 1},
 	}
 
-	if err := render(w, http.StatusOK, index, data); err != nil {
-		a.ServerError(w, r, err)
-		return
-	}
+	return HtmlResponse("index", data, http.StatusOK)
+}
+
+type FormData[T any] struct {
+	ValidationErrors validation.ErrorMap
+	Form             T
+}
+
+type CreateData struct {
+	Code   string
+	Anzahl int
 }
 
 // Erzeugt ein neues Ding.
@@ -109,98 +77,55 @@ func (a DingeResource) Index(w http.ResponseWriter, r *http.Request) {
 // werden kann und weitere Dinge hinzugefügt werden können. Wenn es sich um ein
 // neues Ding handelt, wird nach /:id/edit weitergeleitet, um weitere Daten über
 // das Ding anzufordern.
-func (a DingeResource) Create(w http.ResponseWriter, r *http.Request) {
-
-	var index, err = template.ParseFS(
-		TemplatesFileSystem,
-		"templates/layout/*.tmpl",
-		"templates/pages/index/*.tmpl")
-
-	if err != nil {
-		a.ServerError(w, r, err)
-		return
-	}
+func (a DingeResource) Create(r *http.Request) Renderer {
 
 	form := validation.Form{Request: r}
 
-	var code string
-	var anzahl int
+	var content CreateData
 
-	err = form.Scan(
-		validation.Field(Code, validation.String(&code), validation.IsNotBlank),
-		validation.Field(Anzahl, validation.Integer(&anzahl), validation.Min(1)),
+	err := form.Scan(
+		validation.Field(Code, validation.String(&content.Code), validation.IsNotBlank),
+		validation.Field(Anzahl, validation.Integer(&content.Anzahl), validation.Min(1)),
 	)
 
 	if err != nil {
-		a.ServerError(w, r, err)
-		return
+		return ServerError(err)
 	}
 
 	if !form.IsValid() {
-		// a.Error(w, r, fmt.Errorf("fehler in den übermittelten Daten"))
+		// "fehler in den übermittelten Daten"
 
-		dinge, err := a.Repository.GetLatest()
-		if err != nil {
-			a.ServerError(w, r, err)
-			return
-		}
-
-		data := Data{
-			LetzteEinträge: dinge,
-			Form: Form{
-				Code:   code,
-				Anzahl: anzahl,
-			},
+		data := FormData[CreateData]{
+			Form:             content,
 			ValidationErrors: form.ValidationErrors,
 		}
 
-		render(w, http.StatusUnprocessableEntity, index, data)
-		return
+		return HtmlResponse("new", data, http.StatusUnprocessableEntity)
 	}
 
-	a.Logger.Info("got post form",
-		slog.String(string(Code), code),
-		slog.Int(string(Anzahl), anzahl))
-
-	result, err := a.Repository.Insert(r.Context(), code, anzahl)
+	result, err := a.Repository.Insert(r.Context(), content.Code, content.Anzahl)
 	if err != nil {
-		a.ServerError(w, r, err)
-		return
+		return ServerError(err)
 	}
-
-	a.Logger.Info("Neues Ding erzeugt", slog.Int64("id", result.Id), slog.Bool("created", result.Created))
 
 	if result.Created {
-		http.Redirect(w, r, fmt.Sprintf("/dinge/%v/edit", result.Id), http.StatusSeeOther)
-		return
+		return SeeOther(r, fmt.Sprintf("/dinge/%v/edit", result.Id))
 	}
 
-	http.Redirect(w, r, "/dinge/new", http.StatusSeeOther)
+	return SeeOther(r, "/dinge/new")
 }
 
 // Zeigt ein spezifisches Ding an
-func (a DingeResource) Show(w http.ResponseWriter, r *http.Request) {
-
-	var page, err = template.ParseFS(
-		TemplatesFileSystem,
-		"templates/layout/*.tmpl",
-		"templates/pages/ding/*.tmpl")
-
-	if err != nil {
-		a.ServerError(w, r, err)
-		return
-	}
+func (a DingeResource) Show(r *http.Request) Renderer {
 
 	id, err := strconv.ParseInt(r.PathValue("id"), 10, 64)
 	if err != nil || id < 1 {
-		a.ServerError(w, r, err)
-		return
+		return ServerError(err)
 	}
 
 	ding, err := a.Repository.GetById(id)
 	if err != nil {
-		a.ServerError(w, r, err)
-		return
+		return ServerError(err)
 	}
 
 	data := PostDingData{
@@ -212,34 +137,19 @@ func (a DingeResource) Show(w http.ResponseWriter, r *http.Request) {
 		},
 	}
 
-	if err := render(w, http.StatusOK, page, data); err != nil {
-		a.ServerError(w, r, err)
-		return
-	}
+	return HtmlResponse("ding", data, http.StatusOK)
 }
 
 // Edit zeigt eine Form zum Bearbeiten eines spezifischen Dings
-func (a DingeResource) Edit(w http.ResponseWriter, r *http.Request) {
-	var page, err = template.ParseFS(
-		TemplatesFileSystem,
-		"templates/layout/*.tmpl",
-		"templates/pages/edit/*.tmpl")
-
-	if err != nil {
-		a.ServerError(w, r, err)
-		return
-	}
-
+func (a DingeResource) Edit(r *http.Request) Renderer {
 	id, err := strconv.ParseInt(r.PathValue("id"), 10, 64)
 	if err != nil || id < 1 {
-		a.ServerError(w, r, err)
-		return
+		return ServerError(err)
 	}
 
 	ding, err := a.Repository.GetById(id)
 	if err != nil {
-		a.ServerError(w, r, err)
-		return
+		return ServerError(err)
 	}
 
 	data := struct {
@@ -249,18 +159,14 @@ func (a DingeResource) Edit(w http.ResponseWriter, r *http.Request) {
 		Ding: ding,
 	}
 
-	if err := render(w, http.StatusOK, page, data); err != nil {
-		a.ServerError(w, r, err)
-		return
-	}
+	return HtmlResponse("edit", data, http.StatusOK)
 }
 
-func (a DingeResource) Update(w http.ResponseWriter, r *http.Request) {
+func (a DingeResource) Update(r *http.Request) Renderer {
 
 	id, err := strconv.ParseInt(r.PathValue("id"), 10, 64)
 	if err != nil || id < 1 {
-		http.NotFound(w, r)
-		return
+		return NotFound(r)
 	}
 
 	form := validation.Form{Request: r}
@@ -269,32 +175,18 @@ func (a DingeResource) Update(w http.ResponseWriter, r *http.Request) {
 
 	err = form.Scan(
 		validation.Field(Name, validation.String(&result.Name), validation.IsNotBlank),
-		// validation.Field(Code, validation.String(&result.Code), validation.IsNotBlank),
-		// validation.Field(Anzahl, validation.Integer(&result.Anzahl), validation.Min(1)),
 	)
 
 	if err != nil {
-		a.ServerError(w, r, err)
-		return
+		return ServerError(err)
 	}
 
 	if !form.IsValid() {
-		a.ServerError(w, r, fmt.Errorf("Validierungsfehler"))
+		// a.ServerError(w, r, fmt.Errorf("Validierungsfehler"))
 		ding, err := a.Repository.GetById(id)
 		if err != nil {
 			// Ggf Fehler differenzieren.
-			http.NotFound(w, r)
-			return
-		}
-
-		page, err := template.ParseFS(
-			TemplatesFileSystem,
-			"templates/layout/*.tmpl",
-			"templates/pages/edit/*.tmpl")
-
-		if err != nil {
-			a.ServerError(w, r, err)
-			return
+			return NotFound(r)
 		}
 
 		data := struct {
@@ -305,31 +197,23 @@ func (a DingeResource) Update(w http.ResponseWriter, r *http.Request) {
 			Validationerrors: form.ValidationErrors,
 		}
 
-		// Bei einem Validierungsfehler die Form erneut anzeigen, mit den
-		// eingegebenen Werten vorbelegen und die Fehlermeldungen ausgeben.
-		if err := render(w, http.StatusOK, page, data); err != nil {
-			a.ServerError(w, r, err)
-			return
-		}
-
-		return
+		return HtmlResponse("edit", data, http.StatusBadRequest)
 	}
 
 	err = a.Repository.NamenAktualisieren(id, result.Name)
 	if err != nil {
-		a.ServerError(w, r, err)
+		return ServerError(err)
 	}
 
 	// Im Erfolgsfall zur Datailansicht weiterleiten
-	http.Redirect(w, r, fmt.Sprintf("/dinge/%v", id), http.StatusSeeOther)
+	return SeeOther(r, fmt.Sprintf("/dinge/%v", id))
 }
 
-func (a DingeResource) Destroy(w http.ResponseWriter, r *http.Request) {
+func (a DingeResource) Destroy(r *http.Request) Renderer {
 
 	id, err := strconv.ParseInt(r.PathValue("id"), 10, 64)
 	if err != nil || id < 1 {
-		a.ServerError(w, r, err)
-		return
+		return ServerError(err)
 	}
 
 	form := validation.Form{Request: r}
@@ -341,25 +225,14 @@ func (a DingeResource) Destroy(w http.ResponseWriter, r *http.Request) {
 	)
 
 	if err != nil {
-		a.ServerError(w, r, err)
-		return
+		return ServerError(err)
 	}
 
 	if !form.IsValid() {
-		page, err := template.ParseFS(
-			TemplatesFileSystem,
-			"templates/layout/*.tmpl",
-			"templates/pages/entnehmen/menge/*.tmpl")
-
-		if err != nil {
-			a.ServerError(w, r, err)
-			return
-		}
 
 		ding, err := a.Repository.GetById(id)
 		if err != nil {
-			a.ServerError(w, r, err)
-			return
+			return ServerError(err)
 		}
 		data := struct {
 			Ding             model.Ding
@@ -371,16 +244,13 @@ func (a DingeResource) Destroy(w http.ResponseWriter, r *http.Request) {
 			ValidationErrors: form.ValidationErrors,
 		}
 
-		if err := render(w, http.StatusOK, page, data); err != nil {
-			a.ServerError(w, r, err)
-			return
-		}
+		return HtmlResponse("entnehmen/menge", data, http.StatusOK)
 	}
 
 	err = a.Repository.MengeAktualisieren(r.Context(), id, -menge)
 	if err != nil {
-		a.ServerError(w, r, err)
+		return ServerError(err)
 	}
 
-	http.Redirect(w, r, fmt.Sprintf("/%v", id), http.StatusSeeOther)
+	return SeeOther(r, fmt.Sprintf("/%v", id))
 }

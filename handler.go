@@ -47,45 +47,20 @@ func redirectTo(route string) http.HandlerFunc {
 	}
 }
 
-func handleAbout(w http.ResponseWriter, r *http.Request) {
-	var page, err = template.ParseFS(
-		TemplatesFileSystem,
-		"templates/layout/*.tmpl",
-		"templates/pages/about/*.tmpl")
-
-	if err != nil {
-		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
-		return
-	}
-
-	render(w, http.StatusOK, page, nil)
+func handleAbout(r *http.Request) Renderer {
+	return HtmlResponse("about", nil, http.StatusOK)
 }
 
 // Zeigt eine Form an, um Dinge zu entnehmen.
-func handleGetEntnehmen(w http.ResponseWriter, r *http.Request) {
-	var page, err = template.ParseFS(
-		TemplatesFileSystem,
-		"templates/layout/*.tmpl",
-		"templates/pages/entnehmen/*.tmpl")
-
-	if err != nil {
-		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
-		return
-	}
-
-	render(w, http.StatusOK, page, nil)
+func handleGetEntnehmen(r *http.Request) Renderer {
+	return HtmlResponse("entnehmen", nil, http.StatusOK)
 }
 
-func (a DingeResource) handleGetEntnehmenCode(w http.ResponseWriter, r *http.Request) {
+func (a DingeResource) handleGetEntnehmenCode(r *http.Request) Renderer {
 	code := r.FormValue("code")
 
 	ding, err := a.Repository.GetByCode(code)
 	if err != nil {
-
-		var page, err = template.ParseFS(
-			TemplatesFileSystem,
-			"templates/layout/*.tmpl",
-			"templates/pages/entnehmen/*.tmpl")
 
 		var data struct {
 			ValidationErrors validation.ErrorMap
@@ -94,32 +69,24 @@ func (a DingeResource) handleGetEntnehmenCode(w http.ResponseWriter, r *http.Req
 		data.ValidationErrors = map[string]string{}
 		data.ValidationErrors["code"] = "Unbekannter Produktcode"
 
-		if err = render(w, http.StatusNotFound, page, data); err != nil {
-			a.ServerError(w, r, err)
-		}
-
-		return
+		return HtmlResponse("entnehmen", data, http.StatusNotFound)
 	}
 
 	a.Logger.Info("Ding gefunden", slog.String("code", code), slog.Any("ding", ding))
-
-	url := fmt.Sprintf("/entnehmen/%v/menge", ding.Id)
-	http.Redirect(w, r, url, http.StatusSeeOther)
+	return SeeOther(r, fmt.Sprintf("/entnehmen/%v/menge", ding.Id))
 }
 
 // Liefert eine Form für ein spezifisches Ding, in der die Anzahl zu entfernender Exemplarer des Dings eingegeben werden kann. Die Anfrage wird dann an /entnehmen/:id gesendet.
-func (a DingeResource) handleGetEntnehmenMenge(w http.ResponseWriter, r *http.Request) {
+func (a DingeResource) handleGetEntnehmenMenge(r *http.Request) Renderer {
 
 	id, err := strconv.ParseInt(r.PathValue("id"), 10, 64)
 	if err != nil || id < 1 {
-		a.ServerError(w, r, err)
-		return
+		return ServerError(err)
 	}
 
 	ding, err := a.Repository.GetById(id)
 	if err != nil {
-		a.ServerError(w, r, err)
-		return
+		return ServerError(err)
 	}
 
 	data := struct {
@@ -131,19 +98,5 @@ func (a DingeResource) handleGetEntnehmenMenge(w http.ResponseWriter, r *http.Re
 		Menge: 1,
 	}
 
-	page, err := template.ParseFS(
-		TemplatesFileSystem,
-		"templates/layout/*.tmpl",
-		"templates/pages/entnehmen/menge/*.tmpl")
-
-	if err != nil {
-		a.ServerError(w, r, err)
-		return
-	}
-
-	if err := render(w, http.StatusOK, page, data); err != nil {
-		a.ServerError(w, r, err)
-		return
-	}
-
+	return HtmlResponse("entnehmen/menge", data, http.StatusOK)
 }
