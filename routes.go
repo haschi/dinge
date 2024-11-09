@@ -1,6 +1,10 @@
 package main
 
-import "net/http"
+import (
+	"net/http"
+
+	"github.com/haschi/dinge/webx"
+)
 
 func routes(dinge DingeResource) http.Handler {
 	mux := http.NewServeMux()
@@ -20,8 +24,8 @@ func routes(dinge DingeResource) http.Handler {
 	// PATCH/PUT /dinge/:id dinge#update  Aktualisiert ein spezifisches Ding
 	// DELETE /dinge/:id    dinge#destroy Löscht ein spezfisches Ding
 
-	mux.HandleFunc("GET /{$}", redirectTo("/dinge"))                         // Redirect to /dinge
-	mux.HandleFunc("GET /dinge", ResponseWrapper(dinge.Logger, dinge.Index)) // Redirect to /dinge
+	mux.HandleFunc("GET /{$}", webx.Log(dinge.Logger, redirectTo("/dinge")))                         // Redirect to /dinge
+	mux.HandleFunc("GET /dinge", webx.Log(dinge.Logger, ResponseWrapper(dinge.Logger, dinge.Index))) // Redirect to /dinge
 	mux.HandleFunc("GET /dinge/new", ResponseWrapper(dinge.Logger, dinge.NewForm))
 	mux.HandleFunc("POST /dinge", ResponseWrapper(dinge.Logger, dinge.Create))
 	mux.HandleFunc("GET /dinge/{id}", ResponseWrapper(dinge.Logger, dinge.Show))

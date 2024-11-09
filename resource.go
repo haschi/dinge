@@ -20,16 +20,10 @@ type DingeResource struct {
 func ResponseWrapper(logger *slog.Logger, handler func(r *http.Request) webx.Response) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		response := handler(r)
-		if err := response.Render(w, r); err != nil {
-			logger.Error(err.Error(),
-				slog.String("method", r.Method),
-				slog.String("uri", r.URL.RequestURI()))
-		}
+		response.Render(w, r)
+		// TODO: Fehler loggen.
 	}
 }
-
-// Was hier fehlt ist die Middleware Kette, so dass Fehler ggf. von
-// dem umschließenden Handler geloggt werden können.
 
 // Liefert eine HTML Form zum Erzeugen eines neuen Dings.
 func (a DingeResource) NewForm(r *http.Request) webx.Response {
@@ -226,6 +220,7 @@ func (a DingeResource) Update(r *http.Request) webx.Response {
 		if err != nil {
 			return webx.ServerError{Cause: err}
 		}
+
 		return webx.HtmlResponse{Template: template, Data: data, StatusCode: http.StatusBadRequest}
 	}
 
