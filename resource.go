@@ -8,6 +8,7 @@ import (
 
 	"github.com/haschi/dinge/model"
 	"github.com/haschi/dinge/validation"
+	"github.com/haschi/dinge/webx"
 )
 
 type DingeResource struct {
@@ -15,10 +16,11 @@ type DingeResource struct {
 	Repository model.Repository
 }
 
-func ResponseWrapper(logger *slog.Logger, handler func(r *http.Request) Renderer) http.HandlerFunc {
+// Das Ding kommt weg!
+func ResponseWrapper(logger *slog.Logger, handler func(r *http.Request) webx.Response) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		response := handler(r)
-		if err := response(w); err != nil {
+		if err := response.Render(w, r); err != nil {
 			logger.Error(err.Error(),
 				slog.String("method", r.Method),
 				slog.String("uri", r.URL.RequestURI()))
@@ -30,21 +32,26 @@ func ResponseWrapper(logger *slog.Logger, handler func(r *http.Request) Renderer
 // dem umschließenden Handler geloggt werden können.
 
 // Liefert eine HTML Form zum Erzeugen eines neuen Dings.
-func (a DingeResource) NewForm(r *http.Request) Renderer {
+func (a DingeResource) NewForm(r *http.Request) webx.Response {
 
 	data := FormData[CreateData]{
 		Form: CreateData{Anzahl: 1},
 	}
 
-	return HtmlResponse("new", data, http.StatusOK)
+	template, err := GetTemplate("new")
+	if err != nil {
+		return webx.ServerError{Cause: err}
+	}
+
+	return webx.HtmlResponse{Template: template, Data: data, StatusCode: http.StatusOK}
 }
 
 // Zeigt eine Liste aller Dinge
-func (a DingeResource) Index(r *http.Request) Renderer {
+func (a DingeResource) Index(r *http.Request) webx.Response {
 
 	dinge, err := a.Repository.GetLatest()
 	if err != nil {
-		return ServerError(err)
+		return webx.ServerError{Cause: err}
 	}
 
 	data := Data{
@@ -52,7 +59,12 @@ func (a DingeResource) Index(r *http.Request) Renderer {
 		Form:           Form{Anzahl: 1},
 	}
 
-	return HtmlResponse("index", data, http.StatusOK)
+	template, err := GetTemplate("index")
+	if err != nil {
+		return webx.ServerError{Cause: err}
+	}
+
+	return webx.HtmlResponse{Template: template, Data: data, StatusCode: http.StatusOK}
 }
 
 type FormData[T any] struct {
@@ -77,7 +89,7 @@ type CreateData struct {
 // werden kann und weitere Dinge hinzugefügt werden können. Wenn es sich um ein
 // neues Ding handelt, wird nach /:id/edit weitergeleitet, um weitere Daten über
 // das Ding anzufordern.
-func (a DingeResource) Create(r *http.Request) Renderer {
+func (a DingeResource) Create(r *http.Request) webx.Response {
 
 	form := validation.Form{Request: r}
 
@@ -89,7 +101,7 @@ func (a DingeResource) Create(r *http.Request) Renderer {
 	)
 
 	if err != nil {
-		return ServerError(err)
+		return webx.ServerError{Cause: err}
 	}
 
 	if !form.IsValid() {
@@ -100,32 +112,36 @@ func (a DingeResource) Create(r *http.Request) Renderer {
 			ValidationErrors: form.ValidationErrors,
 		}
 
-		return HtmlResponse("new", data, http.StatusUnprocessableEntity)
+		template, err := GetTemplate("new")
+		if err != nil {
+			return webx.ServerError{Cause: err}
+		}
+		return webx.HtmlResponse{Template: template, Data: data, StatusCode: http.StatusUnprocessableEntity}
 	}
 
 	result, err := a.Repository.Insert(r.Context(), content.Code, content.Anzahl)
 	if err != nil {
-		return ServerError(err)
+		return webx.ServerError{Cause: err}
 	}
 
 	if result.Created {
-		return SeeOther(r, fmt.Sprintf("/dinge/%v/edit", result.Id))
+		return webx.SeeOther{Url: fmt.Sprintf("/dinge/%v/edit", result.Id)}
 	}
 
-	return SeeOther(r, "/dinge/new")
+	return webx.SeeOther{Url: "/dinge/new"}
 }
 
 // Zeigt ein spezifisches Ding an
-func (a DingeResource) Show(r *http.Request) Renderer {
+func (a DingeResource) Show(r *http.Request) webx.Response {
 
 	id, err := strconv.ParseInt(r.PathValue("id"), 10, 64)
 	if err != nil || id < 1 {
-		return ServerError(err)
+		return webx.ServerError{Cause: err}
 	}
 
 	ding, err := a.Repository.GetById(id)
 	if err != nil {
-		return ServerError(err)
+		return webx.ServerError{Cause: err}
 	}
 
 	data := PostDingData{
@@ -137,19 +153,24 @@ func (a DingeResource) Show(r *http.Request) Renderer {
 		},
 	}
 
-	return HtmlResponse("ding", data, http.StatusOK)
+	template, err := GetTemplate("ding")
+	if err != nil {
+		return webx.ServerError{Cause: err}
+	}
+
+	return webx.HtmlResponse{Template: template, Data: data, StatusCode: http.StatusOK}
 }
 
 // Edit zeigt eine Form zum Bearbeiten eines spezifischen Dings
-func (a DingeResource) Edit(r *http.Request) Renderer {
+func (a DingeResource) Edit(r *http.Request) webx.Response {
 	id, err := strconv.ParseInt(r.PathValue("id"), 10, 64)
 	if err != nil || id < 1 {
-		return ServerError(err)
+		return webx.ServerError{Cause: err}
 	}
 
 	ding, err := a.Repository.GetById(id)
 	if err != nil {
-		return ServerError(err)
+		return webx.ServerError{Cause: err}
 	}
 
 	data := struct {
@@ -159,14 +180,18 @@ func (a DingeResource) Edit(r *http.Request) Renderer {
 		Ding: ding,
 	}
 
-	return HtmlResponse("edit", data, http.StatusOK)
+	template, err := GetTemplate("edit")
+	if err != nil {
+		return webx.ServerError{Cause: err}
+	}
+	return webx.HtmlResponse{Template: template, Data: data, StatusCode: http.StatusOK}
 }
 
-func (a DingeResource) Update(r *http.Request) Renderer {
+func (a DingeResource) Update(r *http.Request) webx.Response {
 
 	id, err := strconv.ParseInt(r.PathValue("id"), 10, 64)
 	if err != nil || id < 1 {
-		return NotFound(r)
+		return webx.NotFound{}
 	}
 
 	form := validation.Form{Request: r}
@@ -178,7 +203,7 @@ func (a DingeResource) Update(r *http.Request) Renderer {
 	)
 
 	if err != nil {
-		return ServerError(err)
+		return webx.ServerError{Cause: err}
 	}
 
 	if !form.IsValid() {
@@ -186,7 +211,7 @@ func (a DingeResource) Update(r *http.Request) Renderer {
 		ding, err := a.Repository.GetById(id)
 		if err != nil {
 			// Ggf Fehler differenzieren.
-			return NotFound(r)
+			return webx.NotFound{}
 		}
 
 		data := struct {
@@ -197,23 +222,27 @@ func (a DingeResource) Update(r *http.Request) Renderer {
 			Validationerrors: form.ValidationErrors,
 		}
 
-		return HtmlResponse("edit", data, http.StatusBadRequest)
+		template, err := GetTemplate("edit")
+		if err != nil {
+			return webx.ServerError{Cause: err}
+		}
+		return webx.HtmlResponse{Template: template, Data: data, StatusCode: http.StatusBadRequest}
 	}
 
 	err = a.Repository.NamenAktualisieren(id, result.Name)
 	if err != nil {
-		return ServerError(err)
+		return webx.ServerError{Cause: err}
 	}
 
 	// Im Erfolgsfall zur Datailansicht weiterleiten
-	return SeeOther(r, fmt.Sprintf("/dinge/%v", id))
+	return webx.SeeOther{Url: fmt.Sprintf("/dinge/%v", id)}
 }
 
-func (a DingeResource) Destroy(r *http.Request) Renderer {
+func (a DingeResource) Destroy(r *http.Request) webx.Response {
 
 	id, err := strconv.ParseInt(r.PathValue("id"), 10, 64)
 	if err != nil || id < 1 {
-		return ServerError(err)
+		return webx.ServerError{Cause: err}
 	}
 
 	form := validation.Form{Request: r}
@@ -225,15 +254,16 @@ func (a DingeResource) Destroy(r *http.Request) Renderer {
 	)
 
 	if err != nil {
-		return ServerError(err)
+		return webx.ServerError{Cause: err}
 	}
 
 	if !form.IsValid() {
 
 		ding, err := a.Repository.GetById(id)
 		if err != nil {
-			return ServerError(err)
+			return webx.ServerError{Cause: err}
 		}
+
 		data := struct {
 			Ding             model.Ding
 			Menge            int
@@ -244,13 +274,18 @@ func (a DingeResource) Destroy(r *http.Request) Renderer {
 			ValidationErrors: form.ValidationErrors,
 		}
 
-		return HtmlResponse("entnehmen/menge", data, http.StatusOK)
+		template, err := GetTemplate("entnehmen/menge")
+		if err != nil {
+			return webx.ServerError{Cause: err}
+		}
+
+		return webx.HtmlResponse{Template: template, Data: data, StatusCode: http.StatusOK}
 	}
 
 	err = a.Repository.MengeAktualisieren(r.Context(), id, -menge)
 	if err != nil {
-		return ServerError(err)
+		return webx.ServerError{Cause: err}
 	}
 
-	return SeeOther(r, fmt.Sprintf("/%v", id))
+	return webx.SeeOther{Url: fmt.Sprintf("/%v", id)}
 }

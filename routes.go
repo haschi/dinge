@@ -28,12 +28,12 @@ func routes(dinge DingeResource) http.Handler {
 	mux.HandleFunc("GET /dinge/{id}/edit", ResponseWrapper(dinge.Logger, dinge.Edit))
 	mux.HandleFunc("POST /dinge/{id}", ResponseWrapper(dinge.Logger, dinge.Update)) // Update
 
-	mux.HandleFunc("GET /entnehmen", ResponseWrapper(dinge.Logger, handleGetEntnehmen))
+	mux.HandleFunc("GET /entnehmen", handleGetEntnehmen)
 	mux.HandleFunc("POST /entnehmen/{id}", ResponseWrapper(dinge.Logger, dinge.Destroy))
-	mux.HandleFunc("GET /entnehmen/code", ResponseWrapper(dinge.Logger, dinge.handleGetEntnehmenCode)) // Destroy (Referenzzählung) => GET /:id Show aber mit Code statt Id
+	mux.HandleFunc("GET /entnehmen/code", dinge.handleGetEntnehmenCode) // Destroy (Referenzzählung) => GET /:id Show aber mit Code statt Id
 
-	mux.HandleFunc("GET /entnehmen/{id}/menge", ResponseWrapper(dinge.Logger, dinge.handleGetEntnehmenMenge)) // Liefert eine Form für die Entnahme
+	mux.HandleFunc("GET /entnehmen/{id}/menge", dinge.handleGetEntnehmenMenge) // Liefert eine Form für die Entnahme
 
-	mux.HandleFunc("GET /about", ResponseWrapper(dinge.Logger, handleAbout))
+	mux.HandleFunc("GET /about", handleAbout)
 	return mux
 }

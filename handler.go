@@ -1,7 +1,6 @@
 package main
 
 import (
-	"bytes"
 	"fmt"
 	"html/template"
 	"log/slog"
@@ -10,6 +9,7 @@ import (
 
 	"github.com/haschi/dinge/model"
 	"github.com/haschi/dinge/validation"
+	"github.com/haschi/dinge/webx"
 )
 
 const (
@@ -30,73 +30,103 @@ type PostDingData struct {
 	ValidationErrors validation.ErrorMap
 }
 
-func render(w http.ResponseWriter, status int, page *template.Template, data any) error {
-	var buffer bytes.Buffer
-	if err := page.Execute(&buffer, data); err != nil {
-		return err
-	}
-
-	w.WriteHeader(status)
-	buffer.WriteTo(w)
-	return nil
-}
-
 func redirectTo(route string) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		http.Redirect(w, r, route, http.StatusPermanentRedirect)
 	}
 }
 
-func handleAbout(r *http.Request) Renderer {
-	return HtmlResponse("about", nil, http.StatusOK)
+func handleAbout(w http.ResponseWriter, r *http.Request) {
+	template, err := GetTemplate("about")
+	if err != nil {
+		webx.ServerError{Cause: err}.Render(w, r)
+	}
+
+	webx.HtmlResponse{Template: template, StatusCode: http.StatusOK}.Render(w, r)
 }
 
 // Zeigt eine Form an, um Dinge zu entnehmen.
-func handleGetEntnehmen(r *http.Request) Renderer {
-	return HtmlResponse("entnehmen", nil, http.StatusOK)
-}
-
-func (a DingeResource) handleGetEntnehmenCode(r *http.Request) Renderer {
-	code := r.FormValue("code")
-
-	ding, err := a.Repository.GetByCode(code)
+func handleGetEntnehmen(w http.ResponseWriter, r *http.Request) {
+	template, err := GetTemplate("entnehmen")
 	if err != nil {
-
-		var data struct {
-			ValidationErrors validation.ErrorMap
-		}
-
-		data.ValidationErrors = map[string]string{}
-		data.ValidationErrors["code"] = "Unbekannter Produktcode"
-
-		return HtmlResponse("entnehmen", data, http.StatusNotFound)
+		webx.ServerError{Cause: err}.Render(w, r)
 	}
 
-	a.Logger.Info("Ding gefunden", slog.String("code", code), slog.Any("ding", ding))
-	return SeeOther(r, fmt.Sprintf("/entnehmen/%v/menge", ding.Id))
+	webx.HtmlResponse{Template: template, StatusCode: http.StatusOK}.Render(w, r)
+}
+
+func (a DingeResource) handleGetEntnehmenCode(w http.ResponseWriter, r *http.Request) {
+	response := func() webx.Response {
+		code := r.FormValue("code")
+
+		ding, err := a.Repository.GetByCode(code)
+		if err != nil {
+
+			var data struct {
+				ValidationErrors validation.ErrorMap
+			}
+
+			data.ValidationErrors = map[string]string{}
+			data.ValidationErrors["code"] = "Unbekannter Produktcode"
+
+			template, err := GetTemplate("entnehmen")
+			if err != nil {
+				return webx.ServerError{Cause: err}
+			}
+
+			return webx.HtmlResponse{Template: template, Data: data, StatusCode: http.StatusNotFound}
+		}
+
+		a.Logger.Info("Ding gefunden", slog.String("code", code), slog.Any("ding", ding))
+		return webx.SeeOther{Url: fmt.Sprintf("/entnehmen/%v/menge", ding.Id)}
+	}()
+
+	response.Render(w, r)
 }
 
 // Liefert eine Form für ein spezifisches Ding, in der die Anzahl zu entfernender Exemplarer des Dings eingegeben werden kann. Die Anfrage wird dann an /entnehmen/:id gesendet.
-func (a DingeResource) handleGetEntnehmenMenge(r *http.Request) Renderer {
+func (a DingeResource) handleGetEntnehmenMenge(w http.ResponseWriter, r *http.Request) {
 
-	id, err := strconv.ParseInt(r.PathValue("id"), 10, 64)
-	if err != nil || id < 1 {
-		return ServerError(err)
-	}
+	response := func() webx.Response {
+		id, err := strconv.ParseInt(r.PathValue("id"), 10, 64)
+		if err != nil || id < 1 {
+			return webx.ServerError{Cause: err}
+		}
 
-	ding, err := a.Repository.GetById(id)
+		ding, err := a.Repository.GetById(id)
+		if err != nil {
+			return webx.ServerError{Cause: err}
+		}
+
+		data := struct {
+			Ding             model.Ding
+			Menge            int
+			ValidationErrors validation.ErrorMap
+		}{
+			Ding:  ding,
+			Menge: 1,
+		}
+
+		template, err := GetTemplate("entnehmen/menge")
+		if err != nil {
+			return webx.ServerError{Cause: err}
+		}
+
+		return webx.HtmlResponse{Template: template, Data: data, StatusCode: http.StatusOK}
+	}()
+
+	response.Render(w, r)
+}
+
+func GetTemplate(name string) (*template.Template, error) {
+	t, err := template.ParseFS(
+		TemplatesFileSystem,
+		"templates/layout/*.tmpl",
+		fmt.Sprintf("templates/pages/%v/*.tmpl", name))
+
 	if err != nil {
-		return ServerError(err)
+		return nil, err
 	}
 
-	data := struct {
-		Ding             model.Ding
-		Menge            int
-		ValidationErrors validation.ErrorMap
-	}{
-		Ding:  ding,
-		Menge: 1,
-	}
-
-	return HtmlResponse("entnehmen/menge", data, http.StatusOK)
+	return t, nil
 }
