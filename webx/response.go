@@ -4,53 +4,48 @@ import (
 	"bytes"
 	"fmt"
 	"html/template"
-	"log/slog"
 	"net/http"
 )
 
-type responseWriterWrapper struct {
-	http.ResponseWriter
-	statusCode int
-}
-
-func (w *responseWriterWrapper) WriteHeader(code int) {
-	w.statusCode = code
-	w.ResponseWriter.WriteHeader(code)
-}
-
-// Middleware Function
-func Log(logger *slog.Logger, next http.HandlerFunc) http.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) {
-
-		wrapper := &responseWriterWrapper{ResponseWriter: w, statusCode: http.StatusOK}
-
-		next(wrapper, r)
-
-		logger.Info(fmt.Sprintf("%v %v", r.Method, r.URL.Path), slog.Int("status", wrapper.statusCode))
-	}
-}
-
 type Response interface {
+	// TODO: http.Request nicht als Parameter. Wenn der Request benötigt wird, diesen über eine Closure oder Struktur binden.
 	Render(w http.ResponseWriter, r *http.Request)
 }
 
-type SeeOther struct{ Url string }
+// ResponseFunc ist ein Alias für HandlerFunc
+//
+// Implementiert aber die Response Schnittstelle
+// TODO: Eigene Signatur ohne Request.
+type ResponseFunc http.HandlerFunc
 
-func (s SeeOther) Render(w http.ResponseWriter, r *http.Request) {
-	http.Redirect(w, r, s.Url, http.StatusSeeOther)
+// RenderFunc implementiert Response
+func (f ResponseFunc) Render(w http.ResponseWriter, r *http.Request) {
+	f(w, r)
 }
 
-type ServerError struct{ Cause error }
-
-func (s ServerError) Render(w http.ResponseWriter, r *http.Request) {
-	status := http.StatusInternalServerError
-	http.Error(w, http.StatusText(status), status)
+func NotFound() Response {
+	return ResponseFunc(http.NotFound)
 }
 
-type NotFound struct{}
+func SeeOther(format string, a ...any) Response {
+	url := fmt.Sprintf(format, a...)
+	return ResponseFunc(func(w http.ResponseWriter, r *http.Request) {
+		http.Redirect(w, r, url, http.StatusSeeOther)
+	})
+}
 
-func (n NotFound) Render(w http.ResponseWriter, r *http.Request) {
-	http.NotFound(w, r)
+func PermanentRedirect(route string) Response {
+	return ResponseFunc(func(w http.ResponseWriter, r *http.Request) {
+		http.Redirect(w, r, route, http.StatusPermanentRedirect)
+	})
+}
+
+// TODO: cause muss ausgegeben werden, aber nicht im Body, sondern im Protokoll.
+func ServerError(cause error) ResponseFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		status := http.StatusInternalServerError
+		http.Error(w, http.StatusText(status), status)
+	}
 }
 
 type HtmlResponse struct {
@@ -59,6 +54,9 @@ type HtmlResponse struct {
 	StatusCode int
 }
 
+// TODO Offen:
+// 1. Ausgabe des Fehlers im Log
+// 2. Doppelten Code vermeiden
 func (h HtmlResponse) Render(w http.ResponseWriter, r *http.Request) {
 
 	var buffer bytes.Buffer

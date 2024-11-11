@@ -116,13 +116,12 @@ func run(ctx context.Context, stdout io.Writer, _ []string, environment func(str
 
 	application := DingeResource{
 		Repository: model.Repository{DB: db},
-		Logger:     logger,
 	}
 
 	server := &http.Server{
 		Addr:     httpAddress,
 		ErrorLog: slog.NewLogLogger(logger.Handler(), slog.LevelInfo),
-		Handler:  routes(application),
+		Handler:  routes(logger, application),
 	}
 
 	var wg sync.WaitGroup

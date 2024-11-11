@@ -1,15 +1,36 @@
 package main
 
 import (
+	"log/slog"
 	"net/http"
 
 	"github.com/haschi/dinge/webx"
 )
 
-func routes(dinge DingeResource) http.Handler {
+func combine(handler func(*http.Request) webx.Response, mw ...webx.Middleware) http.Handler {
+	if len(mw) == 0 {
+		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			handler(r).Render(w, r)
+		})
+	}
+
+	first := mw[0]
+	next := combine(handler, mw[1:]...)
+	return first(next)
+}
+
+// TODO: Bessere Namen für combine und compose wählen
+// TODO: Verschieben nach webx.
+func compose(m1, m2 webx.Middleware) webx.Middleware {
+	return webx.Middleware(func(next http.Handler) http.Handler {
+		return m1(m2(next))
+	})
+}
+
+func routes(logger *slog.Logger, dinge DingeResource) http.Handler {
 	mux := http.NewServeMux()
 
-	mux.Handle("GET /static/", newStaticHandler(dinge.Logger))
+	mux.Handle("GET /static/", newStaticHandler(logger))
 	mux.HandleFunc("GET /favicon.ico", func(w http.ResponseWriter, r *http.Request) {
 		http.NotFound(w, r)
 	})
@@ -24,20 +45,25 @@ func routes(dinge DingeResource) http.Handler {
 	// PATCH/PUT /dinge/:id dinge#update  Aktualisiert ein spezifisches Ding
 	// DELETE /dinge/:id    dinge#destroy Löscht ein spezfisches Ding
 
-	mux.HandleFunc("GET /{$}", webx.Log(dinge.Logger, redirectTo("/dinge")))                         // Redirect to /dinge
-	mux.HandleFunc("GET /dinge", webx.Log(dinge.Logger, ResponseWrapper(dinge.Logger, dinge.Index))) // Redirect to /dinge
-	mux.HandleFunc("GET /dinge/new", ResponseWrapper(dinge.Logger, dinge.NewForm))
-	mux.HandleFunc("POST /dinge", ResponseWrapper(dinge.Logger, dinge.Create))
-	mux.HandleFunc("GET /dinge/{id}", ResponseWrapper(dinge.Logger, dinge.Show))
-	mux.HandleFunc("GET /dinge/{id}/edit", ResponseWrapper(dinge.Logger, dinge.Edit))
-	mux.HandleFunc("POST /dinge/{id}", ResponseWrapper(dinge.Logger, dinge.Update)) // Update
+	weblogger := webx.LogRequest(logger)
+	nostore := webx.NoStore(logger)
+	defaultMiddleware := compose(weblogger, nostore)
 
-	mux.HandleFunc("GET /entnehmen", handleGetEntnehmen)
-	mux.HandleFunc("POST /entnehmen/{id}", ResponseWrapper(dinge.Logger, dinge.Destroy))
-	mux.HandleFunc("GET /entnehmen/code", dinge.handleGetEntnehmenCode) // Destroy (Referenzzählung) => GET /:id Show aber mit Code statt Id
+	// noop := webx.Noop
+	mux.Handle("GET /{$}", combine(redirectTo("/dinge"), weblogger))   // Redirect to /dinge
+	mux.Handle("GET /dinge", combine(dinge.Index, weblogger, nostore)) // Redirect to /dinge
+	mux.Handle("GET /dinge/new", combine(dinge.NewForm, defaultMiddleware))
+	mux.Handle("POST /dinge", combine(dinge.Create, weblogger))
+	mux.Handle("GET /dinge/{id}", combine(dinge.Show, defaultMiddleware))
+	mux.Handle("GET /dinge/{id}/edit", combine(dinge.Edit, defaultMiddleware))
+	mux.Handle("POST /dinge/{id}", combine(dinge.Update, weblogger)) // Update
 
-	mux.HandleFunc("GET /entnehmen/{id}/menge", dinge.handleGetEntnehmenMenge) // Liefert eine Form für die Entnahme
+	mux.Handle("GET /entnehmen", combine(handleGetEntnehmen, defaultMiddleware))
+	mux.Handle("POST /entnehmen/{id}", combine(dinge.Destroy, weblogger))
+	mux.Handle("GET /entnehmen/code", combine(dinge.handleGetEntnehmenCode, defaultMiddleware)) // Destroy (Referenzzählung) => GET /:id Show aber mit Code statt Id
 
-	mux.HandleFunc("GET /about", handleAbout)
+	mux.Handle("GET /entnehmen/{id}/menge", combine(dinge.handleGetEntnehmenMenge)) // Liefert eine Form für die Entnahme
+
+	mux.Handle("GET /about", combine(handleAbout, weblogger))
 	return mux
 }
