@@ -1,15 +1,22 @@
 {{define "title"}}Entnehmen{{end}}
 {{define "content"}}
 <section>
-  <form action="/entnehmen/code" method="get">
-    <div>
-      <label for="code-input">Code</label>
-      <input id="code-input" type="text" name="code" autocomplete="off" autofocus required>
-      {{with .ValidationErrors.code}}
-      <p class="error">{{.}}</p>
-      {{end}}
-    </div>
-    <button type="submit">Weiter</button>
+  <form action="/dinge/delete" method="post">
+    <h2>Dinge entnehmen</h2>
+    <p>Gebe den Productcode und die Menge eines Dings ein, dass du entnehmen möchtest.</p>
+
+    <label for="code-input">Produktcode</label>
+    <input id="code-input" type="text" name="code" autocomplete="off" autofocus required>
+    {{with .ValidationErrors.code}}
+    <p class="error">{{.}}</p>
+    {{end}}
+
+    <label for="anzahl-input">Anzahl</label>
+    <input id="anzahl-input" type="number" name="anzahl" value="{{.Form.Menge}}" required min="1" max="99" />
+    {{with .ValidationErrors.anzahl}}
+    <p class="error">{{.}}</p>
+    {{end}}
+    <button type="submit">Entnehmen</button>
   </form>
 </section>
 {{end}}

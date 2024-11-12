@@ -223,17 +223,14 @@ func (a DingeResource) Update(r *http.Request) webx.Response {
 
 func (a DingeResource) Destroy(r *http.Request) webx.Response {
 
-	id, err := strconv.ParseInt(r.PathValue("id"), 10, 64)
-	if err != nil || id < 1 {
-		return webx.ServerError(err)
-	}
-
 	form := validation.Form{Request: r}
 
-	var menge int
+	var anzahl int
+	var code string
 
-	err = form.Scan(
-		validation.Field("menge", validation.Integer(&menge), validation.Min(1)),
+	err := form.Scan(
+		validation.Field("code", validation.String(&code)),
+		validation.Field("anzahl", validation.Integer(&anzahl), validation.Min(1)),
 	)
 
 	if err != nil {
@@ -242,22 +239,23 @@ func (a DingeResource) Destroy(r *http.Request) webx.Response {
 
 	if !form.IsValid() {
 
-		ding, err := a.Repository.GetById(id)
+		_, err := a.Repository.GetByCode(code)
 		if err != nil {
+			form.ValidationErrors["code"] = "Unbekannter Produktcode"
 			return webx.ServerError(err)
 		}
 
 		data := struct {
-			Ding             model.Ding
+			Code             string
 			Menge            int
 			ValidationErrors validation.ErrorMap
 		}{
-			Ding:             ding,
-			Menge:            1,
+			Code:             code,
+			Menge:            anzahl,
 			ValidationErrors: form.ValidationErrors,
 		}
 
-		template, err := GetTemplate("entnehmen/menge")
+		template, err := GetTemplate("entnehmen")
 		if err != nil {
 			return webx.ServerError(err)
 		}
@@ -265,10 +263,37 @@ func (a DingeResource) Destroy(r *http.Request) webx.Response {
 		return webx.HtmlResponse{Template: template, Data: data, StatusCode: http.StatusOK}
 	}
 
-	err = a.Repository.MengeAktualisieren(r.Context(), id, -menge)
+	id, err := a.Repository.MengeAktualisieren(r.Context(), code, -anzahl)
 	if err != nil {
 		return webx.ServerError(err)
 	}
 
-	return webx.SeeOther(r, "/%v", id)
+	return webx.SeeOther(r, "/dinge/%v", id)
+}
+
+// Zeigt eine Form an, um Dinge zu entnehmen.
+func DestroyForm(r *http.Request) webx.Response {
+	template, err := GetTemplate("entnehmen")
+	if err != nil {
+		return webx.ServerError(err)
+	}
+
+	var form = struct {
+		Menge int
+	}{
+		Menge: 1,
+	}
+
+	var data = struct {
+		Form             struct{ Menge int }
+		ValidationErrors validation.ErrorMap
+	}{
+		Form: form,
+	}
+
+	return webx.HtmlResponse{
+		Template:   template,
+		Data:       data,
+		StatusCode: http.StatusOK,
+	}
 }

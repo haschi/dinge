@@ -59,11 +59,8 @@ func routes(logger *slog.Logger, dinge DingeResource) http.Handler {
 	mux.Handle("GET /dinge/{id}/edit", combine(dinge.Edit, defaultMiddleware))
 	mux.Handle("POST /dinge/{id}", combine(dinge.Update, weblogger)) // Update
 
-	mux.Handle("GET /entnehmen", combine(handleGetEntnehmen, defaultMiddleware))
-	mux.Handle("POST /entnehmen/{id}", combine(dinge.Destroy, weblogger))
-	mux.Handle("GET /entnehmen/code", combine(dinge.handleGetEntnehmenCode, defaultMiddleware)) // Destroy (Referenzzählung) => GET /:id Show aber mit Code statt Id
-
-	mux.Handle("GET /entnehmen/{id}/menge", combine(dinge.handleGetEntnehmenMenge)) // Liefert eine Form für die Entnahme
+	mux.Handle("GET /dinge/delete", combine(DestroyForm, defaultMiddleware))
+	mux.Handle("POST /dinge/delete", combine(dinge.Destroy, weblogger))
 
 	mux.Handle("GET /about", combine(handleAbout, weblogger))
 	return mux

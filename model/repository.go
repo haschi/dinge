@@ -46,26 +46,33 @@ func (r Repository) GetByCode(code string) (Ding, error) {
 	return ding, nil
 }
 
-func (r Repository) MengeAktualisieren(ctx context.Context, id int64, menge int) error {
+func (r Repository) MengeAktualisieren(ctx context.Context, code string, menge int) (int64, error) {
+	var id int64
+
 	tx, err := r.BeginTx(ctx, nil)
 	if err != nil {
-		return err
+		return id, err
 	}
 
 	defer tx.Rollback()
-	suchen := `SELECT anzahl FROM dinge
-	WHERE id = ?`
+	suchen := `SELECT id, anzahl FROM dinge
+	WHERE code = ?`
 	var alteAnzahl int
-	row := r.QueryRow(suchen, id)
-	if err := row.Scan(&alteAnzahl); err != nil {
-		return err
+
+	row := r.QueryRow(suchen, code)
+	if err := row.Scan(&id, &alteAnzahl); err != nil {
+		return id, err
 	}
 
 	if alteAnzahl+menge < 0 {
-		return errors.New("Zuviele")
+		return id, errors.New("Zuviele")
 	}
 
-	return r.Update(id, alteAnzahl+menge)
+	if err = r.Update(id, alteAnzahl+menge); err != nil {
+		return id, err
+	}
+
+	return id, tx.Commit()
 }
 
 type InsertResult struct {
