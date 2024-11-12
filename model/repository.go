@@ -21,6 +21,10 @@ type Repository struct {
 }
 
 func (r Repository) GetById(id int64) (Ding, error) {
+	if r.DB == nil {
+		return Ding{}, errors.New("no database provided")
+	}
+
 	suchen := `SELECT id, name, code, anzahl FROM dinge
 	WHERE id = ?`
 
@@ -34,6 +38,10 @@ func (r Repository) GetById(id int64) (Ding, error) {
 }
 
 func (r Repository) GetByCode(code string) (Ding, error) {
+	if r.DB == nil {
+		return Ding{}, errors.New("no database provided")
+	}
+
 	suchen := `SELECT id, name, code, anzahl FROM dinge
 	WHERE code = ?`
 
@@ -47,6 +55,10 @@ func (r Repository) GetByCode(code string) (Ding, error) {
 }
 
 func (r Repository) MengeAktualisieren(ctx context.Context, code string, menge int) (int64, error) {
+	if r.DB == nil {
+		return 0, errors.New("no database provided")
+	}
+
 	var id int64
 
 	tx, err := r.BeginTx(ctx, nil)
@@ -75,16 +87,15 @@ func (r Repository) MengeAktualisieren(ctx context.Context, code string, menge i
 	return id, tx.Commit()
 }
 
-type InsertResult struct {
-	Created bool
-	Id      int64
-}
-
 func (r Repository) Insert(ctx context.Context, code string, anzahl int) (InsertResult, error) {
+
+	if r.DB == nil {
+		return InsertResult{Created: false}, errors.New("no database provided")
+	}
 
 	tx, err := r.BeginTx(ctx, nil)
 	if err != nil {
-		return InsertResult{}, err
+		return InsertResult{Created: false}, err
 	}
 
 	defer tx.Rollback()
@@ -112,8 +123,7 @@ func (r Repository) Insert(ctx context.Context, code string, anzahl int) (Insert
 			return InsertResult{}, err
 		}
 
-		tx.Commit()
-		return InsertResult{Created: true, Id: id}, nil
+		return InsertResult{Created: true, Id: id}, tx.Commit()
 
 		// sonst Fehler: Form Nochmal anzeigen mit Fehlermeldung.
 	}
@@ -123,8 +133,7 @@ func (r Repository) Insert(ctx context.Context, code string, anzahl int) (Insert
 		return InsertResult{}, err
 	}
 
-	tx.Commit()
-	return InsertResult{Created: false, Id: id}, nil
+	return InsertResult{Created: false, Id: id}, tx.Commit()
 }
 
 func (r Repository) NamenAktualisieren(id int64, name string) error {
@@ -197,4 +206,9 @@ func (r Repository) GetLatest() ([]Ding, error) {
 	}
 
 	return dinge, nil
+}
+
+type InsertResult struct {
+	Created bool
+	Id      int64
 }
