@@ -75,7 +75,7 @@ func run(ctx context.Context, stdout io.Writer, _ []string, environment func(str
 	flag.Parse()
 
 	if version {
-		// TODO: Richtig machen!
+		// TODO: Revision und Version richtig reinkompilieren.
 		fmt.Println("Dinge", Git_Revision, Version)
 		os.Exit(0)
 	}

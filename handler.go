@@ -31,7 +31,7 @@ type PostDingData struct {
 
 func redirectTo(route string) func(*http.Request) webx.Response {
 	return func(r *http.Request) webx.Response {
-		return webx.PermanentRedirect(route)
+		return webx.PermanentRedirect(r, route)
 	}
 }
 
@@ -76,7 +76,7 @@ func (a DingeResource) handleGetEntnehmenCode(r *http.Request) webx.Response {
 		return webx.HtmlResponse{Template: template, Data: data, StatusCode: http.StatusNotFound}
 	}
 
-	return webx.SeeOther("/entnehmen/%v/menge", ding.Id)
+	return webx.SeeOther(r, "/entnehmen/%v/menge", ding.Id)
 }
 
 // Liefert eine Form für ein spezifisches Ding, in der die Anzahl zu entfernender Exemplarer des Dings eingegeben werden kann. Die Anfrage wird dann an /entnehmen/:id gesendet.

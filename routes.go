@@ -10,7 +10,8 @@ import (
 func combine(handler func(*http.Request) webx.Response, mw ...webx.Middleware) http.Handler {
 	if len(mw) == 0 {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			handler(r).Render(w, r)
+			response := handler(r)
+			response.Render(w)
 		})
 	}
 

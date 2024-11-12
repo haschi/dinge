@@ -1,7 +1,6 @@
 package main
 
 import (
-	"log/slog"
 	"net/http"
 	"strconv"
 
@@ -12,14 +11,6 @@ import (
 
 type DingeResource struct {
 	Repository model.Repository
-}
-
-// Das Ding kommt weg!
-func ResponseWrapper(logger *slog.Logger, handler func(r *http.Request) webx.Response) http.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) {
-		handler(r).Render(w, r)
-		// TODO: Fehler loggen.
-	}
 }
 
 // Liefert eine HTML Form zum Erzeugen eines neuen Dings.
@@ -116,10 +107,10 @@ func (a DingeResource) Create(r *http.Request) webx.Response {
 	}
 
 	if result.Created {
-		return webx.SeeOther("/dinge/%v/edit", result.Id)
+		return webx.SeeOther(r, "/dinge/%v/edit", result.Id)
 	}
 
-	return webx.SeeOther("/dinge/new")
+	return webx.SeeOther(r, "/dinge/new")
 }
 
 // Zeigt ein spezifisches Ding an
@@ -182,7 +173,7 @@ func (a DingeResource) Update(r *http.Request) webx.Response {
 
 	id, err := strconv.ParseInt(r.PathValue("id"), 10, 64)
 	if err != nil || id < 1 {
-		return webx.NotFound()
+		return webx.NotFound(r)
 	}
 
 	form := validation.Form{Request: r}
@@ -202,7 +193,7 @@ func (a DingeResource) Update(r *http.Request) webx.Response {
 		ding, err := a.Repository.GetById(id)
 		if err != nil {
 			// Ggf Fehler differenzieren.
-			return webx.NotFound()
+			return webx.NotFound(r)
 		}
 
 		data := struct {
@@ -227,7 +218,7 @@ func (a DingeResource) Update(r *http.Request) webx.Response {
 	}
 
 	// Im Erfolgsfall zur Datailansicht weiterleiten
-	return webx.SeeOther("/dinge/%v", id)
+	return webx.SeeOther(r, "/dinge/%v", id)
 }
 
 func (a DingeResource) Destroy(r *http.Request) webx.Response {
@@ -279,5 +270,5 @@ func (a DingeResource) Destroy(r *http.Request) webx.Response {
 		return webx.ServerError(err)
 	}
 
-	return webx.SeeOther("/%v", id)
+	return webx.SeeOther(r, "/%v", id)
 }
