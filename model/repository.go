@@ -18,6 +18,7 @@ type Ding struct {
 
 type Repository struct {
 	*sql.DB
+	Clock Clock
 }
 
 func (r Repository) GetById(id int64) (Ding, error) {
@@ -25,12 +26,12 @@ func (r Repository) GetById(id int64) (Ding, error) {
 		return Ding{}, errors.New("no database provided")
 	}
 
-	suchen := `SELECT id, name, code, anzahl FROM dinge
+	suchen := `SELECT id, name, code, anzahl, aktualisiert FROM dinge
 	WHERE id = ?`
 
 	var ding Ding
 	row := r.QueryRow(suchen, id)
-	if err := row.Scan(&ding.Id, &ding.Name, &ding.Code, &ding.Anzahl); err != nil {
+	if err := row.Scan(&ding.Id, &ding.Name, &ding.Code, &ding.Anzahl, &ding.Aktualisiert); err != nil {
 		return ding, err
 	}
 
@@ -42,12 +43,12 @@ func (r Repository) GetByCode(code string) (Ding, error) {
 		return Ding{}, errors.New("no database provided")
 	}
 
-	suchen := `SELECT id, name, code, anzahl FROM dinge
+	suchen := `SELECT id, name, code, anzahl, aktualisiert FROM dinge
 	WHERE code = ?`
 
 	var ding Ding
 	row := r.QueryRow(suchen, code)
-	if err := row.Scan(&ding.Id, &ding.Name, &ding.Code, &ding.Anzahl); err != nil {
+	if err := row.Scan(&ding.Id, &ding.Name, &ding.Code, &ding.Anzahl, &ding.Aktualisiert); err != nil {
 		return ding, err
 	}
 
@@ -67,11 +68,12 @@ func (r Repository) MengeAktualisieren(ctx context.Context, code string, menge i
 	}
 
 	defer tx.Rollback()
+
 	suchen := `SELECT id, anzahl FROM dinge
 	WHERE code = ?`
 	var alteAnzahl int
 
-	row := r.QueryRow(suchen, code)
+	row := tx.QueryRowContext(ctx, suchen, code)
 	if err := row.Scan(&id, &alteAnzahl); err != nil {
 		return id, err
 	}
@@ -80,7 +82,7 @@ func (r Repository) MengeAktualisieren(ctx context.Context, code string, menge i
 		return id, errors.New("Zuviele")
 	}
 
-	if err = r.Update(id, alteAnzahl+menge); err != nil {
+	if err = r.update(ctx, tx, id, alteAnzahl+menge); err != nil {
 		return id, err
 	}
 
@@ -103,17 +105,18 @@ func (r Repository) Insert(ctx context.Context, code string, anzahl int) (Insert
 	suchen := `SELECT id, anzahl FROM dinge
 	WHERE code = ?`
 
+	row := tx.QueryRowContext(ctx, suchen, code)
+
 	var alteAnzahl int
 	var id int64
-	row := r.QueryRow(suchen, code)
-
 	if err := row.Scan(&id, &alteAnzahl); err != nil {
 
 		// Prüfen, ob ErrNoRows. Dann das da:
 		statement := `INSERT INTO dinge(name, code, anzahl, aktualisiert)
-		VALUES(?, ?, ?, datetime('now', 'utc'))`
+		VALUES(?, ?, ?, ?)`
 
-		result, err := r.Exec(statement, "", code, anzahl)
+		timestamp := r.Clock.Now()
+		result, err := tx.ExecContext(ctx, statement, "", code, anzahl, timestamp)
 		if err != nil {
 			return InsertResult{}, err
 		}
@@ -125,23 +128,59 @@ func (r Repository) Insert(ctx context.Context, code string, anzahl int) (Insert
 
 		return InsertResult{Created: true, Id: id}, tx.Commit()
 
-		// sonst Fehler: Form Nochmal anzeigen mit Fehlermeldung.
+		// sonst Fehler: Form nochmal anzeigen mit Fehlermeldung.
 	}
 
 	// Ding ist schon vorhanden und muss aktualisiert werden.
-	if err := r.Update(id, alteAnzahl+anzahl); err != nil {
+	// TODO: Prüfen, dass alteAnzahl+anzahl >= 0 !
+	if err := r.update(ctx, tx, id, alteAnzahl+anzahl); err != nil {
 		return InsertResult{}, err
 	}
 
 	return InsertResult{Created: false, Id: id}, tx.Commit()
 }
 
-func (r Repository) NamenAktualisieren(id int64, name string) error {
+func (r Repository) NamenAktualisieren(ctx context.Context, id int64, name string) error {
+	if r.DB == nil {
+		return errors.New("no database provided")
+	}
+
+	tx, err := r.BeginTx(ctx, nil)
+	if err != nil {
+		return err
+	}
+
+	defer tx.Rollback()
+
 	statement := `UPDATE dinge
-	SET name = ?, aktualisiert = datetime('now', 'utc')
+	SET name = ?, aktualisiert = ?
 	WHERE id = ?`
 
-	result, err := r.Exec(statement, name, id)
+	timestamp := r.Clock.Now()
+	result, err := tx.ExecContext(ctx, statement, name, timestamp, id)
+	if err != nil {
+		return err
+	}
+
+	affected, err := result.RowsAffected()
+	if err != nil {
+		return err
+	}
+
+	if affected != 1 {
+		return fmt.Errorf("expected 1 row affected, got %v", affected)
+	}
+
+	return tx.Commit()
+}
+
+func (r Repository) update(ctx context.Context, tx *sql.Tx, id int64, anzahl int) error {
+
+	statement := `UPDATE dinge
+	SET anzahl = ?, aktualisiert = ?
+	WHERE id = ?`
+
+	result, err := tx.ExecContext(ctx, statement, anzahl, r.Clock.Now(), id)
 	if err != nil {
 		return err
 	}
@@ -158,43 +197,24 @@ func (r Repository) NamenAktualisieren(id int64, name string) error {
 	return nil
 }
 
-func (r Repository) Update(id int64, anzahl int) error {
-
-	statement := `UPDATE dinge
-	SET anzahl = ?, aktualisiert = datetime('now', 'utc')
-	WHERE id = ?`
-
-	result, err := r.Exec(statement, anzahl, id)
-	if err != nil {
-		return err
+func (r Repository) GetLatest(limit int) ([]Ding, error) {
+	if r.DB == nil {
+		return nil, errors.New("no database provided")
 	}
-
-	affected, err := result.RowsAffected()
-	if err != nil {
-		return err
-	}
-
-	if affected != 1 {
-		return fmt.Errorf("expected 1 row affected, got %v", affected)
-	}
-
-	return nil
-}
-
-func (r Repository) GetLatest() ([]Ding, error) {
 
 	statement := `SELECT id, name, code, anzahl, aktualisiert FROM dinge
 		ORDER BY aktualisiert DESC
-		LIMIT 12`
+		LIMIT ?`
 
-	rows, err := r.Query(statement)
+	rows, err := r.Query(statement, limit)
 	if err != nil {
 		return nil, err
 	}
 
 	defer rows.Close()
 
-	var dinge []Ding
+	var dinge []Ding = []Ding{}
+
 	for rows.Next() {
 		var ding Ding
 		err = rows.Scan(&ding.Id, &ding.Name, &ding.Code, &ding.Anzahl, &ding.Aktualisiert)
@@ -211,4 +231,14 @@ func (r Repository) GetLatest() ([]Ding, error) {
 type InsertResult struct {
 	Created bool
 	Id      int64
+}
+
+type Clock interface {
+	Now() time.Time
+}
+
+type RealClock struct{}
+
+func (c RealClock) Now() time.Time {
+	return time.Now()
 }

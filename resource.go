@@ -31,7 +31,7 @@ func (a DingeResource) NewForm(r *http.Request) webx.Response {
 // Zeigt eine Liste aller Dinge
 func (a DingeResource) Index(r *http.Request) webx.Response {
 
-	dinge, err := a.Repository.GetLatest()
+	dinge, err := a.Repository.GetLatest(12)
 	if err != nil {
 		return webx.ServerError(err)
 	}
@@ -212,7 +212,7 @@ func (a DingeResource) Update(r *http.Request) webx.Response {
 		return webx.HtmlResponse{Template: template, Data: data, StatusCode: http.StatusBadRequest}
 	}
 
-	err = a.Repository.NamenAktualisieren(id, result.Name)
+	err = a.Repository.NamenAktualisieren(r.Context(), id, result.Name)
 	if err != nil {
 		return webx.ServerError(err)
 	}
