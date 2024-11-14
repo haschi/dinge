@@ -121,7 +121,7 @@ func (a DingeResource) Show(r *http.Request) webx.Response {
 		return webx.ServerError(err)
 	}
 
-	ding, err := a.Repository.GetById(id)
+	ding, err := a.Repository.GetById(r.Context(), id)
 	if err != nil {
 		return webx.ServerError(err)
 	}
@@ -150,7 +150,7 @@ func (a DingeResource) Edit(r *http.Request) webx.Response {
 		return webx.ServerError(err)
 	}
 
-	ding, err := a.Repository.GetById(id)
+	ding, err := a.Repository.GetById(r.Context(), id)
 	if err != nil {
 		return webx.ServerError(err)
 	}
@@ -190,7 +190,7 @@ func (a DingeResource) Update(r *http.Request) webx.Response {
 
 	if !form.IsValid() {
 		// a.ServerError(w, r, fmt.Errorf("Validierungsfehler"))
-		ding, err := a.Repository.GetById(id)
+		ding, err := a.Repository.GetById(r.Context(), id)
 		if err != nil {
 			// Ggf Fehler differenzieren.
 			return webx.NotFound(r)
@@ -239,7 +239,7 @@ func (a DingeResource) Destroy(r *http.Request) webx.Response {
 
 	if !form.IsValid() {
 
-		_, err := a.Repository.GetByCode(code)
+		_, err := a.Repository.GetByCode(r.Context(), code)
 		if err != nil {
 			form.ValidationErrors["code"] = "Unbekannter Produktcode"
 			return webx.ServerError(err)
