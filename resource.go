@@ -1,6 +1,8 @@
 package main
 
 import (
+	"database/sql"
+	"errors"
 	"net/http"
 	"strconv"
 
@@ -123,6 +125,10 @@ func (a DingeResource) Show(r *http.Request) webx.Response {
 
 	ding, err := a.Repository.GetById(r.Context(), id)
 	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return webx.NotFound(r)
+		}
+
 		return webx.ServerError(err)
 	}
 
@@ -152,6 +158,9 @@ func (a DingeResource) Edit(r *http.Request) webx.Response {
 
 	ding, err := a.Repository.GetById(r.Context(), id)
 	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return webx.NotFound(r)
+		}
 		return webx.ServerError(err)
 	}
 

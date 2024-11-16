@@ -10,40 +10,14 @@ import (
 	"time"
 
 	"github.com/haschi/dinge/model"
+	"github.com/haschi/dinge/testx"
 
 	_ "github.com/mattn/go-sqlite3"
 )
 
-//go:embed create.sql
-var create string
+const dataSource = "file::memory:?cache=shared"
 
-const dataSourceName = "file::memory:?cache=shared"
-
-func initializeDatabase(db *sql.DB) error {
-
-	_, err := db.Exec(create)
-	if err != nil {
-		return err
-	}
-
-	// rows, err := db.Query("SELECT name FROM sqlite_master WHERE type='table'")
-	// if err != nil {
-	// 	return err
-	// }
-
-	// defer rows.Close()
-
-	// for rows.Next() {
-	// 	var name string
-	// 	if err = rows.Scan(&name); err != nil {
-	// 		return err
-	// 	}
-	// }
-
-	return nil
-}
-
-func setupFixture(ctx context.Context, dinge []model.Ding) setup {
+func setupFixture(ctx context.Context, dinge []model.Ding) testx.SetupFunc {
 
 	return func(db *sql.DB) error {
 		for _, ding := range dinge {
@@ -91,20 +65,20 @@ func setupFixture(ctx context.Context, dinge []model.Ding) setup {
 	}
 }
 
-// setup ist eine Function zum Herstellen der Vorbedingung für einen Testfall
-type setup func(*sql.DB) error
+// // setup ist eine Function zum Herstellen der Vorbedingung für einen Testfall mit Datenbank
+// type setup func(*sql.DB) error
 
-// AndThen kombiniert die Funktion setup mit der Funktion then zu einer neuen Funktion.
-//
-// Wenn die resultierende Funktion aufgerufen wird, dann wird die then Funktion nur dann aufgerufen, wenn die setup Funktion erfolgreich war.
-func (fn setup) AndThen(then setup) setup {
-	return func(d *sql.DB) error {
-		if err := fn(d); err != nil {
-			return nil
-		}
-		return then(d)
-	}
-}
+// // AndThen kombiniert die Funktion setup mit der Funktion then zu einer neuen Funktion.
+// //
+// // Wenn die resultierende Funktion aufgerufen wird, dann wird die then Funktion nur dann aufgerufen, wenn die setup Funktion erfolgreich war.
+// func (fn setup) AndThen(then setup) setup {
+// 	return func(d *sql.DB) error {
+// 		if err := fn(d); err != nil {
+// 			return nil
+// 		}
+// 		return then(d)
+// 	}
+// }
 
 // testFunc deklariert eine Testfunktion, die eine Datenbank benutzt
 type testFunc func(*testing.T, *sql.DB)
@@ -114,32 +88,32 @@ type testFunc func(*testing.T, *sql.DB)
 // Die zurückgegebene Funktion initialisiert die Datenbank und füllt diese mit Testdaten, wenn sie aufgerufen wird.
 //
 // Die zurückgegebene Funktion kann mit [setup.AndThen] mit einer weiteren Funktion kombiniert werden.
-func thefixture(dinge []model.Ding) setup {
-	return setup(initializeDatabase).AndThen(setupFixture(context.Background(), dinge))
+func thefixture(dinge []model.Ding) testx.SetupFunc {
+	return testx.SetupFunc(model.CreateTable).AndThen(setupFixture(context.Background(), dinge))
 }
 
 // withDatabase stellt eine Ausführungsumgebung bereit, in der eine Testfunktion ausgeführt werden kann, die eine Datenbank verwendet.
-func withDatabase(t *testing.T, setup setup, testfn testFunc) {
+func withDatabase(t *testing.T, setupFn testx.SetupFunc, testFn testFunc) {
 	t.Helper()
 
-	db, err := sql.Open("sqlite3", dataSourceName)
+	db, err := sql.Open("sqlite3", dataSource)
 	if err != nil {
 		t.Fatal("can not open database", err)
 	}
 
 	defer db.Close()
 
-	if setup != nil {
-		if err := setup(db); err != nil {
+	if setupFn != nil {
+		if err := setupFn(db); err != nil {
 			t.Fatal("can not setup fixture", err)
 		}
 	}
 
-	if testfn == nil {
+	if testFn == nil {
 		t.Fatal("no test function provided")
 	}
 
-	testfn(t, db)
+	testFn(t, db)
 }
 
 var dinge = []model.Ding{
@@ -147,7 +121,7 @@ var dinge = []model.Ding{
 
 	{Id: 2, Name: "Gurke", Code: "222", Anzahl: 2, Aktualisiert: must(time.Parse(time.DateTime, "2024-11-13 19:05:02"))},
 
-	{Id: 3, Name: "Tomate", Code: "333", Anzahl: 3, Aktualisiert: must(time.Parse(time.DateTime, "2024-11-13 19:06:06"))},
+	{Id: 3, Name: "Tomate", Code: "333", Anzahl: 3, Aktualisiert: must(time.Parse(time.DateTime, "2024-11-13 19:06:03"))},
 }
 
 func TestRepository_GetById(t *testing.T) {
@@ -159,7 +133,7 @@ func TestRepository_GetById(t *testing.T) {
 	tests := []struct {
 		name         string
 		fields       repositoryProvider
-		precondition setup
+		precondition testx.SetupFunc
 		args         args
 		want         model.Ding
 		wantErr      bool
@@ -288,7 +262,7 @@ func TestRepository_MengeAktualisieren(t *testing.T) {
 	tests := []struct {
 		name    string
 		fields  repositoryProvider
-		setup   setup
+		setup   testx.SetupFunc
 		args    args
 		want    model.Ding
 		wantErr bool
@@ -390,7 +364,7 @@ func TestRepository_Insert(t *testing.T) {
 	tests := []struct {
 		name         string
 		fields       repositoryProvider
-		precondition setup
+		precondition testx.SetupFunc
 		args         args
 		want         model.InsertResult
 		wantErr      bool
@@ -453,7 +427,7 @@ func TestRepository_NamenAktualisieren(t *testing.T) {
 	tests := []struct {
 		name         string
 		fields       repositoryProvider
-		precondition setup
+		precondition testx.SetupFunc
 		args         args
 		want         model.Ding
 		wantErr      bool
@@ -531,7 +505,7 @@ func TestRepository_GetLatest(t *testing.T) {
 	tests := []struct {
 		name         string
 		fields       fields
-		precondition setup
+		precondition testx.SetupFunc
 		arg          int
 		want         []model.Ding
 		wantErr      bool
