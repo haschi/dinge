@@ -186,7 +186,8 @@ func (a DingeResource) Update(r *http.Request) webx.Response {
 		return webx.NotFound(r)
 	}
 
-	form := validation.Form{Request: r}
+	form := validation.NewForm(r)
+	defer form.Close()
 
 	var result PostDingForm
 
@@ -208,10 +209,10 @@ func (a DingeResource) Update(r *http.Request) webx.Response {
 
 		data := struct {
 			Ding             model.Ding
-			Validationerrors validation.ErrorMap
+			ValidationErrors validation.ErrorMap
 		}{
 			Ding:             ding,
-			Validationerrors: form.ValidationErrors,
+			ValidationErrors: form.ValidationErrors,
 		}
 
 		template, err := GetTemplate("edit")
@@ -224,6 +225,9 @@ func (a DingeResource) Update(r *http.Request) webx.Response {
 
 	err = a.Repository.NamenAktualisieren(r.Context(), id, result.Name)
 	if err != nil {
+		if errors.Is(err, model.ErrNoRecord) {
+			return webx.NotFound(r)
+		}
 		return webx.ServerError(err)
 	}
 

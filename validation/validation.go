@@ -45,8 +45,11 @@ func Field[T FieldType](key string, extractor ExtractorFunc[T], validators ...Va
 		}
 
 		for _, validator := range validators {
-			validator(value)
+			if validationError := validator(value); validationError != nil {
+				return validationError
+			}
 		}
+
 		return nil
 	}
 }

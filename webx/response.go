@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"fmt"
 	"html/template"
+	"log/slog"
 	"net/http"
 )
 
@@ -69,6 +70,7 @@ func (h HtmlResponse) Render(w http.ResponseWriter) {
 
 	var buffer bytes.Buffer
 	if err := h.Template.Execute(&buffer, h.Data); err != nil {
+		slog.Error(err.Error())
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 	}
 

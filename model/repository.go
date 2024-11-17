@@ -21,6 +21,8 @@ type Repository struct {
 	Clock Clock
 }
 
+var ErrNoRecord = errors.New("no record found")
+
 func (r Repository) GetById(ctx context.Context, id int64) (Ding, error) {
 	if r.DB == nil {
 		return Ding{}, errors.New("no database provided")
@@ -183,7 +185,7 @@ func (r Repository) NamenAktualisieren(ctx context.Context, id int64, name strin
 	}
 
 	if affected != 1 {
-		return fmt.Errorf("expected 1 row affected, got %v", affected)
+		return ErrNoRecord
 	}
 
 	return tx.Commit()

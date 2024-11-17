@@ -181,6 +181,70 @@ func TestResource_PostDinge(t *testing.T) {
 	}
 }
 
+func TestRespurce_PostDingeId(t *testing.T) {
+	testserver := newTestServer(t, newDingeResource)
+	defer testserver.Close()
+
+	type fixture struct {
+		name           string
+		path           string
+		data           url.Values
+		wantStatusCode int
+		wantLocation   string
+	}
+
+	tests := []fixture{
+		{
+			name: "Aktualisierunge Ding",
+			path: "/dinge/1",
+			data: url.Values{
+				Name: []string{"Salat"},
+			},
+
+			wantStatusCode: http.StatusSeeOther,
+			wantLocation:   "/dinge/1",
+		},
+		{
+			name:           "Missgebildeter Identitätsbezeichner",
+			path:           "/dinge/malformed",
+			data:           url.Values{},
+			wantStatusCode: http.StatusNotFound,
+		},
+		{
+			name: "Nicht vorhandenes Ding aktualisieren",
+			path: "/dinge/42",
+			data: url.Values{
+				Name: []string{"Kenn ich nicht"},
+			},
+			wantStatusCode: http.StatusNotFound,
+		},
+		{
+			name: "Ungültige Daten",
+			path: "/dinge/1",
+			data: url.Values{
+				Name: []string{""},
+			},
+			wantStatusCode: http.StatusBadRequest,
+		},
+	}
+
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			resp := testserver.Post(test.path, test.data)
+
+			gotStatusCode := resp.StatusCode
+			if gotStatusCode != test.wantStatusCode {
+				t.Errorf("POST %v = %v, want %v", test.path, gotStatusCode, test.wantStatusCode)
+			}
+
+			location := resp.Header.Get("Location")
+			if location != test.wantLocation {
+				t.Errorf("POST %v = %v, want %v", test.path, location, test.wantLocation)
+			}
+		})
+	}
+}
+
 func TestResource_GetDingeDelete(t *testing.T) {
 	testserver := newTestServer(t, newDingeResource)
 
