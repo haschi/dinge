@@ -14,6 +14,20 @@ type Form struct {
 	ValidationErrors ErrorMap
 }
 
+func NewForm(req *http.Request) *Form {
+	return &Form{
+		Request:          req,
+		ValidationErrors: map[string]string{},
+	}
+}
+
+func (f *Form) Close() {
+	if f != nil {
+		// TODO: Handle error
+		f.Request.Body.Close()
+	}
+}
+
 type ValidationError struct {
 	key     string
 	message string
@@ -44,6 +58,7 @@ type ValidationFunc[T FieldType] func(value T) *ValidationError
 type ExtractorFunc[T FieldType] func(key string, value string) (T, *ValidationError)
 
 func (f *Form) Scan(scanners ...ScanFunc) error {
+
 	if err := f.Request.ParseForm(); err != nil {
 		return err
 	}

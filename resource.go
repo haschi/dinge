@@ -75,7 +75,8 @@ type CreateData struct {
 // das Ding anzufordern.
 func (a DingeResource) Create(r *http.Request) webx.Response {
 
-	form := validation.Form{Request: r}
+	form := validation.NewForm(r)
+	defer form.Close()
 
 	var content CreateData
 

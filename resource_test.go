@@ -6,6 +6,7 @@ import (
 	"log/slog"
 	"net/http"
 	"net/http/httptest"
+	"net/url"
 	"os"
 	"testing"
 
@@ -123,6 +124,63 @@ func TestResource_GetDingeIdEdit(t *testing.T) {
 	}
 }
 
+func TestResource_PostDinge(t *testing.T) {
+
+	testserver := newTestServer(t, newDingeResource)
+	defer testserver.Close()
+
+	type fixture struct {
+		name           string
+		data           url.Values
+		wantStatusCode int
+		wantLocation   string
+	}
+
+	tests := []fixture{
+		{
+			name: "Neues Ding",
+			data: url.Values{
+				Code:   []string{"42"},
+				Anzahl: []string{"7"},
+			},
+			wantStatusCode: http.StatusSeeOther,
+			wantLocation:   "/dinge/4/edit",
+		},
+		{
+			name: "Ding aktualisieren",
+			data: url.Values{
+				Code:   []string{"111"},
+				Anzahl: []string{"7"},
+			},
+			wantStatusCode: http.StatusSeeOther,
+			wantLocation:   "/dinge/new",
+		},
+		{
+			name: "Ungültige Daten",
+			data: url.Values{
+				Code:   []string{"111"},
+				Anzahl: []string{"invalid number"},
+			},
+			wantStatusCode: http.StatusUnprocessableEntity,
+		},
+	}
+
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+
+			resp := testserver.Post("/dinge", test.data)
+			if resp.StatusCode != test.wantStatusCode {
+				t.Errorf("POST /dinge = %v; want %v", resp.StatusCode, test.wantStatusCode)
+			}
+
+			location := resp.Header.Get("Location")
+			if location != test.wantLocation {
+				t.Errorf("Header Location = %v, want %v", location, test.wantLocation)
+			}
+		})
+	}
+}
+
 func TestResource_GetDingeDelete(t *testing.T) {
 	testserver := newTestServer(t, newDingeResource)
 
@@ -195,6 +253,17 @@ func (t *testserver) Get(path string) *http.Response {
 	if err != nil {
 		t.t.Fatal(err)
 	}
+	return resp
+}
+
+func (t *testserver) Post(path string, data url.Values) *http.Response {
+	url := t.server.URL + path
+	resp, err := t.server.Client().PostForm(url, data)
+	if err != nil {
+		t.t.Fatal(err)
+	}
+	defer resp.Body.Close()
+
 	return resp
 }
 
