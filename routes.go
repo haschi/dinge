@@ -7,16 +7,13 @@ import (
 	"github.com/haschi/dinge/webx"
 )
 
-func combine(handler func(*http.Request) webx.Response, mw ...webx.Middleware) http.Handler {
-	if len(mw) == 0 {
-		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			response := handler(r)
-			response.Render(w)
-		})
+func combine(handler http.HandlerFunc, middleware ...webx.Middleware) http.Handler {
+	if len(middleware) == 0 {
+		return handler
 	}
 
-	first := mw[0]
-	next := combine(handler, mw[1:]...)
+	first := middleware[0]
+	next := combine(handler, middleware[1:]...)
 	return first(next)
 }
 
@@ -51,8 +48,8 @@ func routes(logger *slog.Logger, dinge DingeResource) http.Handler {
 	defaultMiddleware := compose(weblogger, nostore)
 
 	// noop := webx.Noop
-	mux.Handle("GET /{$}", combine(redirectTo("/dinge"), weblogger))   // Redirect to /dinge
-	mux.Handle("GET /dinge", combine(dinge.Index, weblogger, nostore)) // Redirect to /dinge
+	mux.Handle("GET /{$}", combine(webx.PermanentRedirect("/dinge"), weblogger)) // Redirect to /dinge
+	mux.Handle("GET /dinge", combine(dinge.Index, weblogger, nostore))           // Redirect to /dinge
 	mux.Handle("GET /dinge/new", combine(dinge.NewForm, defaultMiddleware))
 	mux.Handle("POST /dinge", combine(dinge.Create, weblogger))
 	mux.Handle("GET /dinge/{id}", combine(dinge.Show, defaultMiddleware))

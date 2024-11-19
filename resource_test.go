@@ -181,7 +181,7 @@ func TestResource_PostDinge(t *testing.T) {
 	}
 }
 
-func TestRespurce_PostDingeId(t *testing.T) {
+func TestResource_PostDingeId(t *testing.T) {
 	testserver := newTestServer(t, newDingeResource)
 	defer testserver.Close()
 
@@ -245,6 +245,9 @@ func TestRespurce_PostDingeId(t *testing.T) {
 	}
 }
 
+func TestResource_PostDingeDelete(t *testing.T) {
+
+}
 func TestResource_GetDingeDelete(t *testing.T) {
 	testserver := newTestServer(t, newDingeResource)
 

@@ -27,19 +27,17 @@ type PostDingData struct {
 	ValidationErrors validation.ErrorMap
 }
 
-func redirectTo(route string) func(*http.Request) webx.Response {
-	return func(r *http.Request) webx.Response {
-		return webx.PermanentRedirect(r, route)
-	}
-}
-
-func handleAbout(r *http.Request) webx.Response {
+func handleAbout(w http.ResponseWriter, r *http.Request) {
 	template, err := GetTemplate("about")
 	if err != nil {
-		return webx.ServerError(err)
+		webx.ServerError(w, err)
+		return
 	}
 
-	return webx.HtmlResponse{Template: template, StatusCode: http.StatusOK}
+	response := webx.HtmlResponse{Template: template, StatusCode: http.StatusOK}
+	if err := response.Render(w); err != nil {
+		webx.ServerError(w, err)
+	}
 }
 
 func GetTemplate(name string) (*template.Template, error) {
