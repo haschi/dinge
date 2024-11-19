@@ -90,8 +90,8 @@ func (a DingeResource) Create(w http.ResponseWriter, r *http.Request) {
 	var content CreateData
 
 	err := form.Scan(
-		validation.Field(Code, validation.String(&content.Code), validation.IsNotBlank),
-		validation.Field(Anzahl, validation.Integer(&content.Anzahl), validation.Min(1)),
+		validation.String(Code, &content.Code, validation.IsNotBlank),
+		validation.Integer(Anzahl, &content.Anzahl, validation.Min(1)),
 	)
 
 	if err != nil {
@@ -112,6 +112,7 @@ func (a DingeResource) Create(w http.ResponseWriter, r *http.Request) {
 			webx.ServerError(w, err)
 			return
 		}
+
 		response := webx.HtmlResponse{Template: template, Data: data, StatusCode: http.StatusUnprocessableEntity}
 		if err := response.Render(w); err != nil {
 			webx.ServerError(w, err)
@@ -226,7 +227,7 @@ func (a DingeResource) Update(w http.ResponseWriter, r *http.Request) {
 	var result PostDingForm
 
 	err = form.Scan(
-		validation.Field(Name, validation.String(&result.Name), validation.IsNotBlank),
+		validation.String(Name, &result.Name, validation.IsNotBlank),
 	)
 
 	if err != nil {
@@ -286,9 +287,8 @@ func (a DingeResource) Destroy(w http.ResponseWriter, r *http.Request) {
 	var code string
 
 	err := form.Scan(
-		validation.Field("code", validation.String(&code)),
-		validation.Field("anzahl", validation.Integer(&anzahl), validation.Min(1)),
-	)
+		validation.String(Code, &code, validation.IsNotBlank),
+		validation.Integer(Anzahl, &anzahl, validation.Min(1)))
 
 	if err != nil {
 		webx.ServerError(w, err)
@@ -299,7 +299,7 @@ func (a DingeResource) Destroy(w http.ResponseWriter, r *http.Request) {
 
 		_, err := a.Repository.GetByCode(r.Context(), code)
 		if err != nil {
-			form.ValidationErrors["code"] = "Unbekannter Produktcode"
+			form.ValidationErrors[Code] = "Unbekannter Produktcode"
 			http.NotFound(w, r)
 			return
 		}

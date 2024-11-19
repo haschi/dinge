@@ -1,13 +1,12 @@
 package validation
 
 import (
+	"errors"
 	"net/http"
 	"net/url"
 	"strconv"
 	"strings"
 )
-
-type ErrorMap = map[string]string
 
 type Form struct {
 	Request          *http.Request
@@ -28,38 +27,6 @@ func (f *Form) Close() {
 	}
 }
 
-type ValidationError struct {
-	key     string
-	message string
-}
-
-type FieldType interface{ int | int64 | string | bool }
-
-func Field[T FieldType](key string, extractor ExtractorFunc[T], validators ...ValidationFunc[T]) ScanFunc {
-	return func(s url.Values) *ValidationError {
-		rawValue := s.Get(key)
-		value, err := extractor(key, rawValue)
-
-		if err != nil {
-			return err
-		}
-
-		for _, validator := range validators {
-			if validationError := validator(value); validationError != nil {
-				return validationError
-			}
-		}
-
-		return nil
-	}
-}
-
-type ScanFunc func(s url.Values) *ValidationError
-
-type ValidationFunc[T FieldType] func(value T) *ValidationError
-
-type ExtractorFunc[T FieldType] func(key string, value string) (T, *ValidationError)
-
 func (f *Form) Scan(scanners ...ScanFunc) error {
 
 	if err := f.Request.ParseForm(); err != nil {
@@ -79,54 +46,80 @@ func (f Form) IsValid() bool {
 	return len(f.ValidationErrors) == 0
 }
 
-/* ScanFunc */
+type ScanFunc func(s url.Values) *ValidationError
 
-func String(reference *string) ExtractorFunc[string] {
-	return func(key, value string) (string, *ValidationError) {
-		*reference = value
-		return value, nil
+type ErrorMap = map[string]string
+
+type ValidationError struct {
+	key     string
+	message string
+}
+
+func (err ValidationError) Error() string {
+	return err.message
+}
+
+func String(key string, value *string, validators ...ValidationFunc[string]) ScanFunc {
+	return func(s url.Values) *ValidationError {
+		*value = s.Get(key)
+
+		return validate(key, *value, validators)
 	}
 }
 
-func Int64(reference *int64) ExtractorFunc[int64] {
-	return func(key, value string) (int64, *ValidationError) {
-		result, err := strconv.ParseInt(value, 10, 64)
+func Integer(key string, value *int, validators ...ValidationFunc[int]) ScanFunc {
+	return func(s url.Values) *ValidationError {
+		i, err := strconv.Atoi(s.Get(key))
 		if err != nil {
-			return 0, &ValidationError{key: key, message: "Kein Zahl"}
+			return &ValidationError{key: key, message: "Keine Zahl"}
 		}
-		*reference = result
-		return result, nil
+		*value = i
+		return validate(key, i, validators)
 	}
 }
 
-func Integer(reference *int) ExtractorFunc[int] {
-
-	return func(key, value string) (int, *ValidationError) {
-		result, err := strconv.Atoi(value)
+func Integer64(key string, value *int64, validators ...ValidationFunc[int64]) ScanFunc {
+	return func(s url.Values) *ValidationError {
+		i, err := strconv.ParseInt(s.Get(key), 10, 64)
 		if err != nil {
-			return 0, &ValidationError{key: key, message: "Keine Zahl"}
+			return &ValidationError{key: key, message: "Keine Zahl"}
 		}
-		*reference = result
-		return result, nil
+		*value = i
+
+		return validate(key, i, validators)
 	}
 }
 
-func IsNotBlank(value string) *ValidationError {
-	if strings.TrimSpace(value) == "" {
-		return &ValidationError{
-			message: "Das Feld ist leer, darf es aber nicht sein",
+func validate[T FieldType](key string, value T, validators []ValidationFunc[T]) *ValidationError {
+	for _, validator := range validators {
+		if err := validator(value); err != nil {
+			return &ValidationError{key: key, message: err.Error()}
 		}
 	}
 
 	return nil
 }
 
+type ValidationFunc[T FieldType] func(value T) error
+
+type FieldType interface {
+	int | int64 | string | bool
+}
+
+/* ScanFunc */
+
+func IsNotBlank(value string) error {
+	if strings.TrimSpace(string(value)) == "" {
+		return errors.New("Das Feld ist leer, darf es aber nicht sein")
+	}
+
+	return nil
+}
+
 func Min(lowerbound int) ValidationFunc[int] {
-	return func(value int) *ValidationError {
+	return func(value int) error {
 		if value < lowerbound {
-			return &ValidationError{
-				message: "Wert darf nicht kleiner sein als x",
-			}
+			return errors.New("Wert darf nicht kleiner sein als x")
 		}
 		return nil
 	}
