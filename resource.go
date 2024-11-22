@@ -37,7 +37,7 @@ func (a DingeResource) NewForm(w http.ResponseWriter, r *http.Request) {
 // Zeigt eine Liste aller Dinge
 func (a DingeResource) Index(w http.ResponseWriter, r *http.Request) {
 
-	dinge, err := a.Repository.GetLatest(12)
+	dinge, err := a.Repository.GetLatest(r.Context(), 12)
 	if err != nil {
 		webx.ServerError(w, err)
 		return

@@ -336,9 +336,6 @@ func (t *testserver) Post(path string, data url.Values) *http.Response {
 
 func newDingeResource(db *sql.DB) DingeResource {
 	return DingeResource{
-		Repository: model.Repository{
-			DB:    db,
-			Clock: model.RealClock{},
-		},
+		Repository: model.NewRepository(db, model.RealClock{}),
 	}
 }

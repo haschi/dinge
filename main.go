@@ -115,10 +115,7 @@ func run(ctx context.Context, stdout io.Writer, _ []string, environment func(str
 	}
 
 	application := DingeResource{
-		Repository: model.Repository{
-			DB:    db,
-			Clock: model.RealClock{},
-		},
+		Repository: model.NewRepository(db, model.RealClock{}),
 	}
 
 	server := &http.Server{

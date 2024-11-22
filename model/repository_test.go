@@ -22,7 +22,7 @@ func setupFixture(ctx context.Context, dinge []model.Ding) testx.SetupFunc {
 	return func(db *sql.DB) error {
 		for _, ding := range dinge {
 
-			r := model.Repository{DB: db, Clock: FixedClock{Timestamp: ding.Aktualisiert}}
+			r := model.NewRepository(db, FixedClock{Timestamp: ding.Aktualisiert})
 
 			result, err := r.Insert(ctx, ding.Code, ding.Anzahl)
 			if err != nil {
@@ -502,6 +502,7 @@ func TestRepository_NamenAktualisieren(t *testing.T) {
 func TestRepository_GetLatest(t *testing.T) {
 
 	type fields func(*sql.DB) model.Repository
+
 	tests := []struct {
 		name         string
 		fields       fields
@@ -553,10 +554,10 @@ func TestRepository_GetLatest(t *testing.T) {
 			name:   "items are sorted by date of change",
 			fields: repositoryWithDatabase,
 			precondition: thefixture(dinge).AndThen(func(d *sql.DB) error {
-				repository := model.Repository{
-					DB:    d,
-					Clock: FixedClock{Timestamp: must(time.Parse(time.DateTime, "2024-11-13 19:58:05"))},
-				}
+				repository := model.NewRepository(
+					d,
+					FixedClock{Timestamp: must(time.Parse(time.DateTime, "2024-11-13 19:58:05"))},
+				)
 				_, err := repository.MengeAktualisieren(context.Background(), dinge[1].Code, 1)
 				return err
 			}),
@@ -580,12 +581,12 @@ func TestRepository_GetLatest(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			withDatabase(t, tt.precondition, func(t *testing.T, db *sql.DB) {
 				r := tt.fields(db)
-				got, err := r.GetLatest(tt.arg)
+				got, err := r.GetLatest(context.Background(), tt.arg)
 				if (err != nil) != tt.wantErr {
 					t.Errorf("Repository.GetLatest() error = %v, wantErr %v", err, tt.wantErr)
 					return
 				}
-				if !reflect.DeepEqual(got, tt.want) {
+				if !tt.wantErr && !reflect.DeepEqual(got, tt.want) {
 					t.Errorf("Repository.GetLatest() = %v, want %v", got, tt.want)
 				}
 			})
@@ -610,18 +611,15 @@ type repositoryProvider func(*sql.DB, model.Clock) model.Repository
 
 // newRepository liefert ein neues [model.Repository] mit Datenbank und clock.
 func newRespository(db *sql.DB, clock model.Clock) model.Repository {
-	return model.Repository{
-		DB:    db,
-		Clock: clock,
-	}
+	return model.NewRepository(
+		db,
+		clock,
+	)
 }
 
 // newRepositoryWithoutDatabase liefert ein neues [model.Repository] ohne Datenbank.
 func newRespositoryWithoutDatabase(db *sql.DB, clock model.Clock) model.Repository {
-	return model.Repository{
-		DB:    nil,
-		Clock: clock,
-	}
+	return model.NewRepository(nil, clock)
 }
 
 // must stoppt die Ausführung, wenn err wahr ist. Ansonsten liefert die Funktion den Wert value zurück.
@@ -642,9 +640,9 @@ func newCanceledContext() context.Context {
 }
 
 func repositoryWithoutDatabase(_ *sql.DB) model.Repository {
-	return model.Repository{}
+	return model.NewRepository(nil, model.RealClock{})
 }
 
 func repositoryWithDatabase(db *sql.DB) model.Repository {
-	return model.Repository{DB: db}
+	return model.NewRepository(db, model.RealClock{})
 }

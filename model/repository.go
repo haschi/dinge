@@ -19,11 +19,140 @@ type Ding struct {
 type Repository struct {
 	*sql.DB
 	Clock Clock
+	tm    TransactionManager
+}
+
+func NewRepository(db *sql.DB, clock Clock) Repository {
+	return Repository{
+		DB:    db,
+		Clock: clock,
+		tm:    TransactionManager{db: db},
+	}
+}
+
+type TransactionManager struct {
+	db *sql.DB
+	tx Transaction
+}
+
+func (tm *TransactionManager) BeginTx(ctx context.Context) (Transaction, error) {
+	if tm.tx == nil {
+		tx, err := tm.db.BeginTx(ctx, nil)
+		if err != nil {
+			return nil, err
+		}
+		tm.tx = SqlTransaction{tx: tx}
+
+		return tm.tx, nil
+	}
+
+	nested := &NestedTransaction{parent: tm.tx}
+	tm.tx = nested
+	return nested, nil
+}
+
+func (tm *TransactionManager) Commit() error {
+	if tm.tx != nil {
+		// Rollback wird wegen defer immer ausgeführt.
+		return tm.tx.Commit()
+	}
+
+	return nil
+}
+
+func (tm *TransactionManager) Rollback() error {
+	this := tm.tx
+	parent := this.Parent()
+	tm.tx = parent
+	return this.Rollback()
+}
+
+type Transaction interface {
+	ExecContext(ctx context.Context, query string, args ...any) (sql.Result, error)
+	QueryContext(ctx context.Context, query string, args ...any) (*sql.Rows, error)
+	QueryRowContext(ctx context.Context, query string, args ...any) *sql.Row
+	Commit() error
+	Rollback() error
+	Parent() Transaction
+}
+
+type SqlTransaction struct {
+	tx *sql.Tx
+}
+
+func (t SqlTransaction) Parent() Transaction {
+	return nil
+}
+
+func (t SqlTransaction) Commit() error {
+	return t.tx.Commit()
+}
+
+func (t SqlTransaction) Rollback() error {
+	return t.tx.Rollback()
+}
+
+func (t SqlTransaction) ExecContext(ctx context.Context, query string, args ...any) (sql.Result, error) {
+	return t.tx.ExecContext(ctx, query, args...)
+}
+
+func (t SqlTransaction) QueryContext(ctx context.Context, query string, args ...any) (*sql.Rows, error) {
+	return t.tx.QueryContext(ctx, query, args...)
+}
+
+func (t SqlTransaction) QueryRowContext(ctx context.Context, query string, args ...any) *sql.Row {
+	return t.tx.QueryRowContext(ctx, query, args...)
+}
+
+type NestedTransaction struct {
+	comitted bool
+	parent   Transaction
+}
+
+func (t *NestedTransaction) ExecContext(ctx context.Context, query string, args ...any) (sql.Result, error) {
+	return t.parent.ExecContext(ctx, query, args...)
+}
+
+func (t *NestedTransaction) QueryContext(ctx context.Context, query string, args ...any) (*sql.Rows, error) {
+	return t.parent.QueryContext(ctx, query, args...)
+}
+
+func (t *NestedTransaction) QueryRowContext(ctx context.Context, query string, args ...any) *sql.Row {
+	return t.parent.QueryRowContext(ctx, query, args...)
+}
+
+func (t *NestedTransaction) Commit() error {
+	t.comitted = true
+	return nil
+}
+
+func (t NestedTransaction) Rollback() error {
+	if !t.comitted {
+		return t.parent.Rollback()
+	}
+	return nil
+}
+
+func (t NestedTransaction) Parent() Transaction {
+	return t.parent
+}
+
+func (tm *TransactionManager) Do(ctx context.Context, fn func(tx Transaction) error) error {
+
+	tm.BeginTx(ctx)
+	defer tm.Rollback()
+
+	if err := fn(tm.tx); err != nil {
+		return err
+	}
+
+	return tm.Commit()
 }
 
 var ErrNoRecord = errors.New("no record found")
 
 func (r Repository) GetById(ctx context.Context, id int64) (Ding, error) {
+
 	if r.DB == nil {
 		return Ding{}, errors.New("no database provided")
 	}
@@ -35,13 +164,20 @@ func (r Repository) GetById(ctx context.Context, id int64) (Ding, error) {
 	suchen := `SELECT id, name, code, anzahl, aktualisiert FROM dinge
 	WHERE id = ?`
 
+	_, err := r.tm.BeginTx(ctx)
+	if err != nil {
+		return Ding{}, err
+	}
+
+	defer r.tm.Rollback()
+
 	var ding Ding
 	row := r.QueryRowContext(ctx, suchen, id)
 	if err := row.Scan(&ding.Id, &ding.Name, &ding.Code, &ding.Anzahl, &ding.Aktualisiert); err != nil {
 		return ding, err
 	}
 
-	return ding, nil
+	return ding, r.tm.Commit()
 }
 
 func (r Repository) GetByCode(ctx context.Context, code string) (Ding, error) {
@@ -53,16 +189,27 @@ func (r Repository) GetByCode(ctx context.Context, code string) (Ding, error) {
 		return Ding{}, errors.New("no context provided")
 	}
 
+	tx, err := r.tm.BeginTx(ctx)
+	if err != nil {
+		return Ding{}, err
+	}
+
+	defer r.tm.Rollback()
+
 	suchen := `SELECT id, name, code, anzahl, aktualisiert FROM dinge
 	WHERE code = ?`
 
 	var ding Ding
-	row := r.QueryRowContext(ctx, suchen, code)
+	row := tx.QueryRowContext(ctx, suchen, code)
 	if err := row.Scan(&ding.Id, &ding.Name, &ding.Code, &ding.Anzahl, &ding.Aktualisiert); err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			r.tm.Commit()
+		}
+
 		return ding, err
 	}
 
-	return ding, nil
+	return ding, r.tm.Commit()
 }
 
 func (r Repository) MengeAktualisieren(ctx context.Context, code string, menge int) (int64, error) {
@@ -74,32 +221,28 @@ func (r Repository) MengeAktualisieren(ctx context.Context, code string, menge i
 		return 0, errors.New("no context provided")
 	}
 
-	tx, err := r.BeginTx(ctx, nil)
+	_, err := r.tm.BeginTx(ctx)
+
 	if err != nil {
 		return 0, err
 	}
 
-	defer tx.Rollback()
+	defer r.tm.Rollback()
 
-	suchen := `SELECT id, anzahl FROM dinge
-	WHERE code = ?`
-
-	var alteAnzahl int
-	var id int64
-	row := tx.QueryRowContext(ctx, suchen, code)
-	if err := row.Scan(&id, &alteAnzahl); err != nil {
-		return id, err
+	ding, err := r.GetByCode(ctx, code)
+	if err != nil {
+		return 0, err
 	}
 
-	if alteAnzahl+menge < 0 {
-		return id, errors.New("Zuviele")
+	if ding.Anzahl+menge < 0 {
+		return ding.Id, errors.New("Zuviele")
 	}
 
-	if err = r.update(ctx, tx, id, alteAnzahl+menge); err != nil {
-		return id, err
+	if err = r.update(ctx, ding.Id, ding.Anzahl+menge); err != nil {
+		return ding.Id, err
 	}
 
-	return id, tx.Commit()
+	return ding.Id, r.tm.Commit()
 }
 
 func (r Repository) Insert(ctx context.Context, code string, anzahl int) (InsertResult, error) {
@@ -108,49 +251,43 @@ func (r Repository) Insert(ctx context.Context, code string, anzahl int) (Insert
 		return InsertResult{Created: false}, errors.New("no database provided")
 	}
 
-	tx, err := r.BeginTx(ctx, nil)
+	var res InsertResult
+
+	tx, err := r.tm.BeginTx(ctx)
 	if err != nil {
-		return InsertResult{Created: false}, err
-	}
-
-	defer tx.Rollback()
-
-	suchen := `SELECT id, anzahl FROM dinge
-	WHERE code = ?`
-
-	row := tx.QueryRowContext(ctx, suchen, code)
-
-	var alteAnzahl int
-	var id int64
-	if err := row.Scan(&id, &alteAnzahl); err != nil {
-
-		// Prüfen, ob ErrNoRows. Dann das da:
-		statement := `INSERT INTO dinge(name, code, anzahl, aktualisiert)
-		VALUES(?, ?, ?, ?)`
-
-		timestamp := r.Clock.Now()
-		result, err := tx.ExecContext(ctx, statement, "", code, anzahl, timestamp)
-		if err != nil {
-			return InsertResult{}, err
-		}
-
-		id, err := result.LastInsertId()
-		if err != nil {
-			return InsertResult{}, err
-		}
-
-		return InsertResult{Created: true, Id: id}, tx.Commit()
-
-		// sonst Fehler: Form nochmal anzeigen mit Fehlermeldung.
-	}
-
-	// Ding ist schon vorhanden und muss aktualisiert werden.
-	// TODO: Prüfen, dass alteAnzahl+anzahl >= 0 !
-	if err := r.update(ctx, tx, id, alteAnzahl+anzahl); err != nil {
 		return InsertResult{}, err
 	}
+	defer r.tm.Rollback()
 
-	return InsertResult{Created: false, Id: id}, tx.Commit()
+	ding, err := r.GetByCode(ctx, code)
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			statement := `INSERT INTO dinge(name, code, anzahl, aktualisiert)
+			VALUES(?, ?, ?, ?)`
+
+			timestamp := r.Clock.Now()
+			result, err := tx.ExecContext(ctx, statement, "", code, anzahl, timestamp)
+			if err != nil {
+				return res, err
+			}
+
+			id, err := result.LastInsertId()
+			if err != nil {
+				return res, err
+			}
+
+			res = InsertResult{Id: id, Created: true}
+			return res, r.tm.Commit()
+		}
+
+		return res, nil
+	}
+
+	if err := r.update(ctx, ding.Id, ding.Anzahl+anzahl); err != nil {
+		return res, err
+	}
+
+	return InsertResult{Id: ding.Id, Created: false}, r.tm.Commit()
 }
 
 func (r Repository) NamenAktualisieren(ctx context.Context, id int64, name string) error {
@@ -162,12 +299,12 @@ func (r Repository) NamenAktualisieren(ctx context.Context, id int64, name strin
 		return errors.New("no context provided")
 	}
 
-	tx, err := r.BeginTx(ctx, nil)
+	tx, err := r.tm.BeginTx(ctx)
 	if err != nil {
 		return err
 	}
 
-	defer tx.Rollback()
+	defer r.tm.Rollback()
 
 	statement := `UPDATE dinge
 	SET name = ?, aktualisiert = ?
@@ -188,14 +325,20 @@ func (r Repository) NamenAktualisieren(ctx context.Context, id int64, name strin
 		return ErrNoRecord
 	}
 
-	return tx.Commit()
+	return r.tm.Commit()
 }
 
-func (r Repository) update(ctx context.Context, tx *sql.Tx, id int64, anzahl int) error {
+func (r Repository) update(ctx context.Context, id int64, anzahl int) error {
 
 	statement := `UPDATE dinge
 	SET anzahl = ?, aktualisiert = ?
 	WHERE id = ?`
+
+	tx, err := r.tm.BeginTx(ctx)
+	if err != nil {
+		return err
+	}
+	defer r.tm.Rollback()
 
 	result, err := tx.ExecContext(ctx, statement, anzahl, r.Clock.Now(), id)
 	if err != nil {
@@ -211,10 +354,10 @@ func (r Repository) update(ctx context.Context, tx *sql.Tx, id int64, anzahl int
 		return fmt.Errorf("expected 1 row affected, got %v", affected)
 	}
 
-	return nil
+	return r.tm.Commit()
 }
 
-func (r Repository) GetLatest(limit int) ([]Ding, error) {
+func (r Repository) GetLatest(ctx context.Context, limit int) ([]Ding, error) {
 	if r.DB == nil {
 		return nil, errors.New("no database provided")
 	}
@@ -222,6 +365,12 @@ func (r Repository) GetLatest(limit int) ([]Ding, error) {
 	statement := `SELECT id, name, code, anzahl, aktualisiert FROM dinge
 		ORDER BY aktualisiert DESC
 		LIMIT ?`
+
+	_, err := r.tm.BeginTx(ctx)
+	if err != nil {
+		return []Ding{}, err
+	}
+	defer r.tm.Rollback()
 
 	rows, err := r.Query(statement, limit)
 	if err != nil {
@@ -242,7 +391,7 @@ func (r Repository) GetLatest(limit int) ([]Ding, error) {
 		dinge = append(dinge, ding)
 	}
 
-	return dinge, nil
+	return dinge, r.tm.Commit()
 }
 
 type InsertResult struct {
