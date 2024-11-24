@@ -13,7 +13,7 @@ type SetupFunc func(*sql.DB) error
 func (fn SetupFunc) AndThen(then SetupFunc) SetupFunc {
 	return func(d *sql.DB) error {
 		if err := fn(d); err != nil {
-			return nil
+			return err
 		}
 		return then(d)
 	}

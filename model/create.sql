@@ -6,4 +6,5 @@ CREATE TABLE dinge(
   aktualisiert DATETIME NOT NULL
 );
 
-CREATE INDEX idx_dinge_aktualisiert ON dinge(aktualisiert)
+CREATE INDEX idx_dinge_aktualisiert ON dinge(aktualisiert);
+CREATE UNIQUE INDEX idx_dinge_code ON dinge(code);

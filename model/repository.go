@@ -251,43 +251,38 @@ func (r Repository) Insert(ctx context.Context, code string, anzahl int) (Insert
 		return InsertResult{Created: false}, errors.New("no database provided")
 	}
 
-	var res InsertResult
+	var result InsertResult
 
 	tx, err := r.tm.BeginTx(ctx)
 	if err != nil {
-		return InsertResult{}, err
+		return result, err
 	}
+
 	defer r.tm.Rollback()
 
-	ding, err := r.GetByCode(ctx, code)
-	if err != nil {
-		if errors.Is(err, sql.ErrNoRows) {
-			statement := `INSERT INTO dinge(name, code, anzahl, aktualisiert)
-			VALUES(:name, :code, :anzahl, :aktualisiert)`
+	statement := `INSERT INTO dinge(name, code, anzahl, aktualisiert)
+			VALUES(:name, :code, :anzahl, :aktualisiert)
+			ON CONFLICT (code)
+			DO
+			UPDATE SET anzahl = anzahl + :anzahl, aktualisiert = :aktualisiert
+			WHERE code = :code
+			RETURNING id, anzahl`
 
-			timestamp := r.Clock.Now()
-			result, err := tx.ExecContext(ctx, statement, sql.Named("name", ""), sql.Named("code", code), sql.Named("anzahl", anzahl), sql.Named("aktualisiert", timestamp))
-			if err != nil {
-				return res, err
-			}
+	timestamp := r.Clock.Now()
 
-			id, err := result.LastInsertId()
-			if err != nil {
-				return res, err
-			}
+	row := tx.QueryRowContext(ctx, statement,
+		sql.Named("name", ""),
+		sql.Named("code", code),
+		sql.Named("anzahl", anzahl),
+		sql.Named("aktualisiert", timestamp))
 
-			res = InsertResult{Id: id, Created: true}
-			return res, r.tm.Commit()
-		}
-
-		return res, nil
+	var neueAnzahl int
+	if err := row.Scan(&result.Id, &neueAnzahl); err != nil {
+		return result, err
 	}
 
-	if err := r.update(ctx, ding.Id, ding.Anzahl+anzahl); err != nil {
-		return res, err
-	}
-
-	return InsertResult{Id: ding.Id, Created: false}, r.tm.Commit()
+	result.Created = neueAnzahl == anzahl
+	return result, r.tm.Commit()
 }
 
 func (r Repository) NamenAktualisieren(ctx context.Context, id int64, name string) error {
