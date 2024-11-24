@@ -263,10 +263,10 @@ func (r Repository) Insert(ctx context.Context, code string, anzahl int) (Insert
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			statement := `INSERT INTO dinge(name, code, anzahl, aktualisiert)
-			VALUES(?, ?, ?, ?)`
+			VALUES(:name, :code, :anzahl, :aktualisiert)`
 
 			timestamp := r.Clock.Now()
-			result, err := tx.ExecContext(ctx, statement, "", code, anzahl, timestamp)
+			result, err := tx.ExecContext(ctx, statement, sql.Named("name", ""), sql.Named("code", code), sql.Named("anzahl", anzahl), sql.Named("aktualisiert", timestamp))
 			if err != nil {
 				return res, err
 			}
