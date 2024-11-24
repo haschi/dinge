@@ -41,30 +41,14 @@ func (tm *TransactionManager) BeginTx(ctx context.Context) (Transaction, error) 
 		if err != nil {
 			return nil, err
 		}
-		tm.tx = SqlTransaction{tx: tx}
+		tm.tx = SqlTransaction{tx: tx, tm: tm}
 
 		return tm.tx, nil
 	}
 
-	nested := &NestedTransaction{parent: tm.tx}
+	nested := &NestedTransaction{parent: tm.tx, comitted: false, tm: tm}
 	tm.tx = nested
 	return nested, nil
-}
-
-func (tm *TransactionManager) Commit() error {
-	if tm.tx != nil {
-		// Rollback wird wegen defer immer ausgeführt.
-		return tm.tx.Commit()
-	}
-
-	return nil
-}
-
-func (tm *TransactionManager) Rollback() error {
-	this := tm.tx
-	parent := this.Parent()
-	tm.tx = parent
-	return this.Rollback()
 }
 
 type Transaction interface {
@@ -77,6 +61,7 @@ type Transaction interface {
 }
 
 type SqlTransaction struct {
+	tm *TransactionManager
 	tx *sql.Tx
 }
 
@@ -85,10 +70,12 @@ func (t SqlTransaction) Parent() Transaction {
 }
 
 func (t SqlTransaction) Commit() error {
+	t.tm.tx = t.Parent()
 	return t.tx.Commit()
 }
 
 func (t SqlTransaction) Rollback() error {
+	t.tm.tx = t.Parent()
 	return t.tx.Rollback()
 }
 
@@ -105,6 +92,7 @@ func (t SqlTransaction) QueryRowContext(ctx context.Context, query string, args 
 }
 
 type NestedTransaction struct {
+	tm       *TransactionManager
 	comitted bool
 	parent   Transaction
 }
@@ -122,31 +110,22 @@ func (t *NestedTransaction) QueryRowContext(ctx context.Context, query string, a
 }
 
 func (t *NestedTransaction) Commit() error {
+	t.tm.tx = t.Parent()
 	t.comitted = true
 	return nil
 }
 
 func (t NestedTransaction) Rollback() error {
+	t.tm.tx = t.Parent()
 	if !t.comitted {
 		return t.parent.Rollback()
 	}
+
 	return nil
 }
 
 func (t NestedTransaction) Parent() Transaction {
 	return t.parent
-}
-
-func (tm *TransactionManager) Do(ctx context.Context, fn func(tx Transaction) error) error {
-
-	tm.BeginTx(ctx)
-	defer tm.Rollback()
-
-	if err := fn(tm.tx); err != nil {
-		return err
-	}
-
-	return tm.Commit()
 }
 
 var ErrNoRecord = errors.New("no record found")
@@ -164,12 +143,12 @@ func (r Repository) GetById(ctx context.Context, id int64) (Ding, error) {
 	suchen := `SELECT id, name, code, anzahl, aktualisiert FROM dinge
 	WHERE id = ?`
 
-	_, err := r.tm.BeginTx(ctx)
+	tx, err := r.tm.BeginTx(ctx)
 	if err != nil {
 		return Ding{}, err
 	}
 
-	defer r.tm.Rollback()
+	defer tx.Rollback()
 
 	var ding Ding
 	row := r.QueryRowContext(ctx, suchen, id)
@@ -177,7 +156,7 @@ func (r Repository) GetById(ctx context.Context, id int64) (Ding, error) {
 		return ding, err
 	}
 
-	return ding, r.tm.Commit()
+	return ding, tx.Commit()
 }
 
 func (r Repository) GetByCode(ctx context.Context, code string) (Ding, error) {
@@ -194,7 +173,7 @@ func (r Repository) GetByCode(ctx context.Context, code string) (Ding, error) {
 		return Ding{}, err
 	}
 
-	defer r.tm.Rollback()
+	defer tx.Rollback()
 
 	suchen := `SELECT id, name, code, anzahl, aktualisiert FROM dinge
 	WHERE code = ?`
@@ -203,13 +182,13 @@ func (r Repository) GetByCode(ctx context.Context, code string) (Ding, error) {
 	row := tx.QueryRowContext(ctx, suchen, code)
 	if err := row.Scan(&ding.Id, &ding.Name, &ding.Code, &ding.Anzahl, &ding.Aktualisiert); err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
-			r.tm.Commit()
+			tx.Commit()
 		}
 
 		return ding, err
 	}
 
-	return ding, r.tm.Commit()
+	return ding, tx.Commit()
 }
 
 func (r Repository) MengeAktualisieren(ctx context.Context, code string, menge int) (int64, error) {
@@ -221,13 +200,13 @@ func (r Repository) MengeAktualisieren(ctx context.Context, code string, menge i
 		return 0, errors.New("no context provided")
 	}
 
-	_, err := r.tm.BeginTx(ctx)
+	tx, err := r.tm.BeginTx(ctx)
 
 	if err != nil {
 		return 0, err
 	}
 
-	defer r.tm.Rollback()
+	defer tx.Rollback()
 
 	ding, err := r.GetByCode(ctx, code)
 	if err != nil {
@@ -242,7 +221,7 @@ func (r Repository) MengeAktualisieren(ctx context.Context, code string, menge i
 		return ding.Id, err
 	}
 
-	return ding.Id, r.tm.Commit()
+	return ding.Id, tx.Commit()
 }
 
 func (r Repository) Insert(ctx context.Context, code string, anzahl int) (InsertResult, error) {
@@ -258,7 +237,7 @@ func (r Repository) Insert(ctx context.Context, code string, anzahl int) (Insert
 		return result, err
 	}
 
-	defer r.tm.Rollback()
+	defer tx.Rollback()
 
 	statement := `INSERT INTO dinge(name, code, anzahl, aktualisiert)
 			VALUES(:name, :code, :anzahl, :aktualisiert)
@@ -282,7 +261,7 @@ func (r Repository) Insert(ctx context.Context, code string, anzahl int) (Insert
 	}
 
 	result.Created = neueAnzahl == anzahl
-	return result, r.tm.Commit()
+	return result, tx.Commit()
 }
 
 func (r Repository) NamenAktualisieren(ctx context.Context, id int64, name string) error {
@@ -299,7 +278,7 @@ func (r Repository) NamenAktualisieren(ctx context.Context, id int64, name strin
 		return err
 	}
 
-	defer r.tm.Rollback()
+	defer tx.Rollback()
 
 	statement := `UPDATE dinge
 	SET name = ?, aktualisiert = ?
@@ -320,7 +299,7 @@ func (r Repository) NamenAktualisieren(ctx context.Context, id int64, name strin
 		return ErrNoRecord
 	}
 
-	return r.tm.Commit()
+	return tx.Commit()
 }
 
 func (r Repository) update(ctx context.Context, id int64, anzahl int) error {
@@ -333,7 +312,7 @@ func (r Repository) update(ctx context.Context, id int64, anzahl int) error {
 	if err != nil {
 		return err
 	}
-	defer r.tm.Rollback()
+	defer tx.Rollback()
 
 	result, err := tx.ExecContext(ctx, statement, anzahl, r.Clock.Now(), id)
 	if err != nil {
@@ -349,7 +328,7 @@ func (r Repository) update(ctx context.Context, id int64, anzahl int) error {
 		return fmt.Errorf("expected 1 row affected, got %v", affected)
 	}
 
-	return r.tm.Commit()
+	return tx.Commit()
 }
 
 func (r Repository) GetLatest(ctx context.Context, limit int) ([]Ding, error) {
@@ -361,11 +340,11 @@ func (r Repository) GetLatest(ctx context.Context, limit int) ([]Ding, error) {
 		ORDER BY aktualisiert DESC
 		LIMIT ?`
 
-	_, err := r.tm.BeginTx(ctx)
+	tx, err := r.tm.BeginTx(ctx)
 	if err != nil {
 		return []Ding{}, err
 	}
-	defer r.tm.Rollback()
+	defer tx.Rollback()
 
 	rows, err := r.Query(statement, limit)
 	if err != nil {
@@ -386,7 +365,7 @@ func (r Repository) GetLatest(ctx context.Context, limit int) ([]Ding, error) {
 		dinge = append(dinge, ding)
 	}
 
-	return dinge, r.tm.Commit()
+	return dinge, tx.Commit()
 }
 
 type InsertResult struct {
