@@ -3,11 +3,24 @@ package sqlx
 import (
 	"context"
 	"database/sql"
+	"errors"
 )
 
 type TransactionManager struct {
 	db *sql.DB
 	tx Transaction
+}
+
+func NewTransactionManager(db *sql.DB) (*TransactionManager, error) {
+	if db == nil {
+		return nil, errors.New("no database provided")
+	}
+
+	tm := &TransactionManager{
+		db: db,
+	}
+
+	return tm, nil
 }
 
 func (tm *TransactionManager) BeginTx(ctx context.Context) (Transaction, error) {

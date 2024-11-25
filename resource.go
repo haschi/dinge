@@ -12,7 +12,7 @@ import (
 )
 
 type DingeResource struct {
-	Repository model.Repository
+	Repository *model.Repository
 }
 
 // Liefert eine HTML Form zum Erzeugen eines neuen Dings.
