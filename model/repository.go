@@ -6,6 +6,8 @@ import (
 	"errors"
 	"fmt"
 	"time"
+
+	"github.com/haschi/dinge/sqlx"
 )
 
 type Ding struct {
@@ -19,113 +21,15 @@ type Ding struct {
 type Repository struct {
 	*sql.DB
 	Clock Clock
-	tm    TransactionManager
+	tm    sqlx.TransactionManager
 }
 
 func NewRepository(db *sql.DB, clock Clock) Repository {
 	return Repository{
 		DB:    db,
 		Clock: clock,
-		tm:    TransactionManager{db: db},
+		tm:    sqlx.TransactionManager{db: db},
 	}
-}
-
-type TransactionManager struct {
-	db *sql.DB
-	tx Transaction
-}
-
-func (tm *TransactionManager) BeginTx(ctx context.Context) (Transaction, error) {
-	if tm.tx == nil {
-		tx, err := tm.db.BeginTx(ctx, nil)
-		if err != nil {
-			return nil, err
-		}
-		tm.tx = SqlTransaction{tx: tx, tm: tm}
-
-		return tm.tx, nil
-	}
-
-	nested := &NestedTransaction{parent: tm.tx, comitted: false, tm: tm}
-	tm.tx = nested
-	return nested, nil
-}
-
-type Transaction interface {
-	ExecContext(ctx context.Context, query string, args ...any) (sql.Result, error)
-	QueryContext(ctx context.Context, query string, args ...any) (*sql.Rows, error)
-	QueryRowContext(ctx context.Context, query string, args ...any) *sql.Row
-	Commit() error
-	Rollback() error
-	Parent() Transaction
-}
-
-type SqlTransaction struct {
-	tm *TransactionManager
-	tx *sql.Tx
-}
-
-func (t SqlTransaction) Parent() Transaction {
-	return nil
-}
-
-func (t SqlTransaction) Commit() error {
-	t.tm.tx = t.Parent()
-	return t.tx.Commit()
-}
-
-func (t SqlTransaction) Rollback() error {
-	t.tm.tx = t.Parent()
-	return t.tx.Rollback()
-}
-
-func (t SqlTransaction) ExecContext(ctx context.Context, query string, args ...any) (sql.Result, error) {
-	return t.tx.ExecContext(ctx, query, args...)
-}
-
-func (t SqlTransaction) QueryContext(ctx context.Context, query string, args ...any) (*sql.Rows, error) {
-	return t.tx.QueryContext(ctx, query, args...)
-}
-
-func (t SqlTransaction) QueryRowContext(ctx context.Context, query string, args ...any) *sql.Row {
-	return t.tx.QueryRowContext(ctx, query, args...)
-}
-
-type NestedTransaction struct {
-	tm       *TransactionManager
-	comitted bool
-	parent   Transaction
-}
-
-func (t *NestedTransaction) ExecContext(ctx context.Context, query string, args ...any) (sql.Result, error) {
-	return t.parent.ExecContext(ctx, query, args...)
-}
-
-func (t *NestedTransaction) QueryContext(ctx context.Context, query string, args ...any) (*sql.Rows, error) {
-	return t.parent.QueryContext(ctx, query, args...)
-}
-
-func (t *NestedTransaction) QueryRowContext(ctx context.Context, query string, args ...any) *sql.Row {
-	return t.parent.QueryRowContext(ctx, query, args...)
-}
-
-func (t *NestedTransaction) Commit() error {
-	t.tm.tx = t.Parent()
-	t.comitted = true
-	return nil
-}
-
-func (t NestedTransaction) Rollback() error {
-	t.tm.tx = t.Parent()
-	if !t.comitted {
-		return t.parent.Rollback()
-	}
-
-	return nil
-}
-
-func (t NestedTransaction) Parent() Transaction {
-	return t.parent
 }
 
 var ErrNoRecord = errors.New("no record found")
