@@ -11,6 +11,7 @@ import (
 	"testing"
 
 	"github.com/haschi/dinge/model"
+	"github.com/haschi/dinge/system"
 )
 
 func TestResource_GetAbout(t *testing.T) {
@@ -339,7 +340,7 @@ func (t *testserver) Post(path string, data url.Values) *http.Response {
 }
 
 func newDingeResource(db *sql.DB) (*DingeResource, error) {
-	repository, err := model.NewRepository(db, model.RealClock{})
+	repository, err := model.NewRepository(db, system.RealClock{})
 	if err != nil {
 		return nil, err
 	}
