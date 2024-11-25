@@ -1,0 +1,14 @@
+{{define "title"}}Dinge Index{{end}}
+{{define "content"}}
+
+<section>
+  {{range .LetzteEinträge}}
+  <aside>
+    <img src="https://picsum.photos/800/450?random{{.Id}}" alt="">
+    <h2>{{.Name}}<sup>{{.Anzahl}}</sup></h2>
+    <p>{{.Code}}</p>
+    <a href="/dinge/{{.Id}}"></a>
+  </aside>
+  {{end}}
+</section>
+{{end}}

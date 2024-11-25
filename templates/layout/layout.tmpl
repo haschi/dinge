@@ -1,0 +1,46 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8">
+  <!-- <link rel="stylesheet" href="https://unpkg.com/mvp.css"> -->
+  <link rel="stylesheet" href="https://unpkg.com/mvp.css@1.17.0"
+    integrity="sha384-k+zH7nQFBKm8tCs3NF+6vnC8A9rLni3jsmpXeUTTYsfwKs+GV0ejSCA/ijNEC2X0" crossorigin="anonymous">
+  <link rel="stylesheet" href="/static/css/main.css">
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+</head>
+
+<title>Dinge</title>
+</head>
+
+<body>
+  <header>
+    <nav>
+      <div>
+        {{template "title" .}}
+      </div>
+      <ul>
+        <li>
+          <a href="/dinge">Home</a>
+        </li>
+        <li>
+          <a href="/dinge/new">Einlagern</a>
+        </li>
+        <li>
+          <a href="/dinge/delete">Entnehmen</a>
+        </li>
+        <li>
+          <a href="/about">About</a>
+        </li>
+      </ul>
+    </nav>
+    </div>
+  </header>
+
+  <main>
+    {{template "content" .}}
+  </main>
+</body>
+
+</html>
