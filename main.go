@@ -42,6 +42,7 @@ import (
 	"time"
 
 	"github.com/haschi/dinge/model"
+	"github.com/haschi/dinge/system"
 	"github.com/haschi/dinge/validation"
 	_ "github.com/mattn/go-sqlite3"
 )
@@ -114,8 +115,14 @@ func run(ctx context.Context, stdout io.Writer, _ []string, environment func(str
 		return err
 	}
 
+	clock := system.RealClock{}
+	repository, err := model.NewRepository(db, clock)
+	if err != nil {
+		return err
+	}
+
 	application := DingeResource{
-		Repository: model.NewRepository(db, model.RealClock{}),
+		Repository: repository,
 	}
 
 	server := &http.Server{

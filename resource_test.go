@@ -271,7 +271,7 @@ type testserver struct {
 	server *httptest.Server
 }
 
-func newTestServer(t *testing.T, fn func(db *sql.DB) DingeResource) *testserver {
+func newTestServer(t *testing.T, fn func(db *sql.DB) (*DingeResource, error)) *testserver {
 	t.Helper()
 
 	db, err := sql.Open("sqlite3", dataSource)
@@ -288,10 +288,14 @@ func newTestServer(t *testing.T, fn func(db *sql.DB) DingeResource) *testserver 
 	loghandler := slog.NewJSONHandler(os.Stdin, &slog.HandlerOptions{Level: loglevel})
 	logger := slog.New(loghandler)
 
-	resource := fn(db)
+	resource, err := fn(db)
+	if err != nil {
+		t.Fatal(err)
+	}
+
 	testserver := &testserver{
 		db:     db,
-		server: httptest.NewTLSServer(routes(logger, resource)),
+		server: httptest.NewTLSServer(routes(logger, *resource)),
 	}
 
 	client := testserver.server.Client()
@@ -334,8 +338,14 @@ func (t *testserver) Post(path string, data url.Values) *http.Response {
 	return resp
 }
 
-func newDingeResource(db *sql.DB) DingeResource {
-	return DingeResource{
-		Repository: model.NewRepository(db, model.RealClock{}),
+func newDingeResource(db *sql.DB) (*DingeResource, error) {
+	repository, err := model.NewRepository(db, model.RealClock{})
+	if err != nil {
+		return nil, err
 	}
+	resource := &DingeResource{
+		Repository: repository,
+	}
+
+	return resource, nil
 }

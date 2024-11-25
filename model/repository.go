@@ -19,26 +19,28 @@ type Ding struct {
 }
 
 type Repository struct {
-	*sql.DB
+	//*sql.DB
 	Clock Clock
-	tm    sqlx.TransactionManager
+	tm    *sqlx.TransactionManager
 }
 
-func NewRepository(db *sql.DB, clock Clock) Repository {
-	return Repository{
-		DB:    db,
-		Clock: clock,
-		tm:    sqlx.TransactionManager{db: db},
+func NewRepository(db *sql.DB, clock Clock) (*Repository, error) {
+	tm, err := sqlx.NewTransactionManager(db)
+	if err != nil {
+		return nil, err
 	}
+
+	repository := &Repository{
+		Clock: clock,
+		tm:    tm,
+	}
+
+	return repository, nil
 }
 
 var ErrNoRecord = errors.New("no record found")
 
 func (r Repository) GetById(ctx context.Context, id int64) (Ding, error) {
-
-	if r.DB == nil {
-		return Ding{}, errors.New("no database provided")
-	}
 
 	if ctx == nil {
 		return Ding{}, errors.New("no context provided")
@@ -55,7 +57,7 @@ func (r Repository) GetById(ctx context.Context, id int64) (Ding, error) {
 	defer tx.Rollback()
 
 	var ding Ding
-	row := r.QueryRowContext(ctx, suchen, id)
+	row := tx.QueryRowContext(ctx, suchen, id)
 	if err := row.Scan(&ding.Id, &ding.Name, &ding.Code, &ding.Anzahl, &ding.Aktualisiert); err != nil {
 		return ding, err
 	}
@@ -64,9 +66,6 @@ func (r Repository) GetById(ctx context.Context, id int64) (Ding, error) {
 }
 
 func (r Repository) GetByCode(ctx context.Context, code string) (Ding, error) {
-	if r.DB == nil {
-		return Ding{}, errors.New("no database provided")
-	}
 
 	if ctx == nil {
 		return Ding{}, errors.New("no context provided")
@@ -96,9 +95,6 @@ func (r Repository) GetByCode(ctx context.Context, code string) (Ding, error) {
 }
 
 func (r Repository) MengeAktualisieren(ctx context.Context, code string, menge int) (int64, error) {
-	if r.DB == nil {
-		return 0, errors.New("no database provided")
-	}
 
 	if ctx == nil {
 		return 0, errors.New("no context provided")
@@ -129,10 +125,6 @@ func (r Repository) MengeAktualisieren(ctx context.Context, code string, menge i
 }
 
 func (r Repository) Insert(ctx context.Context, code string, anzahl int) (InsertResult, error) {
-
-	if r.DB == nil {
-		return InsertResult{Created: false}, errors.New("no database provided")
-	}
 
 	var result InsertResult
 
@@ -169,9 +161,6 @@ func (r Repository) Insert(ctx context.Context, code string, anzahl int) (Insert
 }
 
 func (r Repository) NamenAktualisieren(ctx context.Context, id int64, name string) error {
-	if r.DB == nil {
-		return errors.New("no database provided")
-	}
 
 	if ctx == nil {
 		return errors.New("no context provided")
@@ -236,9 +225,6 @@ func (r Repository) update(ctx context.Context, id int64, anzahl int) error {
 }
 
 func (r Repository) GetLatest(ctx context.Context, limit int) ([]Ding, error) {
-	if r.DB == nil {
-		return nil, errors.New("no database provided")
-	}
 
 	statement := `SELECT id, name, code, anzahl, aktualisiert FROM dinge
 		ORDER BY aktualisiert DESC
@@ -250,7 +236,7 @@ func (r Repository) GetLatest(ctx context.Context, limit int) ([]Ding, error) {
 	}
 	defer tx.Rollback()
 
-	rows, err := r.Query(statement, limit)
+	rows, err := tx.QueryContext(ctx, statement, limit)
 	if err != nil {
 		return nil, err
 	}
@@ -275,16 +261,4 @@ func (r Repository) GetLatest(ctx context.Context, limit int) ([]Ding, error) {
 type InsertResult struct {
 	Created bool
 	Id      int64
-}
-
-// Clock ist eine Schnittstelle, die das aktuelle Datum und die aktuelle Uhrzeit bereitstellt.
-type Clock interface {
-	Now() time.Time
-}
-
-// RealClock gehört nicht in dieses Paket sondern zum Aufrufer des Paketes (Dependency Inversion)
-type RealClock struct{}
-
-func (c RealClock) Now() time.Time {
-	return time.Now()
 }
