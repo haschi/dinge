@@ -3,6 +3,7 @@ package main
 import (
 	"database/sql"
 	"errors"
+	"fmt"
 	"net/http"
 	"strconv"
 
@@ -281,7 +282,7 @@ func (a DingeResource) Update(w http.ResponseWriter, r *http.Request) {
 
 func (a DingeResource) Destroy(w http.ResponseWriter, r *http.Request) {
 
-	form := validation.Form{Request: r}
+	form := validation.NewForm(r)
 
 	var anzahl int
 	var code string
@@ -295,22 +296,40 @@ func (a DingeResource) Destroy(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	var ding *model.Ding
+	if form.IsValid() {
+		ding, err = a.Repository.MengeAktualisieren(r.Context(), code, -anzahl)
+		if err != nil {
+			switch {
+			case errors.Is(err, model.ErrNoRecord):
+				form.ValidationErrors[Code] = "Unbekannter Produktcode"
+			case errors.Is(err, model.ErrInvalidParameter):
+				form.ValidationErrors[Anzahl] = "Anzahl zu groß"
+			default:
+				webx.ServerError(w, err)
+				return
+			}
+		}
+	}
+
 	if !form.IsValid() {
 
-		_, err := a.Repository.GetByCode(r.Context(), code)
-		if err != nil {
-			form.ValidationErrors[Code] = "Unbekannter Produktcode"
-			http.NotFound(w, r)
-			return
+		var f = struct {
+			Code  string
+			Menge int
+		}{
+			Code:  code,
+			Menge: anzahl,
 		}
 
-		data := struct {
-			Code             string
-			Menge            int
+		var data = struct {
+			Form struct {
+				Code  string
+				Menge int
+			}
 			ValidationErrors validation.ErrorMap
 		}{
-			Code:             code,
-			Menge:            anzahl,
+			Form:             f,
 			ValidationErrors: form.ValidationErrors,
 		}
 
@@ -320,20 +339,16 @@ func (a DingeResource) Destroy(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		response := webx.HtmlResponse{Template: template, Data: data, StatusCode: http.StatusOK}
+		response := webx.HtmlResponse{Template: template, Data: data, StatusCode: http.StatusUnprocessableEntity}
 		if err := response.Render(w); err != nil {
 			webx.ServerError(w, err)
 			return
 		}
-	}
 
-	id, err := a.Repository.MengeAktualisieren(r.Context(), code, -anzahl)
-	if err != nil {
-		webx.ServerError(w, err)
 		return
 	}
 
-	webx.SeeOther("/dinge/%v", id).ServeHTTP(w, r)
+	webx.SeeOther("/dinge/%v", ding.Id).ServeHTTP(w, r)
 }
 
 // Zeigt eine Form an, um Dinge zu entnehmen.
@@ -345,13 +360,18 @@ func DestroyForm(w http.ResponseWriter, r *http.Request) {
 	}
 
 	var form = struct {
+		Code  string
 		Menge int
 	}{
+		Code:  "",
 		Menge: 1,
 	}
 
 	var data = struct {
-		Form             struct{ Menge int }
+		Form struct {
+			Code  string
+			Menge int
+		}
 		ValidationErrors validation.ErrorMap
 	}{
 		Form: form,

@@ -203,7 +203,7 @@ func TestRepository_MengeAktualisieren(t *testing.T) {
 				if err != nil {
 					t.Fatal(err)
 				}
-				id, err := r.MengeAktualisieren(tt.args.ctx, tt.args.code, tt.args.menge)
+				ding, err := r.MengeAktualisieren(tt.args.ctx, tt.args.code, tt.args.menge)
 
 				if (err != nil) != tt.wantErr {
 					t.Errorf("Repository.MengeAktualisieren() error = %v, wantErr %v", err, tt.wantErr)
@@ -214,7 +214,7 @@ func TestRepository_MengeAktualisieren(t *testing.T) {
 					return
 				}
 
-				got, err := r.GetById(tt.args.ctx, id)
+				got, err := r.GetById(tt.args.ctx, ding.Id)
 				if err != nil {
 					t.Fatal("ding should exists", err)
 				}

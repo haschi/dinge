@@ -39,6 +39,7 @@ func NewRepository(db *sql.DB, clock Clock) (*Repository, error) {
 }
 
 var ErrNoRecord = errors.New("no record found")
+var ErrInvalidParameter = errors.New("invalid paramater")
 
 func (r Repository) GetById(ctx context.Context, id int64) (Ding, error) {
 
@@ -94,34 +95,48 @@ func (r Repository) GetByCode(ctx context.Context, code string) (Ding, error) {
 	return ding, tx.Commit()
 }
 
-func (r Repository) MengeAktualisieren(ctx context.Context, code string, menge int) (int64, error) {
+func (r Repository) MengeAktualisieren(ctx context.Context, code string, menge int) (*Ding, error) {
 
 	if ctx == nil {
-		return 0, errors.New("no context provided")
+		return nil, errors.New("no context provided")
 	}
 
 	tx, err := r.tm.BeginTx(ctx)
 
 	if err != nil {
-		return 0, err
+		return nil, err
 	}
 
 	defer tx.Rollback()
 
-	ding, err := r.GetByCode(ctx, code)
-	if err != nil {
-		return 0, err
+	statement := `UPDATE dinge
+	SET anzahl = anzahl + :anzahl,
+	    aktualisiert = :aktualisiert
+	WHERE code = :code
+	RETURNING id, code, name, anzahl, aktualisiert`
+
+	row := tx.QueryRowContext(ctx, statement,
+		sql.Named("code", code),
+		sql.Named("anzahl", menge),
+		sql.Named("aktualisiert", r.Clock.Now()),
+	)
+
+	var ding Ding
+
+	if err := row.Scan(&ding.Id, &ding.Name, &ding.Code, &ding.Anzahl, &ding.Aktualisiert); err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return nil, fmt.Errorf("Unbekannter Produktcode %v: %w)", code, ErrNoRecord)
+		}
+
+		return nil, err
 	}
 
-	if ding.Anzahl+menge < 0 {
-		return ding.Id, errors.New("Zuviele")
+	if ding.Anzahl < 0 {
+		// Rollback!
+		return &ding, fmt.Errorf("Wert ist zu groß: %v: %w", menge, ErrInvalidParameter)
 	}
 
-	if err = r.update(ctx, ding.Id, ding.Anzahl+menge); err != nil {
-		return ding.Id, err
-	}
-
-	return ding.Id, tx.Commit()
+	return &ding, tx.Commit()
 }
 
 func (r Repository) Insert(ctx context.Context, code string, anzahl int) (InsertResult, error) {
@@ -190,35 +205,6 @@ func (r Repository) NamenAktualisieren(ctx context.Context, id int64, name strin
 
 	if affected != 1 {
 		return ErrNoRecord
-	}
-
-	return tx.Commit()
-}
-
-func (r Repository) update(ctx context.Context, id int64, anzahl int) error {
-
-	statement := `UPDATE dinge
-	SET anzahl = ?, aktualisiert = ?
-	WHERE id = ?`
-
-	tx, err := r.tm.BeginTx(ctx)
-	if err != nil {
-		return err
-	}
-	defer tx.Rollback()
-
-	result, err := tx.ExecContext(ctx, statement, anzahl, r.Clock.Now(), id)
-	if err != nil {
-		return err
-	}
-
-	affected, err := result.RowsAffected()
-	if err != nil {
-		return err
-	}
-
-	if affected != 1 {
-		return fmt.Errorf("expected 1 row affected, got %v", affected)
 	}
 
 	return tx.Commit()
