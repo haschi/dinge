@@ -340,7 +340,7 @@ func newTestServer(t *testing.T, fn func(db *sql.DB) (*DingeResource, error)) *t
 	}
 
 	var loglevel = new(slog.LevelVar)
-	loghandler := slog.NewJSONHandler(os.Stdin, &slog.HandlerOptions{Level: loglevel})
+	loghandler := slog.NewJSONHandler(os.Stdout, &slog.HandlerOptions{Level: loglevel})
 	logger := slog.New(loghandler)
 
 	resource, err := fn(db)

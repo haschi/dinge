@@ -44,7 +44,7 @@ type IndexFormData struct {
 }
 
 type IndexContent struct {
-	Dinge []model.Ding
+	Dinge []model.DingRef
 	Form  validation.FormData[IndexFormData]
 }
 
@@ -218,10 +218,12 @@ func (a DingeResource) Update(w http.ResponseWriter, r *http.Request) {
 	form := validation.NewForm(r)
 	defer form.Close()
 
-	var result PostDingForm
+	var name string
+	var beschreibung string
 
 	err = form.Scan(
-		validation.String(Name, &result.Name, validation.IsNotBlank),
+		validation.String(Name, &name, validation.IsNotBlank),
+		validation.String(Beschreibung, &beschreibung),
 	)
 
 	if err != nil {
@@ -258,7 +260,7 @@ func (a DingeResource) Update(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err = a.Repository.NamenAktualisieren(r.Context(), id, result.Name)
+	err = a.Repository.DingAktualisieren(r.Context(), id, name, beschreibung)
 	if err != nil {
 		if errors.Is(err, model.ErrNoRecord) {
 			http.NotFound(w, r)

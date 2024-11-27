@@ -11,6 +11,8 @@
       {{with .ValidationErrors.name}}
       <p class="error">{{.}}</p>
       {{end}}
+      <label for="input-beschreibung">Beschreibung</label>
+      <textarea id="input-beschreibung" name="beschreibung" rows="4" cols="50">{{.Form.Beschreibung}}</textarea>
     </div>
 
     <button type="submit">Aktualisieren</button>
