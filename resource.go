@@ -15,10 +15,43 @@ type DingeResource struct {
 	Repository *model.Repository
 }
 
+// Zeigt eine Liste aller Dinge
+func (a DingeResource) Index(w http.ResponseWriter, r *http.Request) {
+
+	dinge, err := a.Repository.GetLatest(r.Context(), 12)
+	if err != nil {
+		webx.ServerError(w, err)
+		return
+	}
+
+	content := IndexContent{
+		Dinge: dinge,
+	}
+
+	template, err := GetTemplate("index")
+	if err != nil {
+		webx.ServerError(w, err)
+		return
+	}
+
+	response := webx.HtmlResponse{Template: template, Data: content, StatusCode: http.StatusOK}
+	if err := response.Render(w); err != nil {
+		webx.ServerError(w, err)
+	}
+}
+
+type IndexFormData struct {
+}
+
+type IndexContent struct {
+	Dinge []model.Ding
+	Form  validation.FormData[IndexFormData]
+}
+
 // Liefert eine HTML Form zum Erzeugen eines neuen Dings.
 func (a DingeResource) NewForm(w http.ResponseWriter, r *http.Request) {
 
-	data := FormData[CreateData]{
+	data := validation.FormData[CreateData]{
 		Form: CreateData{Anzahl: 1},
 	}
 
@@ -32,42 +65,6 @@ func (a DingeResource) NewForm(w http.ResponseWriter, r *http.Request) {
 	if err := response.Render(w); err != nil {
 		webx.ServerError(w, err)
 	}
-}
-
-// Zeigt eine Liste aller Dinge
-func (a DingeResource) Index(w http.ResponseWriter, r *http.Request) {
-
-	dinge, err := a.Repository.GetLatest(r.Context(), 12)
-	if err != nil {
-		webx.ServerError(w, err)
-		return
-	}
-
-	data := Data{
-		LetzteEinträge: dinge,
-		Form:           Form{Anzahl: 1},
-	}
-
-	template, err := GetTemplate("index")
-	if err != nil {
-		webx.ServerError(w, err)
-		return
-	}
-
-	response := webx.HtmlResponse{Template: template, Data: data, StatusCode: http.StatusOK}
-	if err := response.Render(w); err != nil {
-		webx.ServerError(w, err)
-	}
-}
-
-type FormData[T any] struct {
-	ValidationErrors validation.ErrorMap
-	Form             T
-}
-
-type CreateData struct {
-	Code   string
-	Anzahl int
 }
 
 // Erzeugt ein neues Ding.
@@ -102,7 +99,7 @@ func (a DingeResource) Create(w http.ResponseWriter, r *http.Request) {
 	if !form.IsValid() {
 		// "fehler in den übermittelten Daten"
 
-		data := FormData[CreateData]{
+		data := validation.FormData[CreateData]{
 			Form:             content,
 			ValidationErrors: form.ValidationErrors,
 		}
@@ -134,6 +131,11 @@ func (a DingeResource) Create(w http.ResponseWriter, r *http.Request) {
 	webx.SeeOther("/dinge/new").ServeHTTP(w, r)
 }
 
+type CreateData struct {
+	Code   string
+	Anzahl int
+}
+
 // Zeigt ein spezifisches Ding an
 func (a DingeResource) Show(w http.ResponseWriter, r *http.Request) {
 
@@ -154,13 +156,8 @@ func (a DingeResource) Show(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	data := PostDingData{
-		Id: id,
-		Form: PostDingForm{
-			Name:   ding.Name,
-			Code:   ding.Code,
-			Anzahl: ding.Anzahl,
-		},
+	data := validation.FormData[model.Ding]{
+		Form: ding,
 	}
 
 	template, err := GetTemplate("ding")
@@ -194,11 +191,8 @@ func (a DingeResource) Edit(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	data := struct {
-		Ding             model.Ding
-		ValidationErrors validation.ErrorMap
-	}{
-		Ding: ding,
+	data := validation.FormData[model.Ding]{
+		Form: ding,
 	}
 
 	template, err := GetTemplate("edit")
@@ -239,16 +233,13 @@ func (a DingeResource) Update(w http.ResponseWriter, r *http.Request) {
 		// a.ServerError(w, r, fmt.Errorf("Validierungsfehler"))
 		ding, err := a.Repository.GetById(r.Context(), id)
 		if err != nil {
-			// Ggf Fehler differenzieren.
+			// TODO: Fehler differenzieren.
 			http.NotFound(w, r)
 			return
 		}
 
-		data := struct {
-			Ding             model.Ding
-			ValidationErrors validation.ErrorMap
-		}{
-			Ding:             ding,
+		data := validation.FormData[model.Ding]{
+			Form:             ding,
 			ValidationErrors: form.ValidationErrors,
 		}
 
@@ -258,11 +249,13 @@ func (a DingeResource) Update(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		response := webx.HtmlResponse{Template: template, Data: data, StatusCode: http.StatusBadRequest}
+		response := webx.HtmlResponse{Template: template, Data: data, StatusCode: http.StatusUnprocessableEntity}
 		if err := response.Render(w); err != nil {
 			webx.ServerError(w, err)
 			return
 		}
+
+		return
 	}
 
 	err = a.Repository.NamenAktualisieren(r.Context(), id, result.Name)
@@ -281,7 +274,7 @@ func (a DingeResource) Update(w http.ResponseWriter, r *http.Request) {
 
 func (a DingeResource) Destroy(w http.ResponseWriter, r *http.Request) {
 
-	form := validation.Form{Request: r}
+	form := validation.NewForm(r)
 
 	var anzahl int
 	var code string
@@ -295,22 +288,29 @@ func (a DingeResource) Destroy(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	var ding *model.Ding
+	if form.IsValid() {
+		ding, err = a.Repository.MengeAktualisieren(r.Context(), code, -anzahl)
+		if err != nil {
+			switch {
+			case errors.Is(err, model.ErrNoRecord):
+				form.ValidationErrors[Code] = "Unbekannter Produktcode"
+			case errors.Is(err, model.ErrInvalidParameter):
+				form.ValidationErrors[Anzahl] = "Anzahl zu groß"
+			default:
+				webx.ServerError(w, err)
+				return
+			}
+		}
+	}
+
 	if !form.IsValid() {
 
-		_, err := a.Repository.GetByCode(r.Context(), code)
-		if err != nil {
-			form.ValidationErrors[Code] = "Unbekannter Produktcode"
-			http.NotFound(w, r)
-			return
-		}
-
-		data := struct {
-			Code             string
-			Menge            int
-			ValidationErrors validation.ErrorMap
-		}{
-			Code:             code,
-			Menge:            anzahl,
+		data := validation.FormData[DestroyData]{
+			Form: DestroyData{
+				Code:  code,
+				Menge: anzahl,
+			},
 			ValidationErrors: form.ValidationErrors,
 		}
 
@@ -320,20 +320,16 @@ func (a DingeResource) Destroy(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		response := webx.HtmlResponse{Template: template, Data: data, StatusCode: http.StatusOK}
+		response := webx.HtmlResponse{Template: template, Data: data, StatusCode: http.StatusUnprocessableEntity}
 		if err := response.Render(w); err != nil {
 			webx.ServerError(w, err)
 			return
 		}
-	}
 
-	id, err := a.Repository.MengeAktualisieren(r.Context(), code, -anzahl)
-	if err != nil {
-		webx.ServerError(w, err)
 		return
 	}
 
-	webx.SeeOther("/dinge/%v", id).ServeHTTP(w, r)
+	webx.SeeOther("/dinge/%v", ding.Id).ServeHTTP(w, r)
 }
 
 // Zeigt eine Form an, um Dinge zu entnehmen.
@@ -344,17 +340,11 @@ func DestroyForm(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	var form = struct {
-		Menge int
-	}{
-		Menge: 1,
-	}
-
-	var data = struct {
-		Form             struct{ Menge int }
-		ValidationErrors validation.ErrorMap
-	}{
-		Form: form,
+	data := validation.FormData[DestroyData]{
+		Form: DestroyData{
+			Code:  "",
+			Menge: 1,
+		},
 	}
 
 	response := webx.HtmlResponse{
@@ -362,7 +352,13 @@ func DestroyForm(w http.ResponseWriter, r *http.Request) {
 		Data:       data,
 		StatusCode: http.StatusOK,
 	}
+
 	if err := response.Render(w); err != nil {
 		webx.ServerError(w, err)
 	}
+}
+
+type DestroyData struct {
+	Code  string
+	Menge int
 }

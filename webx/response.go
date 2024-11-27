@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"fmt"
 	"html/template"
+	"log/slog"
 	"net/http"
 )
 
@@ -25,9 +26,10 @@ func PermanentRedirect(path string) http.HandlerFunc {
 //
 // TODO: cause muss ausgegeben werden, aber nicht im Body, sondern im Protokoll.
 func ServerError(w http.ResponseWriter, cause error) {
+	println(cause.Error())
+	slog.Error(cause.Error())
 	status := http.StatusInternalServerError
 	http.Error(w, http.StatusText(status), status)
-	// TODO Log
 }
 
 // HtmlResponse liefert den HTML Inhalt für die Anwort auf eine Anfrage

@@ -43,7 +43,6 @@ import (
 
 	"github.com/haschi/dinge/model"
 	"github.com/haschi/dinge/system"
-	"github.com/haschi/dinge/validation"
 	_ "github.com/mattn/go-sqlite3"
 )
 
@@ -170,15 +169,4 @@ func environmentOrDefault(environment func(string) (string, bool), key string, d
 	}
 
 	return defaultValue
-}
-
-type Form struct {
-	Code   string
-	Anzahl int
-}
-
-type Data struct {
-	LetzteEinträge   []model.Ding
-	Form             Form
-	ValidationErrors validation.ErrorMap
 }

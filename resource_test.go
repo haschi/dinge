@@ -225,7 +225,7 @@ func TestResource_PostDingeId(t *testing.T) {
 			data: url.Values{
 				Name: []string{""},
 			},
-			wantStatusCode: http.StatusBadRequest,
+			wantStatusCode: http.StatusUnprocessableEntity,
 		},
 	}
 
@@ -247,7 +247,61 @@ func TestResource_PostDingeId(t *testing.T) {
 }
 
 func TestResource_PostDingeDelete(t *testing.T) {
+	testserver := newTestServer(t, newDingeResource)
+	defer testserver.Close()
 
+	type fixture struct {
+		name           string
+		data           url.Values
+		wantStatusCode int
+		wantLocation   string
+	}
+
+	tests := []fixture{
+		{
+			name: "Entnehme ein Paprika",
+			data: url.Values{
+				Code:   []string{"111"},
+				Anzahl: []string{"1"},
+			},
+
+			wantStatusCode: http.StatusSeeOther,
+			wantLocation:   "/dinge/1",
+		},
+		{
+			name: "Ungültiger Code",
+			data: url.Values{
+				Code:   []string{"malfomed"},
+				Anzahl: []string{"1"},
+			},
+			wantStatusCode: http.StatusUnprocessableEntity,
+		},
+		{
+			name: "Entnehme drei Paprika",
+			data: url.Values{
+				Code:   []string{"111"},
+				Anzahl: []string{"3"},
+			},
+			wantStatusCode: http.StatusUnprocessableEntity,
+		},
+	}
+
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			path := "/dinge/delete"
+			resp := testserver.Post(path, test.data)
+
+			gotStatusCode := resp.StatusCode
+			if gotStatusCode != test.wantStatusCode {
+				t.Errorf("POST %v = %v, want %v", path, gotStatusCode, test.wantStatusCode)
+			}
+
+			location := resp.Header.Get("Location")
+			if location != test.wantLocation {
+				t.Errorf("POST %v = %v, want %v", path, location, test.wantLocation)
+			}
+		})
+	}
 }
 func TestResource_GetDingeDelete(t *testing.T) {
 	testserver := newTestServer(t, newDingeResource)
