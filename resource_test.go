@@ -225,7 +225,7 @@ func TestResource_PostDingeId(t *testing.T) {
 			data: url.Values{
 				Name: []string{""},
 			},
-			wantStatusCode: http.StatusBadRequest,
+			wantStatusCode: http.StatusUnprocessableEntity,
 		},
 	}
 
