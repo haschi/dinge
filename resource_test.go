@@ -1,13 +1,13 @@
 package main
 
 import (
+	"bytes"
 	"database/sql"
 	"fmt"
 	"log/slog"
 	"net/http"
 	"net/http/httptest"
 	"net/url"
-	"os"
 	"testing"
 
 	"github.com/haschi/dinge/model"
@@ -17,7 +17,6 @@ import (
 func TestResource_GetAbout(t *testing.T) {
 
 	testserver := newTestServer(t, newDingeResource)
-
 	defer testserver.Close()
 
 	response := testserver.Get("/about")
@@ -30,7 +29,6 @@ func TestResource_GetAbout(t *testing.T) {
 
 func TestResource_GetDinge(t *testing.T) {
 	testserver := newTestServer(t, newDingeResource)
-
 	defer testserver.Close()
 
 	response := testserver.Get("/dinge")
@@ -43,7 +41,6 @@ func TestResource_GetDinge(t *testing.T) {
 
 func TestResource_GetDingeNew(t *testing.T) {
 	testserver := newTestServer(t, newDingeResource)
-
 	defer testserver.Close()
 
 	response := testserver.Get("/dinge/new")
@@ -57,7 +54,6 @@ func TestResource_GetDingeNew(t *testing.T) {
 func TestResource_GetDingeId(t *testing.T) {
 
 	testserver := newTestServer(t, newDingeResource)
-
 	defer testserver.Close()
 
 	tests := []struct {
@@ -92,7 +88,6 @@ func TestResource_GetDingeId(t *testing.T) {
 
 func TestResource_GetDingeIdEdit(t *testing.T) {
 	testserver := newTestServer(t, newDingeResource)
-
 	defer testserver.Close()
 
 	tests := []struct {
@@ -305,7 +300,6 @@ func TestResource_PostDingeDelete(t *testing.T) {
 }
 func TestResource_GetDingeDelete(t *testing.T) {
 	testserver := newTestServer(t, newDingeResource)
-
 	defer testserver.Close()
 
 	path := "/dinge/delete"
@@ -324,9 +318,10 @@ type testserver struct {
 	t      *testing.T
 	db     *sql.DB
 	server *httptest.Server
+	logger *slog.Logger
 }
 
-func newTestServer(t *testing.T, fn func(db *sql.DB) (*DingeResource, error)) *testserver {
+func newTestServer(t *testing.T, fn func(*slog.Logger, *sql.DB) (http.Handler, error)) *testserver {
 	t.Helper()
 
 	db, err := sql.Open("sqlite3", dataSource)
@@ -339,18 +334,20 @@ func newTestServer(t *testing.T, fn func(db *sql.DB) (*DingeResource, error)) *t
 		t.Fatal(err)
 	}
 
+	var buffer bytes.Buffer
 	var loglevel = new(slog.LevelVar)
-	loghandler := slog.NewJSONHandler(os.Stdin, &slog.HandlerOptions{Level: loglevel})
+	loghandler := slog.NewJSONHandler(&buffer, &slog.HandlerOptions{Level: loglevel})
 	logger := slog.New(loghandler)
 
-	resource, err := fn(db)
+	resource, err := fn(logger, db)
 	if err != nil {
 		t.Fatal(err)
 	}
 
 	testserver := &testserver{
 		db:     db,
-		server: httptest.NewTLSServer(routes(logger, *resource)),
+		server: httptest.NewTLSServer(resource),
+		logger: logger,
 	}
 
 	client := testserver.server.Client()
@@ -393,7 +390,7 @@ func (t *testserver) Post(path string, data url.Values) *http.Response {
 	return resp
 }
 
-func newDingeResource(db *sql.DB) (*DingeResource, error) {
+func newDingeResource(logger *slog.Logger, db *sql.DB) (http.Handler, error) {
 	repository, err := model.NewRepository(db, system.RealClock{})
 	if err != nil {
 		return nil, err
@@ -402,5 +399,5 @@ func newDingeResource(db *sql.DB) (*DingeResource, error) {
 		Repository: repository,
 	}
 
-	return resource, nil
+	return routes(logger, *resource), nil
 }

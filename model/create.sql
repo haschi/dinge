@@ -3,6 +3,7 @@ CREATE TABLE dinge(
   code VARCHAR(100) NOT NULL,
   name TEXT NOT NULL,
   anzahl INTEGER NOT NULL,
+  beschreibung TEXT,
   aktualisiert DATETIME NOT NULL
 );
 

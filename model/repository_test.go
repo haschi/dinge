@@ -4,8 +4,9 @@ import (
 	"context"
 	"database/sql"
 	_ "embed"
-	"errors"
+	"iter"
 	"reflect"
+	"slices"
 	"testing"
 	"time"
 
@@ -14,6 +15,46 @@ import (
 	"github.com/haschi/dinge/testx"
 	_ "github.com/mattn/go-sqlite3"
 )
+
+func TestNewRepository(t *testing.T) {
+	type args struct {
+		dbfunc func(*sql.DB) *sql.DB
+		clock  model.Clock
+	}
+	tests := []struct {
+		name    string
+		args    args
+		wantNil bool
+		wantErr bool
+	}{
+		{
+			name:    "no database",
+			args:    args{dbfunc: func(d *sql.DB) *sql.DB { return nil }, clock: system.RealClock{}},
+			wantNil: true,
+			wantErr: true,
+		},
+		{
+			name:    "with database",
+			args:    args{dbfunc: func(d *sql.DB) *sql.DB { return d }, clock: system.RealClock{}},
+			wantNil: false,
+			wantErr: false,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			withDatabase(t, nil, func(t *testing.T, d *sql.DB) {
+				got, err := model.NewRepository(tt.args.dbfunc(d), tt.args.clock)
+				if (err != nil) != tt.wantErr {
+					t.Errorf("NewRepository() error = %v, wantErr %v", err, tt.wantErr)
+				}
+
+				if (got == nil) != tt.wantNil {
+					t.Errorf("NewRepository() repository = %v, wantNil %v", got, tt.wantNil)
+				}
+			})
+		})
+	}
+}
 
 func TestRepository_GetById(t *testing.T) {
 
@@ -32,14 +73,14 @@ func TestRepository_GetById(t *testing.T) {
 		{
 			name:         "empty database",
 			fields:       model.NewRepository,
-			precondition: thefixture(dinge),
+			precondition: theFixture,
 			args:         args{ctx: context.Background()},
 			wantErr:      true,
 		},
 		{
 			name:         "lese ding 111",
 			fields:       model.NewRepository,
-			precondition: thefixture(dinge),
+			precondition: theFixture,
 			args:         args{id: dinge[0].Id, ctx: context.Background()},
 			want:         dinge[0],
 			wantErr:      false,
@@ -88,7 +129,7 @@ func TestRepository_GetById(t *testing.T) {
 
 func TestRepository_GetByCode(t *testing.T) {
 
-	withDatabase(t, thefixture(dinge), func(t *testing.T, db *sql.DB) {
+	withDatabase(t, theFixture, func(t *testing.T, db *sql.DB) {
 		type args struct {
 			ctx  context.Context
 			code string
@@ -158,26 +199,30 @@ func TestRepository_MengeAktualisieren(t *testing.T) {
 			name:   "Update Paprika",
 			fields: model.NewRepository,
 			args:   args{code: dinge[0].Code, menge: 42, ctx: context.Background()},
-			setup:  thefixture(dinge),
+			setup:  theFixture,
 			want: model.Ding{
-				Id:     dinge[0].Id,
-				Code:   dinge[0].Code,
-				Name:   dinge[0].Name,
-				Anzahl: dinge[0].Anzahl + 42,
+				DingRef: model.DingRef{
+					Id:     dinge[0].Id,
+					Code:   dinge[0].Code,
+					Name:   dinge[0].Name,
+					Anzahl: dinge[0].Anzahl + 42,
+				},
+				Beschreibung: dinge[0].Beschreibung,
+				Aktualisiert: dinge[0].Aktualisiert,
 			},
 			wantErr: false,
 		},
 		{
 			name:    "Update unknown",
 			fields:  model.NewRepository,
-			setup:   thefixture(dinge),
+			setup:   theFixture,
 			args:    args{code: "unknown", menge: 42, ctx: context.Background()},
 			wantErr: true,
 		},
 		{
 			name:    "Update too much",
 			fields:  model.NewRepository,
-			setup:   thefixture(dinge),
+			setup:   theFixture,
 			args:    args{code: dinge[0].Code, menge: -(dinge[0].Anzahl + 1), ctx: context.Background()},
 			wantErr: true,
 		},
@@ -190,7 +235,7 @@ func TestRepository_MengeAktualisieren(t *testing.T) {
 		{
 			name:    "with canceled context",
 			fields:  model.NewRepository,
-			setup:   thefixture(dinge).AndThen(closeDatabase),
+			setup:   testx.SetupFunc(theFixture).AndThen(closeDatabase),
 			args:    args{code: "", menge: 0, ctx: context.Background()},
 			wantErr: true,
 		},
@@ -246,21 +291,21 @@ func TestRepository_Insert(t *testing.T) {
 		{
 			name:         "closed database",
 			fields:       model.NewRepository,
-			precondition: thefixture(dinge).AndThen(closeDatabase),
+			precondition: testx.SetupFunc(theFixture).AndThen(closeDatabase),
 			args:         args{ctx: context.Background(), code: "doesn't matter", anzahl: 42},
 			wantErr:      true,
 		},
 		{
 			name:         "Insert new ding",
 			fields:       model.NewRepository,
-			precondition: thefixture(dinge),
+			precondition: theFixture,
 			args:         args{ctx: context.Background(), code: "QWERT", anzahl: 1},
 			want:         model.InsertResult{Id: int64(len(dinge) + 1), Created: true},
 		},
 		{
 			name:         "Insert existing ding",
 			fields:       model.NewRepository,
-			precondition: thefixture(dinge),
+			precondition: theFixture,
 			args:         args{ctx: context.Background(), code: dinge[0].Code, anzahl: 1},
 			want:         model.InsertResult{Id: dinge[0].Id, Created: false},
 		},
@@ -290,14 +335,16 @@ func TestRepository_Insert(t *testing.T) {
 func TestRepository_NamenAktualisieren(t *testing.T) {
 
 	type args struct {
-		id        int64
-		name      string
-		timestamp time.Time
-		ctx       context.Context
+		ctx          context.Context
+		id           int64
+		name         string
+		beschreibung string
+		//timestamp    time.Time
 	}
 	tests := []struct {
 		name         string
 		fields       repositoryProvider
+		timestamp    time.Time
 		precondition testx.SetupFunc
 		args         args
 		want         model.Ding
@@ -317,20 +364,47 @@ func TestRepository_NamenAktualisieren(t *testing.T) {
 			wantErr: true,
 		},
 		{
+			name:         "Beschreibung ändern",
+			fields:       model.NewRepository,
+			precondition: theFixture,
+			args: args{
+				ctx:          context.Background(),
+				id:           dinge[0].Id,
+				name:         "Pepperoni",
+				beschreibung: "Neue Beschreibung",
+			},
+			timestamp: must(time.Parse(time.DateTime, "2024-11-13 19:38:04")),
+			want: model.Ding{
+				DingRef: model.DingRef{
+					Id:     dinge[0].Id,
+					Name:   "Pepperoni",
+					Code:   dinge[0].Code,
+					Anzahl: dinge[0].Anzahl,
+				},
+				Beschreibung: "Neue Beschreibung",
+				Aktualisiert: must(time.Parse(time.DateTime, "2024-11-13 19:38:04")),
+			},
+			wantErr: false,
+		},
+		{
 			name:         "change Paprika",
 			fields:       model.NewRepository,
-			precondition: thefixture(dinge),
+			precondition: theFixture,
 			args: args{
-				ctx:       context.Background(),
-				id:        dinge[0].Id,
-				name:      "Pepperoni",
-				timestamp: must(time.Parse(time.DateTime, "2024-11-13 19:38:04")),
+				ctx:          context.Background(),
+				id:           dinge[0].Id,
+				name:         "Pepperoni",
+				beschreibung: dinge[0].Beschreibung,
 			},
+			timestamp: must(time.Parse(time.DateTime, "2024-11-13 19:38:04")),
 			want: model.Ding{
-				Id:           dinge[0].Id,
-				Name:         "Pepperoni",
-				Code:         dinge[0].Code,
-				Anzahl:       dinge[0].Anzahl,
+				DingRef: model.DingRef{
+					Id:     dinge[0].Id,
+					Name:   "Pepperoni",
+					Code:   dinge[0].Code,
+					Anzahl: dinge[0].Anzahl,
+				},
+				Beschreibung: dinge[0].Beschreibung,
 				Aktualisiert: must(time.Parse(time.DateTime, "2024-11-13 19:38:04")),
 			},
 			wantErr: false,
@@ -338,7 +412,7 @@ func TestRepository_NamenAktualisieren(t *testing.T) {
 		{
 			name:         "update unknown",
 			fields:       model.NewRepository,
-			precondition: thefixture(dinge),
+			precondition: theFixture,
 			args:         args{ctx: context.Background(), id: 42, name: "doesn't matter"},
 			wantErr:      true,
 		},
@@ -346,12 +420,12 @@ func TestRepository_NamenAktualisieren(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			withDatabase(t, tt.precondition, func(t *testing.T, db *sql.DB) {
-				r, err := tt.fields(db, FixedClock{Timestamp: tt.args.timestamp})
+				r, err := tt.fields(db, FixedClock{Timestamp: tt.timestamp})
 				if err != nil {
 					t.Fatal(err)
 				}
 
-				if err := r.NamenAktualisieren(tt.args.ctx, tt.args.id, tt.args.name); (err != nil) != tt.wantErr {
+				if err := r.DingAktualisieren(tt.args.ctx, tt.args.id, tt.args.name, tt.args.beschreibung); (err != nil) != tt.wantErr {
 					t.Errorf("Repository.NamenAktualisieren() error = %v, wantErr %v", err, tt.wantErr)
 				}
 
@@ -378,14 +452,14 @@ func TestRepository_GetLatest(t *testing.T) {
 		fields       fields
 		precondition testx.SetupFunc
 		arg          int
-		want         []model.Ding
+		want         []model.DingRef
 		wantErr      bool
 	}{
 		{
 			name:         "empty database",
 			fields:       model.NewRepository,
-			precondition: thefixture([]model.Ding{}),
-			want:         []model.Ding{},
+			precondition: theFixture,
+			want:         []model.DingRef{},
 		},
 		{
 			name:         "database closed",
@@ -396,28 +470,28 @@ func TestRepository_GetLatest(t *testing.T) {
 		{
 			name:         "limit 0",
 			fields:       model.NewRepository,
-			precondition: thefixture(dinge),
+			precondition: theFixture,
 			arg:          0,
-			want:         []model.Ding{},
+			want:         []model.DingRef{},
 		},
 		{
 			name:         "limit is less than the number of stored items",
 			fields:       model.NewRepository,
-			precondition: thefixture(dinge),
+			precondition: theFixture,
 			arg:          2,
-			want:         []model.Ding{dinge[2], dinge[1]},
+			want:         mapToDingeRef([]model.Ding{dinge[2], dinge[1]}),
 		},
 		{
 			name:         "limit is greater than the number of stored items",
 			fields:       model.NewRepository,
-			precondition: thefixture(dinge),
+			precondition: theFixture,
 			arg:          4,
-			want:         []model.Ding{dinge[2], dinge[1], dinge[0]},
+			want:         mapToDingeRef([]model.Ding{dinge[2], dinge[1], dinge[0]}),
 		},
 		{
 			name:   "items are sorted by date of change",
 			fields: model.NewRepository,
-			precondition: thefixture(dinge).AndThen(func(d *sql.DB) error {
+			precondition: testx.SetupFunc(theFixture).AndThen(func(d *sql.DB) error {
 				clock := FixedClock{Timestamp: must(time.Parse(time.DateTime, "2024-11-13 19:58:05"))}
 				repository, err := model.NewRepository(d, clock)
 
@@ -429,17 +503,19 @@ func TestRepository_GetLatest(t *testing.T) {
 			}),
 
 			arg: 4,
-			want: []model.Ding{
+			want: mapToDingeRef([]model.Ding{
 				{
-					Id:           dinge[1].Id,
-					Name:         dinge[1].Name,
-					Code:         dinge[1].Code,
-					Anzahl:       dinge[1].Anzahl + 1,
-					Aktualisiert: must(time.Parse(time.DateTime, "2024-11-13 19:58:05")),
+					DingRef: model.DingRef{
+						Id:     dinge[1].Id,
+						Name:   dinge[1].Name,
+						Code:   dinge[1].Code,
+						Anzahl: dinge[1].Anzahl + 1,
+					},
+					Beschreibung: dinge[1].Beschreibung,
 				},
 				dinge[2],
 				dinge[0],
-			},
+			}),
 		},
 	}
 
@@ -462,6 +538,26 @@ func TestRepository_GetLatest(t *testing.T) {
 			})
 		})
 	}
+}
+
+// TODO: Nur vorläufig. Das muss besser herausgearbeitet werden
+func transform[T, U any](s iter.Seq[T], fn func(T) U) iter.Seq[U] {
+	return func(yield func(U) bool) {
+		for v := range s {
+			ref := fn(v)
+			if !yield(ref) {
+				return
+			}
+		}
+	}
+}
+
+func mapToDingeRef(d []model.Ding) []model.DingRef {
+	mapped := transform(slices.Values(d), func(d model.Ding) model.DingRef {
+		return d.DingRef
+	})
+
+	return slices.Collect(mapped)
 }
 
 // Helfer, die möglicherweise in ein eigenes Package gehören.
@@ -496,102 +592,11 @@ func newCanceledContext() context.Context {
 	return ctx
 }
 
-func TestNewRepository(t *testing.T) {
-	type args struct {
-		dbfunc func(*sql.DB) *sql.DB
-		clock  model.Clock
-	}
-	tests := []struct {
-		name    string
-		args    args
-		wantNil bool
-		wantErr bool
-	}{
-		{
-			name:    "no database",
-			args:    args{dbfunc: func(d *sql.DB) *sql.DB { return nil }, clock: system.RealClock{}},
-			wantNil: true,
-			wantErr: true,
-		},
-		{
-			name:    "with database",
-			args:    args{dbfunc: func(d *sql.DB) *sql.DB { return d }, clock: system.RealClock{}},
-			wantNil: false,
-			wantErr: false,
-		},
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			withDatabase(t, nil, func(t *testing.T, d *sql.DB) {
-				got, err := model.NewRepository(tt.args.dbfunc(d), tt.args.clock)
-				if (err != nil) != tt.wantErr {
-					t.Errorf("NewRepository() error = %v, wantErr %v", err, tt.wantErr)
-				}
-
-				if (got == nil) != tt.wantNil {
-					t.Errorf("NewRepository() repository = %v, wantNil %v", got, tt.wantNil)
-				}
-			})
-		})
-	}
-}
-
 func closeDatabase(db *sql.DB) error {
 	return db.Close()
 }
 
 const dataSource = "file::memory:?cache=shared"
-
-func setupFixture(ctx context.Context, dinge []model.Ding) testx.SetupFunc {
-
-	return func(db *sql.DB) error {
-		for _, ding := range dinge {
-
-			r, err := model.NewRepository(db, FixedClock{Timestamp: ding.Aktualisiert})
-			if err != nil {
-				return err
-			}
-
-			result, err := r.Insert(ctx, ding.Code, ding.Anzahl)
-			if err != nil {
-				return err
-			}
-
-			if !result.Created {
-				return errors.New("ding bereits vorhanden")
-			}
-
-			if result.Id != ding.Id {
-				return errors.New("id missmatch")
-			}
-
-			if err = r.NamenAktualisieren(ctx, result.Id, ding.Name); err != nil {
-				return err
-			}
-		}
-
-		// Nur zu Testzwecken
-
-		// rows, err := db.Query("SELECT id, name, code, anzahl, aktualisiert FROM dinge")
-		// if err != nil {
-		// 	return err
-		// }
-
-		// defer rows.Close()
-
-		// for rows.Next() {
-		// 	var ding model.Ding
-		// 	err = rows.Scan(&ding.Id, &ding.Name, &ding.Code, &ding.Anzahl, &ding.Aktualisiert)
-		// 	if err != nil {
-		// 		return err
-		// 	}
-
-		// 	fmt.Println(ding)
-		// }
-
-		return nil
-	}
-}
 
 // testFunc deklariert eine Testfunktion, die eine Datenbank benutzt
 type testFunc func(*testing.T, *sql.DB)
@@ -601,9 +606,13 @@ type testFunc func(*testing.T, *sql.DB)
 // Die zurückgegebene Funktion initialisiert die Datenbank und füllt diese mit Testdaten, wenn sie aufgerufen wird.
 //
 // Die zurückgegebene Funktion kann mit [setup.AndThen] mit einer weiteren Funktion kombiniert werden.
-func thefixture(dinge []model.Ding) testx.SetupFunc {
-	return testx.SetupFunc(model.CreateTable).AndThen(setupFixture(context.Background(), dinge))
+func theFixture(db *sql.DB) error {
+	return model.ExecuteScripts(db, model.CreateScript, model.FixtureScript)
 }
+
+// func xFixture testx.SetupFunc {
+// 	return testx.SetupFunc(model.CreateTable).AndThen(model.SetupFixture)
+// }
 
 // withDatabase stellt eine Ausführungsumgebung bereit, in der eine Testfunktion mit Datenbank ausgeführt werden kann.
 func withDatabase(t *testing.T, setupFn testx.SetupFunc, testFn testFunc) {
@@ -631,9 +640,36 @@ func withDatabase(t *testing.T, setupFn testx.SetupFunc, testFn testFunc) {
 
 // Testdaten. Korrespondieren mit model/fixture.sql
 var dinge = []model.Ding{
-	{Id: 1, Name: "Paprika", Code: "111", Anzahl: 1, Aktualisiert: must(time.Parse(time.DateTime, "2024-11-13 18:48:01"))},
+	{
+		DingRef: model.DingRef{
+			Id:     1,
+			Name:   "Paprika",
+			Code:   "111",
+			Anzahl: 1,
+		},
+		Beschreibung: "Eine Planzengattung, die zur Familie der Nachtschattengewächse gehört",
+		Aktualisiert: must(time.Parse(time.DateTime, "2024-11-13 18:48:01")),
+	},
 
-	{Id: 2, Name: "Gurke", Code: "222", Anzahl: 2, Aktualisiert: must(time.Parse(time.DateTime, "2024-11-13 19:05:02"))},
+	{
+		DingRef: model.DingRef{
+			Id:     2,
+			Name:   "Gurke",
+			Code:   "222",
+			Anzahl: 2,
+		},
+		Beschreibung: "",
+		Aktualisiert: must(time.Parse(time.DateTime, "2024-11-13 19:05:02")),
+	},
 
-	{Id: 3, Name: "Tomate", Code: "333", Anzahl: 3, Aktualisiert: must(time.Parse(time.DateTime, "2024-11-13 19:06:03"))},
+	{
+		DingRef: model.DingRef{
+			Id:     3,
+			Name:   "Tomate",
+			Code:   "333",
+			Anzahl: 3,
+		},
+		Beschreibung: "",
+		Aktualisiert: must(time.Parse(time.DateTime, "2024-11-13 19:06:03")),
+	},
 }

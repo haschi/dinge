@@ -5,27 +5,15 @@ import (
 	"html/template"
 	"net/http"
 
-	"github.com/haschi/dinge/validation"
 	"github.com/haschi/dinge/webx"
 )
 
 const (
-	Name   = "name"
-	Anzahl = "anzahl"
-	Code   = "code"
+	Name         = "name"
+	Anzahl       = "anzahl"
+	Code         = "code"
+	Beschreibung = "beschreibung"
 )
-
-type PostDingForm struct {
-	Name   string
-	Code   string
-	Anzahl int
-}
-
-type PostDingData struct {
-	Id               int64
-	Form             PostDingForm
-	ValidationErrors validation.ErrorMap
-}
 
 func handleAbout(w http.ResponseWriter, r *http.Request) {
 	template, err := GetTemplate("about")

@@ -11,15 +11,20 @@ import (
 )
 
 type Ding struct {
-	Id           int64
-	Name         string
-	Code         string
-	Anzahl       int
+	DingRef
+	Beschreibung string
 	Aktualisiert time.Time
 }
 
+// DingRef repräsentiert ein Ding in der Übersicht.
+type DingRef struct {
+	Id     int64
+	Name   string
+	Code   string
+	Anzahl int
+}
+
 type Repository struct {
-	//*sql.DB
 	Clock Clock
 	tm    *sqlx.TransactionManager
 }
@@ -47,7 +52,7 @@ func (r Repository) GetById(ctx context.Context, id int64) (Ding, error) {
 		return Ding{}, errors.New("no context provided")
 	}
 
-	suchen := `SELECT id, name, code, anzahl, aktualisiert FROM dinge
+	suchen := `SELECT id, name, code, anzahl, beschreibung, aktualisiert FROM dinge
 	WHERE id = ?`
 
 	tx, err := r.tm.BeginTx(ctx)
@@ -57,11 +62,16 @@ func (r Repository) GetById(ctx context.Context, id int64) (Ding, error) {
 
 	defer tx.Rollback()
 
+	// TODO: Das ist hier eine Notlösung. Eigendlich sollte die Logik keine Nullwerte speichern können. Irgendetwas stimmt hier nicht.
+	var beschreibung sql.NullString
+
 	var ding Ding
 	row := tx.QueryRowContext(ctx, suchen, id)
-	if err := row.Scan(&ding.Id, &ding.Name, &ding.Code, &ding.Anzahl, &ding.Aktualisiert); err != nil {
+	if err := row.Scan(&ding.Id, &ding.Name, &ding.Code, &ding.Anzahl, &beschreibung, &ding.Aktualisiert); err != nil {
 		return ding, err
 	}
+
+	ding.Beschreibung = beschreibung.String
 
 	return ding, tx.Commit()
 }
@@ -79,12 +89,12 @@ func (r Repository) GetByCode(ctx context.Context, code string) (Ding, error) {
 
 	defer tx.Rollback()
 
-	suchen := `SELECT id, name, code, anzahl, aktualisiert FROM dinge
+	suchen := `SELECT id, name, code, anzahl, beschreibung, aktualisiert FROM dinge
 	WHERE code = ?`
 
 	var ding Ding
 	row := tx.QueryRowContext(ctx, suchen, code)
-	if err := row.Scan(&ding.Id, &ding.Name, &ding.Code, &ding.Anzahl, &ding.Aktualisiert); err != nil {
+	if err := row.Scan(&ding.Id, &ding.Name, &ding.Code, &ding.Anzahl, &ding.Beschreibung, &ding.Aktualisiert); err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			tx.Commit()
 		}
@@ -125,6 +135,7 @@ func (r Repository) MengeAktualisieren(ctx context.Context, code string, menge i
 
 	if err := row.Scan(&ding.Id, &ding.Name, &ding.Code, &ding.Anzahl, &ding.Aktualisiert); err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
+			// TODO: Alle Fehlermeldungen im Protokoll sollen in englisch sein; für Validierungsfehler eigene struct!
 			return nil, fmt.Errorf("Unbekannter Produktcode %v: %w)", code, ErrNoRecord)
 		}
 
@@ -150,8 +161,8 @@ func (r Repository) Insert(ctx context.Context, code string, anzahl int) (Insert
 
 	defer tx.Rollback()
 
-	statement := `INSERT INTO dinge(name, code, anzahl, aktualisiert)
-			VALUES(:name, :code, :anzahl, :aktualisiert)
+	statement := `INSERT INTO dinge(name, code, anzahl, beschreibung, aktualisiert)
+			VALUES(:name, :code, :anzahl, :beschreibung, :aktualisiert)
 			ON CONFLICT (code)
 			DO
 			UPDATE SET anzahl = anzahl + :anzahl, aktualisiert = :aktualisiert
@@ -164,6 +175,7 @@ func (r Repository) Insert(ctx context.Context, code string, anzahl int) (Insert
 		sql.Named("name", ""),
 		sql.Named("code", code),
 		sql.Named("anzahl", anzahl),
+		sql.Named("beschreibung", ""),
 		sql.Named("aktualisiert", timestamp))
 
 	var neueAnzahl int
@@ -175,7 +187,7 @@ func (r Repository) Insert(ctx context.Context, code string, anzahl int) (Insert
 	return result, tx.Commit()
 }
 
-func (r Repository) NamenAktualisieren(ctx context.Context, id int64, name string) error {
+func (r Repository) DingAktualisieren(ctx context.Context, id int64, name string, beschreibung string) error {
 
 	if ctx == nil {
 		return errors.New("no context provided")
@@ -188,12 +200,13 @@ func (r Repository) NamenAktualisieren(ctx context.Context, id int64, name strin
 
 	defer tx.Rollback()
 
+	// TODO Named Parameter benutzer, keine Fragezeichen.
 	statement := `UPDATE dinge
-	SET name = ?, aktualisiert = ?
+	SET name = ?, beschreibung = ?, aktualisiert = ?
 	WHERE id = ?`
 
 	timestamp := r.Clock.Now()
-	result, err := tx.ExecContext(ctx, statement, name, timestamp, id)
+	result, err := tx.ExecContext(ctx, statement, name, beschreibung, timestamp, id)
 	if err != nil {
 		return err
 	}
@@ -210,15 +223,17 @@ func (r Repository) NamenAktualisieren(ctx context.Context, id int64, name strin
 	return tx.Commit()
 }
 
-func (r Repository) GetLatest(ctx context.Context, limit int) ([]Ding, error) {
+// TODO: Iterator statt Slice zurückgeben.
+func (r Repository) GetLatest(ctx context.Context, limit int) ([]DingRef, error) {
 
-	statement := `SELECT id, name, code, anzahl, aktualisiert FROM dinge
+	// TODO: Named Parameter benutzen.
+	statement := `SELECT id, name, code, anzahl FROM dinge
 		ORDER BY aktualisiert DESC
 		LIMIT ?`
 
 	tx, err := r.tm.BeginTx(ctx)
 	if err != nil {
-		return []Ding{}, err
+		return []DingRef{}, err
 	}
 	defer tx.Rollback()
 
@@ -229,11 +244,11 @@ func (r Repository) GetLatest(ctx context.Context, limit int) ([]Ding, error) {
 
 	defer rows.Close()
 
-	var dinge []Ding = []Ding{}
+	var dinge []DingRef = []DingRef{}
 
 	for rows.Next() {
-		var ding Ding
-		err = rows.Scan(&ding.Id, &ding.Name, &ding.Code, &ding.Anzahl, &ding.Aktualisiert)
+		var ding DingRef
+		err = rows.Scan(&ding.Id, &ding.Name, &ding.Code, &ding.Anzahl)
 		if err != nil {
 			return dinge, err
 		}
