@@ -18,15 +18,25 @@ type DingeResource struct {
 // Zeigt eine Liste aller Dinge
 func (a DingeResource) Index(w http.ResponseWriter, r *http.Request) {
 
-	dinge, err := a.Repository.GetLatest(r.Context(), 12)
+	content := IndexContent{}
+
+	form := validation.NewForm(r)
+	defer form.Close()
+
+	sortOptions := validation.StringOptions("alpha", "omega", "latest", "oldest")
+
+	form.Scan(
+		validation.String("q", &content.Form.Form.Q, validation.MaxLength(100)),
+		validation.String("s", &content.Form.Form.S, sortOptions),
+	)
+
+	dinge, err := a.Repository.GetLatest(r.Context(), 12, content.Form.Form.Q, content.Form.Form.S)
 	if err != nil {
 		webx.ServerError(w, err)
 		return
 	}
 
-	content := IndexContent{
-		Dinge: dinge,
-	}
+	content.Dinge = dinge
 
 	template, err := GetTemplate("index")
 	if err != nil {
@@ -41,6 +51,8 @@ func (a DingeResource) Index(w http.ResponseWriter, r *http.Request) {
 }
 
 type IndexFormData struct {
+	Q string
+	S string
 }
 
 type IndexContent struct {

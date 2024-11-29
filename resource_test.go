@@ -12,6 +12,7 @@ import (
 
 	"github.com/haschi/dinge/model"
 	"github.com/haschi/dinge/system"
+	"golang.org/x/net/html"
 )
 
 func TestResource_GetAbout(t *testing.T) {
@@ -28,15 +29,125 @@ func TestResource_GetAbout(t *testing.T) {
 }
 
 func TestResource_GetDinge(t *testing.T) {
+
+	type args struct {
+		url string
+	}
+
+	type want struct {
+		q      string
+		s      string
+		status int
+	}
+
+	type testcase struct {
+		name string
+		args args
+		want want
+	}
+
+	testcases := []testcase{
+		{
+			name: "Ohne Parameter",
+			args: args{url: "/dinge"},
+			want: want{q: "", s: "", status: http.StatusOK},
+		},
+		{
+			name: "Mit Parameter",
+			args: args{url: "/dinge?q=paprika&s=alpha"},
+			want: want{q: "paprika", s: "alpha", status: http.StatusOK},
+		},
+	}
+
 	testserver := newTestServer(t, newDingeResource)
 	defer testserver.Close()
 
-	response := testserver.Get("/dinge")
-	defer response.Body.Close()
+	for _, testcase := range testcases {
+		t.Run(testcase.name, func(t *testing.T) {
 
-	if response.StatusCode != http.StatusOK {
-		t.Errorf("GET /about want 200; got %v", response.StatusCode)
+			response := testserver.Get(testcase.args.url)
+			defer response.Body.Close()
+
+			if response.StatusCode != http.StatusOK {
+				t.Errorf("GET /about want 200; got %v", response.StatusCode)
+				return
+			}
+
+			doc, err := html.Parse(response.Body)
+			if err != nil {
+				t.Fatal(err)
+			}
+
+			q := getById(doc, "input-suche")
+			if q == nil {
+				t.Error("HTML element not found")
+				return
+			}
+
+			value := getAttributeValue(q, "value")
+			if value != testcase.want.q {
+				t.Errorf("<input id='%v'> value = '%v'; want %v", "q", value, testcase.want.q)
+			}
+
+			s := getById(doc, "input-sort")
+			selected := getSelectedOption(s)
+			if selected != testcase.want.s {
+				t.Errorf("<select id='%v'> selected option value = '%v'; want %v", "s", selected, testcase.want.s)
+			}
+		})
 	}
+}
+
+func getSelectedOption(n *html.Node) string {
+	for descendant := range n.Descendants() {
+		if descendant.Type == html.ElementNode && descendant.Data == "option" {
+			if hasAttribute(descendant, "selected") {
+				return getAttributeValue(descendant, "value")
+			}
+		}
+	}
+	return ""
+}
+
+func hasAttribute(n *html.Node, key string) bool {
+	for _, attr := range n.Attr {
+		if attr.Key == key {
+			return true
+		}
+	}
+
+	return false
+}
+
+func getAttributeValue(node *html.Node, key string) string {
+	for _, attr := range node.Attr {
+		if attr.Key == key {
+			return attr.Val
+		}
+	}
+
+	return ""
+}
+
+func getById(node *html.Node, id string) *html.Node {
+
+	if getAttributeValue(node, "id") == id {
+		return node
+	}
+
+	next := node.NextSibling
+	for next != nil {
+		if result := getById(next, id); result != nil {
+			return result
+		}
+		next = next.NextSibling
+	}
+
+	for child := range node.Descendants() {
+		return getById(child, id)
+	}
+
+	return nil
 }
 
 func TestResource_GetDingeNew(t *testing.T) {

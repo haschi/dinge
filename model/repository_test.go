@@ -447,11 +447,17 @@ func TestRepository_GetLatest(t *testing.T) {
 
 	type fields func(*sql.DB, model.Clock) (*model.Repository, error)
 
+	type args struct {
+		limit int
+		query string
+		sort  string
+	}
+
 	tests := []struct {
 		name         string
 		fields       fields
 		precondition testx.SetupFunc
-		arg          int
+		args         args
 		want         []model.DingRef
 		wantErr      bool
 	}{
@@ -471,21 +477,21 @@ func TestRepository_GetLatest(t *testing.T) {
 			name:         "limit 0",
 			fields:       model.NewRepository,
 			precondition: theFixture,
-			arg:          0,
+			args:         args{limit: 0},
 			want:         []model.DingRef{},
 		},
 		{
 			name:         "limit is less than the number of stored items",
 			fields:       model.NewRepository,
 			precondition: theFixture,
-			arg:          2,
+			args:         args{limit: 2},
 			want:         mapToDingeRef([]model.Ding{dinge[2], dinge[1]}),
 		},
 		{
 			name:         "limit is greater than the number of stored items",
 			fields:       model.NewRepository,
 			precondition: theFixture,
-			arg:          4,
+			args:         args{limit: 4},
 			want:         mapToDingeRef([]model.Ding{dinge[2], dinge[1], dinge[0]}),
 		},
 		{
@@ -502,7 +508,7 @@ func TestRepository_GetLatest(t *testing.T) {
 				return err
 			}),
 
-			arg: 4,
+			args: args{limit: 4},
 			want: mapToDingeRef([]model.Ding{
 				{
 					DingRef: model.DingRef{
@@ -527,7 +533,7 @@ func TestRepository_GetLatest(t *testing.T) {
 					t.Fatal(err)
 				}
 
-				got, err := r.GetLatest(context.Background(), tt.arg)
+				got, err := r.GetLatest(context.Background(), tt.args.limit, tt.args.query, tt.args.sort)
 				if (err != nil) != tt.wantErr {
 					t.Errorf("Repository.GetLatest() error = %v, wantErr %v", err, tt.wantErr)
 					return

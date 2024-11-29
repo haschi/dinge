@@ -5,6 +5,7 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
+	"strings"
 	"time"
 
 	"github.com/haschi/dinge/sqlx"
@@ -224,12 +225,20 @@ func (r Repository) DingAktualisieren(ctx context.Context, id int64, name string
 }
 
 // TODO: Iterator statt Slice zurückgeben.
-func (r Repository) GetLatest(ctx context.Context, limit int) ([]DingRef, error) {
+func (r Repository) GetLatest(ctx context.Context, limit int, query string, sort string) ([]DingRef, error) {
 
-	// TODO: Named Parameter benutzen.
-	statement := `SELECT id, name, code, anzahl FROM dinge
+	var statement string
+
+	// Mit Volltextsuche, wenn q nicht leer ist
+	if strings.TrimSpace(query) != "" {
+		statement = `select id, name, code, anzahl from dinge
+	where id IN (SELECT rowid FROM fulltext WHERE fulltext MATCH :query) LIMIT :limit`
+	} else {
+		// TODO: Named Parameter benutzen.
+		statement = `SELECT id, name, code, anzahl FROM dinge
 		ORDER BY aktualisiert DESC
-		LIMIT ?`
+		LIMIT :limit`
+	}
 
 	tx, err := r.tm.BeginTx(ctx)
 	if err != nil {
@@ -237,7 +246,8 @@ func (r Repository) GetLatest(ctx context.Context, limit int) ([]DingRef, error)
 	}
 	defer tx.Rollback()
 
-	rows, err := tx.QueryContext(ctx, statement, limit)
+	rows, err := tx.QueryContext(ctx, statement, sql.Named("limit", limit), sql.Named("query", query))
+
 	if err != nil {
 		return nil, err
 	}

@@ -4,6 +4,7 @@ import (
 	"errors"
 	"net/http"
 	"net/url"
+	"slices"
 	"strconv"
 	"strings"
 )
@@ -116,6 +117,23 @@ func IsNotBlank(value string) error {
 	return nil
 }
 
+func MaxLength(max int) ValidationFunc[string] {
+	return func(value string) error {
+		if len(value) > max {
+			return errors.New("Zuviele Zeichen für dieses Feld eingegeben")
+		}
+		return nil
+	}
+}
+
+func StringOptions(options ...string) ValidationFunc[string] {
+	return func(value string) error {
+		if slices.Contains(options, value) {
+			return nil
+		}
+		return errors.New("Ungültige Auswahl")
+	}
+}
 func Min(lowerbound int) ValidationFunc[int] {
 	return func(value int) error {
 		if value < lowerbound {
