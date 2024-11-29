@@ -84,11 +84,14 @@ func (a DingeResource) Create(w http.ResponseWriter, r *http.Request) {
 	form := validation.NewForm(r)
 	defer form.Close()
 
-	var content CreateData
+	data := validation.FormData[CreateData]{
+		Form:             CreateData{},
+		ValidationErrors: form.ValidationErrors,
+	}
 
 	err := form.Scan(
-		validation.String(Code, &content.Code, validation.IsNotBlank),
-		validation.Integer(Anzahl, &content.Anzahl, validation.Min(1)),
+		validation.String(Code, &data.Form.Code, validation.IsNotBlank),
+		validation.Integer(Anzahl, &data.Form.Anzahl, validation.Min(1)),
 	)
 
 	if err != nil {
@@ -98,11 +101,6 @@ func (a DingeResource) Create(w http.ResponseWriter, r *http.Request) {
 
 	if !form.IsValid() {
 		// "fehler in den übermittelten Daten"
-
-		data := validation.FormData[CreateData]{
-			Form:             content,
-			ValidationErrors: form.ValidationErrors,
-		}
 
 		template, err := GetTemplate("new")
 		if err != nil {
@@ -115,9 +113,11 @@ func (a DingeResource) Create(w http.ResponseWriter, r *http.Request) {
 			webx.ServerError(w, err)
 			return
 		}
+
+		return
 	}
 
-	result, err := a.Repository.Insert(r.Context(), content.Code, content.Anzahl)
+	result, err := a.Repository.Insert(r.Context(), data.Form.Code, data.Form.Anzahl)
 	if err != nil {
 		webx.ServerError(w, err)
 		return

@@ -27,7 +27,6 @@ func LogRequest(logger *slog.Logger) Middleware {
 		return func(w http.ResponseWriter, r *http.Request) {
 			wrapper := &responseWriterWrapper{
 				ResponseWriter: w,
-				statusCode:     http.StatusOK,
 			}
 			start := time.Now()
 
