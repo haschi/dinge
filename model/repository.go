@@ -5,6 +5,7 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
+	"strings"
 	"time"
 
 	"github.com/haschi/dinge/sqlx"
@@ -184,6 +185,16 @@ func (r Repository) Insert(ctx context.Context, code string, anzahl int) (Insert
 	}
 
 	result.Created = neueAnzahl == anzahl
+
+	if result.Created {
+		fts := ` INSERT INTO fulltext(rowid, code, name, beschreibung)
+		VALUES(:id, :code, '', '')`
+		_, err := tx.ExecContext(ctx, fts, sql.Named("id", result.Id), sql.Named("code", code))
+		if err != nil {
+			return InsertResult{}, err
+		}
+	}
+
 	return result, tx.Commit()
 }
 
@@ -201,12 +212,19 @@ func (r Repository) DingAktualisieren(ctx context.Context, id int64, name string
 	defer tx.Rollback()
 
 	// TODO Named Parameter benutzer, keine Fragezeichen.
-	statement := `UPDATE dinge
-	SET name = ?, beschreibung = ?, aktualisiert = ?
-	WHERE id = ?`
+	statement := `
+		UPDATE dinge
+		SET name = :name, beschreibung = :beschreibung, aktualisiert = :aktualisiert
+		WHERE id = :id;
+	`
 
 	timestamp := r.Clock.Now()
-	result, err := tx.ExecContext(ctx, statement, name, beschreibung, timestamp, id)
+	result, err := tx.ExecContext(ctx, statement,
+		sql.Named("name", name),
+		sql.Named("beschreibung", beschreibung),
+		sql.Named("aktualisiert", timestamp),
+		sql.Named("id", id))
+
 	if err != nil {
 		return err
 	}
@@ -220,16 +238,37 @@ func (r Repository) DingAktualisieren(ctx context.Context, id int64, name string
 		return ErrNoRecord
 	}
 
+	// Update: code kann sich nicht ändern
+	updateFulltext := `UPDATE fulltext
+	SET name = :name, beschreibung = :beschreibung
+	WHERE rowid = :id`
+
+	if _, err := tx.ExecContext(ctx, updateFulltext,
+		sql.Named("id", id),
+		sql.Named("name", name),
+		sql.Named("beschreibung", beschreibung),
+	); err != nil {
+		return fmt.Errorf("Fehler bei der Abfrage des Volltext-Tabelle: %w", err)
+	}
+
 	return tx.Commit()
 }
 
 // TODO: Iterator statt Slice zurückgeben.
-func (r Repository) GetLatest(ctx context.Context, limit int) ([]DingRef, error) {
+func (r Repository) GetLatest(ctx context.Context, limit int, query string, sort string) ([]DingRef, error) {
 
-	// TODO: Named Parameter benutzen.
-	statement := `SELECT id, name, code, anzahl FROM dinge
+	var statement string
+
+	// Mit Volltextsuche, wenn q nicht leer ist
+	if strings.TrimSpace(query) != "" {
+		statement = `select id, name, code, anzahl from dinge
+	where id IN (SELECT rowid FROM fulltext WHERE fulltext MATCH :query) LIMIT :limit`
+	} else {
+		// TODO: Named Parameter benutzen.
+		statement = `SELECT id, name, code, anzahl FROM dinge
 		ORDER BY aktualisiert DESC
-		LIMIT ?`
+		LIMIT :limit`
+	}
 
 	tx, err := r.tm.BeginTx(ctx)
 	if err != nil {
@@ -237,7 +276,11 @@ func (r Repository) GetLatest(ctx context.Context, limit int) ([]DingRef, error)
 	}
 	defer tx.Rollback()
 
-	rows, err := tx.QueryContext(ctx, statement, limit)
+	if query != "" {
+		query = fmt.Sprintf("%v*", query)
+	}
+	rows, err := tx.QueryContext(ctx, statement, sql.Named("limit", limit), sql.Named("query", query))
+
 	if err != nil {
 		return nil, err
 	}

@@ -11,7 +11,7 @@
       "mode": "auto",
       "buildFlags": [
         "-tags",
-        "development"
+        "fts5 development",
       ],
       "program": "${workspaceFolder}",
       "env": {
