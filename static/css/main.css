@@ -87,3 +87,16 @@
    left: 0;
    width: 100%;
  }
+
+ /* Formular horizontal */
+ article form {
+   max-width: 100%;
+   display: flex;
+   align-items: baseline;
+   gap: 1.5rem;
+   padding: 1rem;
+ }
+
+ article form button[type="submit"] {
+   margin: 0;
+ }

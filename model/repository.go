@@ -261,12 +261,23 @@ func (r Repository) GetLatest(ctx context.Context, limit int, query string, sort
 
 	// Mit Volltextsuche, wenn q nicht leer ist
 	if strings.TrimSpace(query) != "" {
-		statement = `select id, name, code, anzahl from dinge
-	where id IN (SELECT rowid FROM fulltext WHERE fulltext MATCH :query) LIMIT :limit`
-	} else {
-		// TODO: Named Parameter benutzen.
 		statement = `SELECT id, name, code, anzahl FROM dinge
-		ORDER BY aktualisiert DESC
+		WHERE id IN (SELECT rowid FROM fulltext WHERE fulltext MATCH :query)
+		ORDER BY
+		  CASE WHEN :sort = 'alpha' THEN name END,
+			CASE WHEN :sort = 'omega' THEN name END DESC,
+			CASE WHEN :sort = 'oldest' THEN aktualisiert END,
+			CASE WHEN :sort = 'latest' THEN aktualisiert END DESC,
+			CASE WHEN :sort = '' THEN aktualisiert END DESC
+		LIMIT :limit`
+	} else {
+		statement = `SELECT id, name, code, anzahl FROM dinge
+		ORDER BY
+		  CASE WHEN :sort = 'alpha' THEN name END,
+			CASE WHEN :sort = 'omega' THEN name END DESC,
+			CASE WHEN :sort = 'oldest' THEN aktualisiert END,
+			CASE WHEN :sort = 'latest' THEN aktualisiert END DESC,
+			CASE WHEN :sort = '' THEN aktualisiert END DESC
 		LIMIT :limit`
 	}
 
@@ -276,10 +287,10 @@ func (r Repository) GetLatest(ctx context.Context, limit int, query string, sort
 	}
 	defer tx.Rollback()
 
-	if query != "" {
-		query = fmt.Sprintf("%v*", query)
-	}
-	rows, err := tx.QueryContext(ctx, statement, sql.Named("limit", limit), sql.Named("query", query))
+	rows, err := tx.QueryContext(ctx, statement,
+		sql.Named("limit", limit),
+		sql.Named("query", query),
+		sql.Named("sort", sort))
 
 	if err != nil {
 		return nil, err

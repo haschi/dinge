@@ -110,35 +110,44 @@ type FieldType interface {
 /* ScanFunc */
 
 func IsNotBlank(value string) error {
-	if strings.TrimSpace(string(value)) == "" {
-		return errors.New("Das Feld ist leer, darf es aber nicht sein")
+	if strings.TrimSpace(value) == "" {
+		return ErrEmptyString
 	}
 
 	return nil
 }
 
-func MaxLength(max int) ValidationFunc[string] {
+var ErrEmptyString = errors.New("In diesem Feld müssen Zeichen eingegeben werden")
+
+func MaxLength(max uint) ValidationFunc[string] {
 	return func(value string) error {
-		if len(value) > max {
-			return errors.New("Zuviele Zeichen für dieses Feld eingegeben")
+		if len(strings.TrimSpace(value)) > int(max) {
+			return ErrTooManyCharacters
 		}
 		return nil
 	}
 }
+
+var ErrTooManyCharacters = errors.New("Zuviele Zeichen")
 
 func StringOptions(options ...string) ValidationFunc[string] {
 	return func(value string) error {
 		if slices.Contains(options, value) {
 			return nil
 		}
-		return errors.New("Ungültige Auswahl")
+		return ErrValueNotIncluded
 	}
 }
+
+var ErrValueNotIncluded = errors.New("Der Wert ist nicht in der Auswahl enthalten")
+
 func Min(lowerbound int) ValidationFunc[int] {
 	return func(value int) error {
 		if value < lowerbound {
-			return errors.New("Wert darf nicht kleiner sein als x")
+			return ErrNumberTooSmall
 		}
 		return nil
 	}
 }
+
+var ErrNumberTooSmall = errors.New("Der Wert ist zu klein")
