@@ -276,9 +276,6 @@ func (r Repository) GetLatest(ctx context.Context, limit int, query string, sort
 	}
 	defer tx.Rollback()
 
-	if query != "" {
-		query = fmt.Sprintf("%v*", query)
-	}
 	rows, err := tx.QueryContext(ctx, statement, sql.Named("limit", limit), sql.Named("query", query))
 
 	if err != nil {

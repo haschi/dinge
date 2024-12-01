@@ -1,18 +1,19 @@
 {{define "title"}}Dinge Index{{end}}
 {{define "content"}}
 
-<form action="/dinge" method="get">
-  <label for="input-suche">Suche</label>
-  <input id="input-suche" name="q" value="{{.Form.Form.Q}}" type="text" autofocus maxlength="100" />
-  <label for="input-sort">Sortieren</label>
-  <select id="input-sort" name="s">
-    <option {{if eq .Form.Form.S "alpha" }}selected{{end}} value="alpha">Alphabetisch aufsteigend</option>
-    <option {{if eq .Form.Form.S "omega" }}selected{{end}} value="omega">Alphabetisch absteigend</option>
-    <option {{if eq .Form.Form.S "latest" }}selected{{end}} value="latest">Datum aufsteigend</option>
-    <option {{if eq .Form.Form.S "oldest" }}selected{{end}} value="oldest">Datum absteigend</option>
-  </select>
-  <button type="submit">Suchen</button>
-</form>
+<article>
+  <form action="/dinge" method="get">
+    <input id="input-suche" style="flex-grow: 1;" name="q" value="{{.Form.Form.Q}}" type="text" autofocus
+      maxlength="100" />
+    <select id="input-sort" name="s">
+      <option {{if eq .Form.Form.S "alpha" }}selected{{end}} value="alpha">Alphabetisch aufsteigend</option>
+      <option {{if eq .Form.Form.S "omega" }}selected{{end}} value="omega">Alphabetisch absteigend</option>
+      <option {{if eq .Form.Form.S "latest" }}selected{{end}} value="latest">Datum aufsteigend</option>
+      <option {{if eq .Form.Form.S "oldest" }}selected{{end}} value="oldest">Datum absteigend</option>
+    </select>
+    <button type="submit">Suchen</button>
+  </form>
+</article>
 <section>
   {{range .Dinge}}
   <aside>
