@@ -13,12 +13,8 @@ Die flags sind:
 				Mit "127.0.0.1:8080" wird der Server zum Beispiel an Lokalhost Port 8080 gebunden.
 				Wenn als Interface 0.0.0.0 gewählt wird, bindet der Server an alle Interfaces. Die Voreinstellung ist "0.0.0.0:8443", falls dieser Parameter nicht angegeben wird.
 
-		--datasorce
-		    Der Name der Datenquelle, die zum Speichern der Daten des Services benutzt wird.
-				Im einfachsten Fall handelt es sich um den Pfad zu einer SQLite Datenbankdatei.
-				Wenn die Datenbankdatei nicht existiert, wird sie angelegt.
-				Es können zusätzliche Parameter für die Datenquelle angegegebn werden.
-				Sie dazu auch https://github.com/mattn/go-sqlite3?tab=readme-ov-file#connection-string
+		--db-filename
+		    Pfad zur Datenbankdatei.
 
 		--version -v
 		    Gibt die Version aus.
@@ -42,6 +38,7 @@ import (
 	"time"
 
 	"github.com/haschi/dinge/model"
+	"github.com/haschi/dinge/sqlx"
 	"github.com/haschi/dinge/system"
 	_ "github.com/mattn/go-sqlite3"
 )
@@ -65,8 +62,8 @@ func run(ctx context.Context, stdout io.Writer, _ []string, environment func(str
 	httpAddress := environmentOrDefault(environment, "HTTP_ADDRESS", "0.0.0.0:8443")
 	flag.StringVar(&httpAddress, "address", httpAddress, "HTTP network address")
 
-	datasource := environmentOrDefault(environment, "DATASOURCE", "dinge.db")
-	flag.StringVar(&datasource, "datasource", datasource, "SQLite data source name")
+	datasource := environmentOrDefault(environment, "DB_FILENAME", "dinge.db")
+	flag.StringVar(&datasource, "db-filename", datasource, "Database filename")
 
 	var version bool
 	flag.BoolVar(&version, "version", false, "print version information")
@@ -83,7 +80,9 @@ func run(ctx context.Context, stdout io.Writer, _ []string, environment func(str
 	logger := slog.New(slog.NewTextHandler(stdout, nil))
 	logger.Info("starting server", slog.String("address", httpAddress))
 
-	db, err := sql.Open("sqlite3", datasource)
+	dsn := sqlx.ConnectionString(datasource, sqlx.JOURNAL_WAL, sqlx.FK_ENABLED)
+	db, err := sql.Open("sqlite3", dsn)
+
 	if err != nil {
 		logger.Error("Can not open database",
 			slog.String("source", err.Error()),

@@ -4,13 +4,19 @@ import (
 	"context"
 	"database/sql"
 	_ "embed"
+	"errors"
+	"image/color"
+	"image/draw"
 	"iter"
 	"reflect"
 	"slices"
 	"testing"
 	"time"
 
+	"image"
+
 	"github.com/haschi/dinge/model"
+	"github.com/haschi/dinge/sqlx"
 	"github.com/haschi/dinge/system"
 	"github.com/haschi/dinge/testx"
 	_ "github.com/mattn/go-sqlite3"
@@ -180,6 +186,75 @@ func TestRepository_GetByCode(t *testing.T) {
 	})
 }
 
+func TestRepository_GetPhotoById(t *testing.T) {
+	type args struct {
+		ctx context.Context
+		id  int64
+	}
+	tests := []struct {
+		name       string
+		args       args
+		iterations int
+		want       int
+		wantErr    bool
+	}{
+		{
+			name:       "get single photo",
+			args:       args{id: 1, ctx: context.Background()},
+			iterations: 1,
+			want:       0,
+			wantErr:    false,
+		},
+		{
+			name:       "get multiple photos",
+			args:       args{id: 1, ctx: context.Background()},
+			iterations: 100,
+			want:       0,
+			wantErr:    false,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			withDatabase(t, theFixture, func(t *testing.T, db *sql.DB) {
+
+				time.Sleep(100 * time.Millisecond)
+				errorChan := make(chan error)
+
+				t.Log("Number of iterations:", tt.iterations)
+
+				r, err := model.NewRepository(db, system.RealClock{})
+
+				if err != nil {
+					t.Fatal(err)
+					return
+				}
+				type iterationKey string
+				for i := 0; i < tt.iterations; i++ {
+					id := int64(i)
+					go func() {
+						// Damit der TransactionManager richtig funktioniert, benötigt jeder
+						// Aufruf einen eigenen Context
+						ctx := context.WithValue(context.Background(), iterationKey("iteration"), i)
+						_, err = r.GetPhotoById(ctx, (id%3)+1)
+						errorChan <- err
+					}()
+				}
+
+				for i := 0; i < tt.iterations; i++ {
+					err := <-errorChan
+					if err != nil {
+						t.Error(err)
+					}
+				}
+
+				if r.Tm.Count() != 0 {
+					t.Errorf("TransactionManager.Count() = %v; want %v", r.Tm.Count(), 0)
+				}
+			})
+		})
+	}
+}
+
 func TestRepository_MengeAktualisieren(t *testing.T) {
 
 	type args struct {
@@ -329,7 +404,76 @@ func TestRepository_Insert(t *testing.T) {
 			})
 		})
 	}
+}
 
+func TestRepository_PhotoAktualisieren(t *testing.T) {
+	img := image.NewRGBA(image.Rect(0, 0, 600, 400))
+	blue := color.RGBA{0, 0, 255, 255}
+	draw.Draw(img, img.Bounds(), &image.Uniform{blue}, image.ZP, draw.Src)
+
+	type fields struct {
+		Clock model.Clock
+		Tm    *sqlx.TransactionManager
+	}
+	type args struct {
+		ctx context.Context
+		id  int64
+		im  image.Image
+	}
+	tests := []struct {
+		name        string
+		precodition func(*model.Repository) int64
+		fields      fields
+		args        args
+		wantErr     error
+	}{
+		{
+			name: "insert photo",
+			args: args{ctx: context.Background(), im: img},
+			precodition: func(r *model.Repository) int64 {
+				res := must(r.Insert(context.Background(), "444", 1))
+				if !res.Created {
+					t.Fatal("Neues Ding hätte erzeugt werden müssen")
+				}
+				return res.Id
+			},
+		},
+		{
+			name:    "update photo",
+			args:    args{ctx: context.Background(), id: 1, im: img},
+			wantErr: nil,
+		},
+		{
+			name:    "foreign key violation",
+			args:    args{ctx: context.Background(), id: 4, im: img},
+			wantErr: model.ErrNoRecord,
+		},
+		{
+			name:    "bad image data",
+			args:    args{ctx: context.Background(), id: 1, im: nil},
+			wantErr: model.ErrInvalidParameter,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			withDatabase(t, theFixture, func(t *testing.T, db *sql.DB) {
+				r, err := model.NewRepository(db, system.RealClock{})
+				if err != nil {
+					t.Fatal(err)
+				}
+
+				if tt.precodition != nil {
+					tt.args.id = tt.precodition(r)
+				}
+
+				err = r.PhotoAktualisieren(tt.args.ctx, tt.args.id, tt.args.im)
+				if !errors.Is(err, tt.wantErr) {
+
+					t.Errorf("Repository.PhotoAktualisieren() error = %v, want %v", err, tt.wantErr)
+				}
+			})
+		})
+	}
 }
 
 func TestRepository_NamenAktualisieren(t *testing.T) {
@@ -546,6 +690,23 @@ func TestRepository_GetLatest(t *testing.T) {
 	}
 }
 
+func TestRepository_ForeignKeys(t *testing.T) {
+	withDatabase(t, theFixture, func(t *testing.T, db *sql.DB) {
+		row := db.QueryRow("PRAGMA foreign_keys")
+		var result int
+		if err := row.Scan(&result); err != nil {
+			if errors.Is(err, sql.ErrNoRows) {
+				t.Fatal("Fremdschlüssel werde nicht von der Datenbank unterstützt.", err)
+			}
+			t.Fatal(err)
+		}
+
+		if result == 0 {
+			t.Error("Fremdschlüssel sind deaktiviert.")
+		}
+	})
+}
+
 // TODO: Nur vorläufig. Das muss besser herausgearbeitet werden
 func transform[T, U any](s iter.Seq[T], fn func(T) U) iter.Seq[U] {
 	return func(yield func(U) bool) {
@@ -602,7 +763,14 @@ func closeDatabase(db *sql.DB) error {
 	return db.Close()
 }
 
-const dataSource = "file::memory:?cache=shared"
+// Don't use cache=shared.
+// See https://github.com/mattn/go-sqlite3/issues/1179#issuecomment-1638083995
+var dataSource = sqlx.ConnectionString("test.db",
+	sqlx.MODE_MEMORY,
+	sqlx.CACHE_Shared,
+	sqlx.JOURNAL_WAL,
+	sqlx.FK_ENABLED,
+)
 
 // testFunc deklariert eine Testfunktion, die eine Datenbank benutzt
 type testFunc func(*testing.T, *sql.DB)
@@ -616,19 +784,17 @@ func theFixture(db *sql.DB) error {
 	return model.ExecuteScripts(db, model.CreateScript, model.FixtureScript)
 }
 
-// func xFixture testx.SetupFunc {
-// 	return testx.SetupFunc(model.CreateTable).AndThen(model.SetupFixture)
-// }
-
 // withDatabase stellt eine Ausführungsumgebung bereit, in der eine Testfunktion mit Datenbank ausgeführt werden kann.
 func withDatabase(t *testing.T, setupFn testx.SetupFunc, testFn testFunc) {
 	t.Helper()
-
+	t.Log("open database", dataSource)
 	db, err := sql.Open("sqlite3", dataSource)
+
 	if err != nil {
 		t.Fatal("can not open database", err)
 	}
 
+	db.SetMaxOpenConns(0)
 	defer db.Close()
 
 	if setupFn != nil {

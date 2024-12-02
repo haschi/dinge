@@ -1,8 +1,12 @@
 package main
 
 import (
+	"bytes"
 	"database/sql"
 	"errors"
+	"fmt"
+	"image"
+	"io"
 	"net/http"
 	"strconv"
 
@@ -311,8 +315,86 @@ func (a DingeResource) PhotoForm(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+const Megabyte = 20
+
+func (a DingeResource) PhotoUpload(w http.ResponseWriter, r *http.Request) {
+	id, err := strconv.ParseInt(r.PathValue("id"), 10, 64)
+	if err != nil || id < 1 {
+		http.NotFound(w, r)
+		return
+	}
+
+	image, err := imageFromForm(r, "file", 1<<Megabyte)
+	if err != nil {
+		webx.ServerError(w, err)
+		return
+	}
+
+	if err := a.Repository.PhotoAktualisieren(r.Context(), id, image); err != nil {
+		webx.ServerError(w, err)
+		return
+	}
+
+	webx.SeeOther("/dinge/%v", id).ServeHTTP(w, r)
+
+}
+
+func imageFromForm(r *http.Request, field string, limit int64) (image.Image, error) {
+
+	reader, err := r.MultipartReader()
+	if err != nil {
+		return nil, err
+	}
+
+	part, err := reader.NextPart()
+	if err != nil {
+
+		return nil, err
+	}
+
+	defer part.Close()
+
+	formname := part.FormName()
+	if formname != field {
+		return nil, fmt.Errorf("unexpected field in multipart form %v", formname)
+	}
+
+	// contentType := part.Header.Get("Content-Type")
+	// if contentType != mime.
+
+	lr := io.LimitReader(part, limit)
+	im, err := model.LoadImage(lr)
+	if err != nil {
+		return nil, err
+	}
+
+	return im, nil
+
+}
+
 type PhotoData struct {
 	Id int64
+}
+
+func (a DingeResource) PhotoDownload(w http.ResponseWriter, r *http.Request) {
+	id, err := strconv.ParseInt(r.PathValue("id"), 10, 64)
+	if err != nil || id < 1 {
+		http.NotFound(w, r)
+		return
+	}
+
+	// http.DetectContentType()
+
+	photo, err := a.Repository.GetPhotoById(r.Context(), id)
+	if err != nil {
+		webx.ServerError(w, err)
+		return
+	}
+
+	reader := bytes.NewReader(photo)
+	w.Header().Set("Content-Type", "image/png") // TODO: Den richtigen Mime Type ermitteln
+	w.WriteHeader(http.StatusOK)
+	io.Copy(w, reader)
 }
 
 func (a DingeResource) Destroy(w http.ResponseWriter, r *http.Request) {
