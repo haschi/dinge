@@ -55,7 +55,7 @@ func routes(logger *slog.Logger, dinge DingeResource) http.Handler {
 	mux.Handle("GET /dinge/{id}", combine(dinge.Show, defaultMiddleware))
 	mux.Handle("GET /dinge/{id}/edit", combine(dinge.Edit, defaultMiddleware))
 	mux.Handle("POST /dinge/{id}", combine(dinge.Update, weblogger)) // Update
-
+	mux.Handle("GET /dinge/{id}/photo", combine(dinge.PhotoForm, defaultMiddleware))
 	mux.Handle("GET /dinge/delete", combine(DestroyForm, defaultMiddleware))
 	mux.Handle("POST /dinge/delete", combine(dinge.Destroy, weblogger))
 

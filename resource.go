@@ -286,6 +286,35 @@ func (a DingeResource) Update(w http.ResponseWriter, r *http.Request) {
 	webx.SeeOther("/dinge/%v", id).ServeHTTP(w, r)
 }
 
+func (a DingeResource) PhotoForm(w http.ResponseWriter, r *http.Request) {
+
+	id, err := strconv.ParseInt(r.PathValue("id"), 10, 64)
+	if err != nil || id < 1 {
+		http.NotFound(w, r)
+		return
+	}
+
+	defaultValues := validation.FormData[PhotoData]{
+		Form:             PhotoData{Id: id},
+		ValidationErrors: nil,
+	}
+
+	tmpl, err := GetTemplate("photo")
+	if err != nil {
+		webx.ServerError(w, err)
+		return
+	}
+
+	response := webx.HtmlResponse{Template: tmpl, Data: defaultValues, StatusCode: http.StatusOK}
+	if err := response.Render(w); err != nil {
+		webx.ServerError(w, err)
+	}
+}
+
+type PhotoData struct {
+	Id int64
+}
+
 func (a DingeResource) Destroy(w http.ResponseWriter, r *http.Request) {
 
 	form := validation.NewForm(r)
