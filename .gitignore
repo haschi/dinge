@@ -26,3 +26,5 @@ go.work.sum
 .env
 dinge
 *.db
+*.db-shm
+*.db-wal

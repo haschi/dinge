@@ -3,39 +3,27 @@ package model
 import (
 	"database/sql"
 	_ "embed"
-
-	"github.com/haschi/dinge/testx"
 )
 
 //go:embed create.sql
 var CreateScript string
 
-func CreateTable(db *sql.DB) error {
-	_, err := db.Exec(CreateScript)
-	return err
-}
-
 //go:embed fixture.sql
 var FixtureScript string
 
-func SetupFixture(db *sql.DB) error {
-	_, err := db.Exec(FixtureScript)
-	return err
-}
-
-func RunScript(script string) testx.SetupFunc {
-	return func(d *sql.DB) error {
-		_, err := d.Exec(script)
+func ExecuteScripts(db *sql.DB, scripts ...string) error {
+	tx, err := db.Begin()
+	if err != nil {
 		return err
 	}
-}
+	defer tx.Rollback()
 
-func ExecuteScripts(db *sql.DB, scripts ...string) error {
 	for _, script := range scripts {
-		_, err := db.Exec(script)
+		_, err := tx.Exec(script)
 		if err != nil {
 			return err
 		}
 	}
-	return nil
+
+	return tx.Commit()
 }

@@ -1,3 +1,7 @@
 {
-  "go.buildTags": "fts5 development"
+  "go.buildTags": "fts5",
+  "go.testTags": "fts5",
+  "go.testFlags": [
+    "--count=1"
+  ]
 }

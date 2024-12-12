@@ -1,0 +1,12 @@
+{{define "title"}}Ding Photo{{end}}
+{{define "content"}}
+<section>
+  <form method="post" enctype="multipart/form-data" action="/dinge/{{.Form.Id}}/photo">
+    <input type="file" name="file" accept="image/*" />
+    {{with .ValidationErrors.file}}
+    <p class="error">{{.}}</p>
+    {{end}}
+    <button>Upload</button>
+  </form>
+</section>
+{{end}}
