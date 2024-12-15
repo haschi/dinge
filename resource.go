@@ -387,6 +387,11 @@ func (a DingeResource) PhotoDownload(w http.ResponseWriter, r *http.Request) {
 
 	photo, err := a.Repository.GetPhotoById(r.Context(), id)
 	if err != nil {
+		if errors.Is(err, model.ErrNoRecord) {
+			http.NotFound(w, r)
+			return
+		}
+
 		webx.ServerError(w, err)
 		return
 	}

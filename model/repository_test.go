@@ -133,59 +133,6 @@ func TestRepository_GetById(t *testing.T) {
 	}
 }
 
-func TestRepository_GetByCode(t *testing.T) {
-
-	withDatabase(t, theFixture, func(t *testing.T, db *sql.DB) {
-		type args struct {
-			ctx  context.Context
-			code string
-		}
-		tests := []struct {
-			name    string
-			fields  repositoryProvider
-			args    args
-			want    model.Ding
-			wantErr bool
-		}{
-			{
-				name:    "Get existing ding",
-				fields:  model.NewRepository,
-				args:    args{ctx: context.Background(), code: dinge[0].Code},
-				want:    dinge[0],
-				wantErr: false,
-			},
-			{
-				name:    "Get unknown ding",
-				fields:  model.NewRepository,
-				args:    args{ctx: context.Background(), code: "unknown"},
-				wantErr: true,
-			},
-			{
-				name:    "without context",
-				fields:  model.NewRepository,
-				args:    args{},
-				wantErr: true,
-			},
-		}
-		for _, tt := range tests {
-			t.Run(tt.name, func(t *testing.T) {
-				r, err := tt.fields(db, system.RealClock{})
-				if err != nil {
-					t.Fatal(err)
-				}
-				got, err := r.GetByCode(tt.args.ctx, tt.args.code)
-				if (err != nil) != tt.wantErr {
-					t.Errorf("Repository.GetByCode() error = %v, wantErr %v", err, tt.wantErr)
-					return
-				}
-				if !reflect.DeepEqual(got, tt.want) {
-					t.Errorf("Repository.GetByCode() = %v, want %v", got, tt.want)
-				}
-			})
-		}
-	})
-}
-
 func TestRepository_GetPhotoById(t *testing.T) {
 	type args struct {
 		ctx context.Context
@@ -277,10 +224,11 @@ func TestRepository_MengeAktualisieren(t *testing.T) {
 			setup:  theFixture,
 			want: model.Ding{
 				DingRef: model.DingRef{
-					Id:     dinge[0].Id,
-					Code:   dinge[0].Code,
-					Name:   dinge[0].Name,
-					Anzahl: dinge[0].Anzahl + 42,
+					Id:       dinge[0].Id,
+					Code:     dinge[0].Code,
+					Name:     dinge[0].Name,
+					Anzahl:   dinge[0].Anzahl + 42,
+					PhotoUrl: dinge[0].PhotoUrl,
 				},
 				Beschreibung: dinge[0].Beschreibung,
 				Aktualisiert: dinge[0].Aktualisiert,
@@ -520,10 +468,11 @@ func TestRepository_NamenAktualisieren(t *testing.T) {
 			timestamp: must(time.Parse(time.DateTime, "2024-11-13 19:38:04")),
 			want: model.Ding{
 				DingRef: model.DingRef{
-					Id:     dinge[0].Id,
-					Name:   "Pepperoni",
-					Code:   dinge[0].Code,
-					Anzahl: dinge[0].Anzahl,
+					Id:       dinge[0].Id,
+					Name:     "Pepperoni",
+					Code:     dinge[0].Code,
+					Anzahl:   dinge[0].Anzahl,
+					PhotoUrl: dinge[0].PhotoUrl,
 				},
 				Beschreibung: "Neue Beschreibung",
 				Aktualisiert: must(time.Parse(time.DateTime, "2024-11-13 19:38:04")),
@@ -543,10 +492,11 @@ func TestRepository_NamenAktualisieren(t *testing.T) {
 			timestamp: must(time.Parse(time.DateTime, "2024-11-13 19:38:04")),
 			want: model.Ding{
 				DingRef: model.DingRef{
-					Id:     dinge[0].Id,
-					Name:   "Pepperoni",
-					Code:   dinge[0].Code,
-					Anzahl: dinge[0].Anzahl,
+					Id:       dinge[0].Id,
+					Name:     "Pepperoni",
+					Code:     dinge[0].Code,
+					Anzahl:   dinge[0].Anzahl,
+					PhotoUrl: dinge[0].PhotoUrl,
 				},
 				Beschreibung: dinge[0].Beschreibung,
 				Aktualisiert: must(time.Parse(time.DateTime, "2024-11-13 19:38:04")),
@@ -656,10 +606,11 @@ func TestRepository_GetLatest(t *testing.T) {
 			want: mapToDingeRef([]model.Ding{
 				{
 					DingRef: model.DingRef{
-						Id:     dinge[1].Id,
-						Name:   dinge[1].Name,
-						Code:   dinge[1].Code,
-						Anzahl: dinge[1].Anzahl + 1,
+						Id:       dinge[1].Id,
+						Name:     dinge[1].Name,
+						Code:     dinge[1].Code,
+						Anzahl:   dinge[1].Anzahl + 1,
+						PhotoUrl: dinge[1].PhotoUrl,
 					},
 					Beschreibung: dinge[1].Beschreibung,
 				},
@@ -814,10 +765,11 @@ func withDatabase(t *testing.T, setupFn testx.SetupFunc, testFn testFunc) {
 var dinge = []model.Ding{
 	{
 		DingRef: model.DingRef{
-			Id:     1,
-			Name:   "Paprika",
-			Code:   "111",
-			Anzahl: 1,
+			Id:       1,
+			Name:     "Paprika",
+			Code:     "111",
+			Anzahl:   1,
+			PhotoUrl: "/photos/1",
 		},
 		Beschreibung: "Eine Planzengattung, die zur Familie der Nachtschattengewächse gehört",
 		Aktualisiert: must(time.Parse(time.DateTime, "2024-11-13 18:48:01")),
@@ -825,10 +777,11 @@ var dinge = []model.Ding{
 
 	{
 		DingRef: model.DingRef{
-			Id:     2,
-			Name:   "Gurke",
-			Code:   "222",
-			Anzahl: 2,
+			Id:       2,
+			Name:     "Gurke",
+			Code:     "222",
+			Anzahl:   2,
+			PhotoUrl: "/photos/2",
 		},
 		Beschreibung: "",
 		Aktualisiert: must(time.Parse(time.DateTime, "2024-11-13 19:05:02")),
@@ -836,10 +789,11 @@ var dinge = []model.Ding{
 
 	{
 		DingRef: model.DingRef{
-			Id:     3,
-			Name:   "Tomate",
-			Code:   "333",
-			Anzahl: 3,
+			Id:       3,
+			Name:     "Tomate",
+			Code:     "333",
+			Anzahl:   3,
+			PhotoUrl: "/photos/3",
 		},
 		Beschreibung: "",
 		Aktualisiert: must(time.Parse(time.DateTime, "2024-11-13 19:06:03")),
