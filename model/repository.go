@@ -7,7 +7,6 @@ import (
 	"errors"
 	"fmt"
 	"image"
-	"strings"
 	"time"
 
 	"github.com/haschi/dinge/sqlx"
@@ -22,10 +21,11 @@ type Ding struct {
 
 // DingRef repräsentiert ein Ding in der Übersicht.
 type DingRef struct {
-	Id     int64
-	Name   string
-	Code   string
-	Anzahl int
+	Id       int64
+	Name     string
+	Code     string
+	Anzahl   int
+	PhotoUrl string
 }
 
 type Repository struct {
@@ -56,8 +56,17 @@ func (r Repository) GetById(ctx context.Context, id int64) (Ding, error) {
 		return Ding{}, errors.New("no context provided")
 	}
 
-	suchen := `SELECT id, name, code, anzahl, beschreibung, aktualisiert FROM dinge
-	WHERE id = ?`
+	suchen := `
+	SELECT id, name, code, anzahl, beschreibung, aktualisiert,
+		CASE
+		  WHEN photo IS NULL THEN '/static/placeholder.svg'
+			WHEN photo IS NOT NULL THEN '/photos/' || photos.dinge_id
+			ELSE ''
+		END PhotoUrl
+	FROM dinge
+	LEFT JOIN photos ON photos.dinge_id = dinge.id
+	WHERE id = ?
+	`
 
 	tx, err := r.Tm.BeginTx(ctx)
 	if err != nil {
@@ -71,7 +80,7 @@ func (r Repository) GetById(ctx context.Context, id int64) (Ding, error) {
 
 	var ding Ding
 	row := tx.QueryRowContext(suchen, id)
-	if err := row.Scan(&ding.Id, &ding.Name, &ding.Code, &ding.Anzahl, &beschreibung, &ding.Aktualisiert); err != nil {
+	if err := row.Scan(&ding.Id, &ding.Name, &ding.Code, &ding.Anzahl, &beschreibung, &ding.Aktualisiert, &ding.PhotoUrl); err != nil {
 		return ding, err
 	}
 
@@ -94,38 +103,13 @@ func (r Repository) GetPhotoById(ctx context.Context, id int64) ([]byte, error) 
 	var photo []byte
 	row := tx.QueryRowContext(suchen, sql.Named("id", id))
 	if err := row.Scan(&photo); err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return nil, ErrNoRecord
+		}
+
 		return photo, err
 	}
 	return photo, tx.Commit()
-}
-
-func (r Repository) GetByCode(ctx context.Context, code string) (Ding, error) {
-
-	if ctx == nil {
-		return Ding{}, errors.New("no context provided")
-	}
-
-	tx, err := r.Tm.BeginTx(ctx)
-	if err != nil {
-		return Ding{}, err
-	}
-
-	defer tx.Rollback()
-
-	suchen := `SELECT id, name, code, anzahl, beschreibung, aktualisiert FROM dinge
-	WHERE code = ?`
-
-	var ding Ding
-	row := tx.QueryRowContext(suchen, code)
-	if err := row.Scan(&ding.Id, &ding.Name, &ding.Code, &ding.Anzahl, &ding.Beschreibung, &ding.Aktualisiert); err != nil {
-		if errors.Is(err, sql.ErrNoRows) {
-			tx.Commit()
-		}
-
-		return ding, err
-	}
-
-	return ding, tx.Commit()
 }
 
 func (r Repository) MengeAktualisieren(ctx context.Context, code string, menge int) (*Ding, error) {
@@ -324,29 +308,28 @@ func (r Repository) DingAktualisieren(ctx context.Context, id int64, name string
 // TODO: Iterator statt Slice zurückgeben.
 func (r Repository) GetLatest(ctx context.Context, limit int, query string, sort string) ([]DingRef, error) {
 
-	var statement string
-
-	// Mit Volltextsuche, wenn q nicht leer ist
-	if strings.TrimSpace(query) != "" {
-		statement = `SELECT id, name, code, anzahl FROM dinge
-		WHERE id IN (SELECT rowid FROM fulltext WHERE fulltext MATCH :query)
-		ORDER BY
-		  CASE WHEN :sort = 'alpha' THEN name END,
-			CASE WHEN :sort = 'omega' THEN name END DESC,
-			CASE WHEN :sort = 'oldest' THEN aktualisiert END,
-			CASE WHEN :sort = 'latest' THEN aktualisiert END DESC,
-			CASE WHEN :sort = '' THEN aktualisiert END DESC
-		LIMIT :limit`
-	} else {
-		statement = `SELECT id, name, code, anzahl FROM dinge
-		ORDER BY
-		  CASE WHEN :sort = 'alpha' THEN name END,
-			CASE WHEN :sort = 'omega' THEN name END DESC,
-			CASE WHEN :sort = 'oldest' THEN aktualisiert END,
-			CASE WHEN :sort = 'latest' THEN aktualisiert END DESC,
-			CASE WHEN :sort = '' THEN aktualisiert END DESC
-		LIMIT :limit`
-	}
+	q := `
+		SELECT id, name, code, anzahl,
+		  CASE
+			  WHEN photo IS NULL THEN '/static/placeholder.svg'
+				ELSE '/photos/' || photos.dinge_id
+			END PhotoUrl
+			FROM dinge
+			  LEFT JOIN photos ON photos.dinge_id = dinge.id
+			WHERE
+			  CASE
+				  WHEN :query <> ''
+					  THEN id IN (SELECT rowid FROM fulltext WHERE fulltext MATCH :query)
+						ELSE TRUE
+				END
+			ORDER BY
+				CASE WHEN :sort = 'alpha' THEN name END,
+				CASE WHEN :sort = 'omega' THEN name END DESC,
+				CASE WHEN :sort = 'oldest' THEN aktualisiert END,
+				CASE WHEN :sort = 'latest' THEN aktualisiert END DESC,
+				CASE WHEN :sort = '' THEN aktualisiert END DESC
+			LIMIT :limit
+		`
 
 	tx, err := r.Tm.BeginTx(ctx)
 	if err != nil {
@@ -354,7 +337,7 @@ func (r Repository) GetLatest(ctx context.Context, limit int, query string, sort
 	}
 	defer tx.Rollback()
 
-	rows, err := tx.QueryContext(statement,
+	rows, err := tx.QueryContext(q,
 		sql.Named("limit", limit),
 		sql.Named("query", query),
 		sql.Named("sort", sort))
@@ -369,7 +352,7 @@ func (r Repository) GetLatest(ctx context.Context, limit int, query string, sort
 
 	for rows.Next() {
 		var ding DingRef
-		err = rows.Scan(&ding.Id, &ding.Name, &ding.Code, &ding.Anzahl)
+		err = rows.Scan(&ding.Id, &ding.Name, &ding.Code, &ding.Anzahl, &ding.PhotoUrl)
 		if err != nil {
 			return dinge, err
 		}

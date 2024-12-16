@@ -3,5 +3,15 @@
   "go.testTags": "fts5",
   "go.testFlags": [
     "--count=1"
-  ]
+  ],
+  "sqltools.useNodeRuntime": true,
+  "sqltools.connections": [
+    {
+      "name": "SQLite",
+      "driver": "SQLite",
+      "database": "./dinge.db",
+      "connectionTimeout": 15
+    }
+  ],
+  "sqltools.results.reuseTabs": "connection"
 }

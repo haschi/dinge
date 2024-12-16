@@ -326,7 +326,24 @@ func (a DingeResource) PhotoUpload(w http.ResponseWriter, r *http.Request) {
 
 	image, err := imageFromForm(r, "file", 1<<Megabyte)
 	if err != nil {
-		webx.ServerError(w, err)
+
+		defaultValues := validation.FormData[PhotoData]{
+			Form:             PhotoData{Id: id},
+			ValidationErrors: make(validation.ErrorMap),
+		}
+
+		defaultValues.ValidationErrors["file"] = "Fehlerhaft Bilddatei"
+		tmpl, err := GetTemplate("photo")
+		if err != nil {
+			webx.ServerError(w, err)
+			return
+		}
+
+		response := webx.HtmlResponse{Template: tmpl, Data: defaultValues, StatusCode: http.StatusUnprocessableEntity}
+		if err := response.Render(w); err != nil {
+			webx.ServerError(w, err)
+		}
+
 		return
 	}
 
@@ -387,6 +404,11 @@ func (a DingeResource) PhotoDownload(w http.ResponseWriter, r *http.Request) {
 
 	photo, err := a.Repository.GetPhotoById(r.Context(), id)
 	if err != nil {
+		if errors.Is(err, model.ErrNoRecord) {
+			http.NotFound(w, r)
+			return
+		}
+
 		webx.ServerError(w, err)
 		return
 	}

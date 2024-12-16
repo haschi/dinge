@@ -14,11 +14,12 @@
     <button type="submit">Suchen</button>
   </form>
 </article>
+
 <section>
   {{range .Dinge}}
   <aside>
     <!-- <img src="https://picsum.photos/800/450?random{{.Id}}" alt=""> -->
-    <img src="/photos/{{.Id}}">
+    <img src="{{.PhotoUrl}}">
     <h2>{{.Name}}<sup>{{.Anzahl}}</sup></h2>
     <p>{{.Code}}</p>
     <a href="/dinge/{{.Id}}"></a>
