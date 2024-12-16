@@ -7,7 +7,6 @@ import (
 	"errors"
 	"fmt"
 	"image"
-	"strings"
 	"time"
 
 	"github.com/haschi/dinge/sqlx"
@@ -309,43 +308,28 @@ func (r Repository) DingAktualisieren(ctx context.Context, id int64, name string
 // TODO: Iterator statt Slice zurückgeben.
 func (r Repository) GetLatest(ctx context.Context, limit int, query string, sort string) ([]DingRef, error) {
 
-	var statement string
-
-	// Mit Volltextsuche, wenn q nicht leer ist
-	if strings.TrimSpace(query) != "" {
-		statement = `SELECT id, name, code, anzahl,
-			CASE
-				WHEN photo IS NULL THEN '/static/placeholder.svg'
-				WHEN photo IS NOT NULL THEN '/photos/' || photos.dinge_id
-				ELSE ''
+	q := `
+		SELECT id, name, code, anzahl,
+		  CASE
+			  WHEN photo IS NULL THEN '/static/placeholder.svg'
+				ELSE '/photos/' || photos.dinge_id
 			END PhotoUrl
-		FROM dinge
-		LEFT JOIN photos ON photos.dinge_id = dinge.id
-		WHERE id IN (SELECT rowid FROM fulltext WHERE fulltext MATCH :query)
-		ORDER BY
-		  CASE WHEN :sort = 'alpha' THEN name END,
-			CASE WHEN :sort = 'omega' THEN name END DESC,
-			CASE WHEN :sort = 'oldest' THEN aktualisiert END,
-			CASE WHEN :sort = 'latest' THEN aktualisiert END DESC,
-			CASE WHEN :sort = '' THEN aktualisiert END DESC
-		LIMIT :limit`
-	} else {
-		statement = `SELECT id, name, code, anzahl,
-			CASE
-				WHEN photo IS NULL THEN '/static/placeholder.svg'
-				WHEN photo IS NOT NULL THEN '/photos/' || photos.dinge_id
-				ELSE ''
-			END PhotoUrl
-		FROM dinge
-		LEFT JOIN photos ON photos.dinge_id = dinge.id
-		ORDER BY
-		  CASE WHEN :sort = 'alpha' THEN name END,
-			CASE WHEN :sort = 'omega' THEN name END DESC,
-			CASE WHEN :sort = 'oldest' THEN aktualisiert END,
-			CASE WHEN :sort = 'latest' THEN aktualisiert END DESC,
-			CASE WHEN :sort = '' THEN aktualisiert END DESC
-		LIMIT :limit`
-	}
+			FROM dinge
+			  LEFT JOIN photos ON photos.dinge_id = dinge.id
+			WHERE
+			  CASE
+				  WHEN :query <> ''
+					  THEN id IN (SELECT rowid FROM fulltext WHERE fulltext MATCH :query)
+						ELSE TRUE
+				END
+			ORDER BY
+				CASE WHEN :sort = 'alpha' THEN name END,
+				CASE WHEN :sort = 'omega' THEN name END DESC,
+				CASE WHEN :sort = 'oldest' THEN aktualisiert END,
+				CASE WHEN :sort = 'latest' THEN aktualisiert END DESC,
+				CASE WHEN :sort = '' THEN aktualisiert END DESC
+			LIMIT :limit
+		`
 
 	tx, err := r.Tm.BeginTx(ctx)
 	if err != nil {
@@ -353,7 +337,7 @@ func (r Repository) GetLatest(ctx context.Context, limit int, query string, sort
 	}
 	defer tx.Rollback()
 
-	rows, err := tx.QueryContext(statement,
+	rows, err := tx.QueryContext(q,
 		sql.Named("limit", limit),
 		sql.Named("query", query),
 		sql.Named("sort", sort))

@@ -37,3 +37,9 @@ Mit `./dinge --help` erhälst du eine übersicht der möglichen Parameter.
 ## Anwendung beenden
 
 Gibst du die Tastenkombination <key>Strg</key>-<key>C</key> in der Konsole ein, beendest du damit die Anwendung.
+
+## Development
+
+### Literatur
+
+[SQLTools Erweiterung für Visual Studio Code](https://vscode-sqltools.mteixeira.dev/en/home)
