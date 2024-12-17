@@ -1,8 +1,16 @@
 {{define "title"}}Ding Photo{{end}}
 {{define "content"}}
 <section>
-  <form method="post" enctype="multipart/form-data" action="/dinge/{{.Form.Id}}/photo">
-    <input type="file" name="file" accept="image/*" />
+  <form method="post" enctype="multipart/form-data" action="/dinge/{{.FormValues.Id}}/photo">
+
+    <label for="input-file" id="drop-area">
+      <p>Drag your image file to this area.</p>
+      <div id="image-view">
+        <img id="img-img-view" src="{{.FormValues.PhotoUrl}}">
+      </div>
+
+    </label>
+    <input id="input-file" type="file" name="file" accept="image/*" />
     {{with .ValidationErrors.file}}
     <p class="error">{{.}}</p>
     {{end}}

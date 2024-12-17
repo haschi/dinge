@@ -508,6 +508,7 @@ func newDingeResource(logger *slog.Logger, db *sql.DB) (http.Handler, error) {
 	}
 	resource := &DingeResource{
 		Repository: repository,
+		Templates:  TemplatesFileSystem,
 	}
 
 	return routes(logger, *resource), nil

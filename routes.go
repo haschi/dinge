@@ -7,16 +7,6 @@ import (
 	"github.com/haschi/dinge/webx"
 )
 
-func combine(handler http.HandlerFunc, middleware ...webx.Middleware) http.Handler {
-	if len(middleware) == 0 {
-		return handler
-	}
-
-	first := middleware[0]
-	next := combine(handler, middleware[1:]...)
-	return first(next)
-}
-
 // TODO: Bessere Namen für combine und compose wählen
 // TODO: Verschieben nach webx.
 func compose(m1, m2 webx.Middleware) webx.Middleware {
@@ -28,10 +18,16 @@ func compose(m1, m2 webx.Middleware) webx.Middleware {
 func routes(logger *slog.Logger, dinge DingeResource) http.Handler {
 	mux := http.NewServeMux()
 
-	mux.Handle("GET /static/", newStaticHandler(logger))
-	mux.HandleFunc("GET /favicon.ico", func(w http.ResponseWriter, r *http.Request) {
-		http.NotFound(w, r)
-	})
+	// middleware
+	requestLogger := webx.LogRequest(logger)
+	nostore := webx.NoStore(logger)
+	defaultMiddleware := compose(requestLogger, nostore)
+
+	// nostore vorerst beibehalten bis gh#26
+	mux.Handle("GET /static/", webx.Combine(newStaticHandler(logger), nostore, requestLogger))
+
+	// Es gibt noch kein favicon. Daher NotFound
+	mux.Handle("GET /favicon.ico", http.NotFoundHandler())
 
 	// Analog zu RoR:
 	//
@@ -43,24 +39,19 @@ func routes(logger *slog.Logger, dinge DingeResource) http.Handler {
 	// PATCH/PUT /dinge/:id dinge#update  Aktualisiert ein spezifisches Ding
 	// DELETE /dinge/:id    dinge#destroy Löscht ein spezfisches Ding
 
-	weblogger := webx.LogRequest(logger)
-	nostore := webx.NoStore(logger)
-	defaultMiddleware := compose(weblogger, nostore)
+	mux.Handle("GET /{$}", webx.Combine(http.RedirectHandler("/dinge", http.StatusPermanentRedirect), requestLogger))
+	mux.Handle("GET /dinge", webx.CombineFunc(dinge.Index, requestLogger, nostore))
+	mux.Handle("GET /dinge/new", webx.CombineFunc(dinge.NewForm, defaultMiddleware))
+	mux.Handle("POST /dinge", webx.CombineFunc(dinge.Create, requestLogger))
+	mux.Handle("GET /dinge/{id}", webx.CombineFunc(dinge.Show, defaultMiddleware))
+	mux.Handle("GET /dinge/{id}/edit", webx.CombineFunc(dinge.Edit, defaultMiddleware))
+	mux.Handle("POST /dinge/{id}", webx.CombineFunc(dinge.Update, requestLogger)) // Update
+	mux.Handle("GET /dinge/{id}/photo", webx.CombineFunc(dinge.PhotoForm, defaultMiddleware))
+	mux.Handle("POST /dinge/{id}/photo", webx.CombineFunc(dinge.PhotoUpload, requestLogger))
+	mux.Handle("GET /photos/{id}", webx.CombineFunc(dinge.PhotoDownload, requestLogger))
+	mux.Handle("GET /dinge/delete", webx.CombineFunc(dinge.DestroyForm, defaultMiddleware))
+	mux.Handle("POST /dinge/delete", webx.CombineFunc(dinge.Destroy, requestLogger))
 
-	// noop := webx.Noop
-	mux.Handle("GET /{$}", combine(webx.PermanentRedirect("/dinge"), weblogger)) // Redirect to /dinge
-	mux.Handle("GET /dinge", combine(dinge.Index, weblogger, nostore))           // Redirect to /dinge
-	mux.Handle("GET /dinge/new", combine(dinge.NewForm, defaultMiddleware))
-	mux.Handle("POST /dinge", combine(dinge.Create, weblogger))
-	mux.Handle("GET /dinge/{id}", combine(dinge.Show, defaultMiddleware))
-	mux.Handle("GET /dinge/{id}/edit", combine(dinge.Edit, defaultMiddleware))
-	mux.Handle("POST /dinge/{id}", combine(dinge.Update, weblogger)) // Update
-	mux.Handle("GET /dinge/{id}/photo", combine(dinge.PhotoForm, defaultMiddleware))
-	mux.Handle("POST /dinge/{id}/photo", combine(dinge.PhotoUpload, weblogger))
-	mux.Handle("GET /photos/{id}", combine(dinge.PhotoDownload, weblogger))
-	mux.Handle("GET /dinge/delete", combine(DestroyForm, defaultMiddleware))
-	mux.Handle("POST /dinge/delete", combine(dinge.Destroy, weblogger))
-
-	mux.Handle("GET /about", combine(handleAbout, weblogger))
+	mux.Handle("GET /about", webx.CombineFunc(handleAbout, requestLogger))
 	return mux
 }

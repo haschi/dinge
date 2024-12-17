@@ -7,14 +7,14 @@
         <span class="tooltiptext">In der Regel ein EAN bzw. GTIN Produktcode. Dieser befindet sich auf der
           Verpackung des Produkts.</span></span> und die Menge eines Dings ein, das Du einlagerst.</p>
     <label for="code-input">Produktcode</label>
-    <input id="code-input" type="text" name="code" value="{{.Form.Code}}" autocomplete="off" autofocus required>
+    <input id="code-input" type="text" name="code" value="{{.FormValues.Code}}" autocomplete="off" autofocus required>
     {{with .ValidationErrors.code}}
     <p class="error">{{.}}</p>
     {{end}}
 
 
     <label for="anzahl-input">Anzahl</label>
-    <input id="anzahl-input" type="number" name="anzahl" value="{{.Form.Anzahl}}" required min="1" max="99">
+    <input id="anzahl-input" type="number" name="anzahl" value="{{.FormValues.Anzahl}}" required min="1" max="99">
     <span></span>
     {{with .ValidationErrors.anzahl}}
     <p class="error">{{.}}</p>

@@ -10,6 +10,26 @@ import (
 // Middleware ist HTTP Handler, der den Aufruf an seinen Nachfolger weiterleitet.
 type Middleware func(next http.Handler) http.Handler
 
+// Combine verbindet einen [http.Handler] mit der angegebenen Middleware
+//
+// Die resultierende Aufrufreihenfolge ist: m[0](m[1](m[n](handler)))
+func Combine(handler http.Handler, middleware ...Middleware) http.Handler {
+	if len(middleware) == 0 {
+		return handler
+	}
+
+	first := middleware[0]
+	next := Combine(handler, middleware[1:]...)
+	return first(next)
+}
+
+// CombineFunc verbindet eine [http.HandlerFunc] mit der angegebenen Middleware
+//
+// CombineFunc ist ein Wrapper für [Combine], falls der Handler eine Funktion ist.
+func CombineFunc(handler http.HandlerFunc, middleware ...Middleware) http.Handler {
+	return Combine(handler, middleware...)
+}
+
 type responseWriterWrapper struct {
 	http.ResponseWriter
 	statusCode int
