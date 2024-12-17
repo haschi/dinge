@@ -1,0 +1,12 @@
+#input-file {
+  display: none;
+}
+
+#image-view {
+  width: 285px;
+  height: 285px;
+  border-radius: 20px;
+  border: 2px dashed #bbbfff;
+  background-position: center;
+  background-size: cover;
+}

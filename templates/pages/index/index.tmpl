@@ -3,22 +3,21 @@
 
 <article>
   <form action="/dinge" method="get">
-    <input id="input-suche" style="flex-grow: 1;" name="q" value="{{.Form.Form.Q}}" type="text" autofocus
+    <input id="input-suche" style="flex-grow: 1;" name="q" value="{{.FormValues.Q}}" type="text" autofocus
       maxlength="100" />
     <select id="input-sort" name="s">
-      <option {{if eq .Form.Form.S "alpha" }}selected{{end}} value="alpha">Alphabetisch aufsteigend</option>
-      <option {{if eq .Form.Form.S "omega" }}selected{{end}} value="omega">Alphabetisch absteigend</option>
-      <option {{if eq .Form.Form.S "latest" }}selected{{end}} value="latest">Datum aufsteigend</option>
-      <option {{if eq .Form.Form.S "oldest" }}selected{{end}} value="oldest">Datum absteigend</option>
+      <option {{if eq .FormValues.S "alpha" }}selected{{end}} value="alpha">Alphabetisch aufsteigend</option>
+      <option {{if eq .FormValues.S "omega" }}selected{{end}} value="omega">Alphabetisch absteigend</option>
+      <option {{if eq .FormValues.S "latest" }}selected{{end}} value="latest">Datum aufsteigend</option>
+      <option {{if eq .FormValues.S "oldest" }}selected{{end}} value="oldest">Datum absteigend</option>
     </select>
     <button type="submit">Suchen</button>
   </form>
 </article>
 
 <section>
-  {{range .Dinge}}
+  {{range .FormValues.Result }}
   <aside>
-    <!-- <img src="https://picsum.photos/800/450?random{{.Id}}" alt=""> -->
     <img src="{{.PhotoUrl}}">
     <h2>{{.Name}}<sup>{{.Anzahl}}</sup></h2>
     <p>{{.Code}}</p>

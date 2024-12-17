@@ -121,6 +121,7 @@ func run(ctx context.Context, stdout io.Writer, _ []string, environment func(str
 
 	application := DingeResource{
 		Repository: repository,
+		Templates:  TemplatesFileSystem,
 	}
 
 	server := &http.Server{

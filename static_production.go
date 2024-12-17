@@ -8,7 +8,7 @@ import (
 	"net/http"
 )
 
-//go:embed "static/css/*"
+//go:embed "static"
 var Static embed.FS
 
 func newStaticHandler(logger *slog.Logger) http.Handler {

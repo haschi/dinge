@@ -8,7 +8,11 @@
     integrity="sha384-k+zH7nQFBKm8tCs3NF+6vnC8A9rLni3jsmpXeUTTYsfwKs+GV0ejSCA/ijNEC2X0" crossorigin="anonymous">
   <link rel="stylesheet" href="/static/css/main.css">
 
+  {{range .Styles}}
+  <link rel="stylesheet" href="{{.}}">
+  {{end}}
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
 </head>
 
 <title>Dinge</title>
@@ -41,6 +45,10 @@
   <main>
     {{template "content" .}}
   </main>
+
+  {{range .Scripts}}
+  <script src="{{.}}" type="text/javascript"></script>
+  {{end}}
 </body>
 
 </html>

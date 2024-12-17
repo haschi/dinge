@@ -1,19 +1,18 @@
 {{define "title"}}Ding Details{{end}}
 {{define "content"}}
 <section>
-  <form action="/dinge/{{.Form.Id}}" method="post">
-    <!-- <img src="https://picsum.photos/800/450?random{{.Form.Id}}" alt=""> -->
-    <img src="/photos/{{.Form.Id}}" alt="">
-    <h4>{{.Form.Name}}</h4>
-    <p>{{.Form.Code}}</p>
+  <form action="/dinge/{{.FormValues.Id}}" method="post">
+    <img src="/photos/{{.FormValues.Id}}" alt="">
+    <h4>{{.FormValues.Name}}</h4>
+    <p>{{.FormValues.Code}}</p>
     <div>
       <label for="name-input">Name</label>
-      <input id="input-name" type="text" name="name" value="{{.Form.Name}}" autocomplete="off" autofocus required>
+      <input id="input-name" type="text" name="name" value="{{.FormValues.Name}}" autocomplete="off" autofocus required>
       {{with .ValidationErrors.name}}
       <p class="error">{{.}}</p>
       {{end}}
       <label for="input-beschreibung">Beschreibung</label>
-      <textarea id="input-beschreibung" name="beschreibung" rows="4" cols="50">{{.Form.Beschreibung}}</textarea>
+      <textarea id="input-beschreibung" name="beschreibung" rows="4" cols="50">{{.FormValues.Beschreibung}}</textarea>
     </div>
 
     <button type="submit">Aktualisieren</button>

@@ -3,9 +3,12 @@ package webx
 import (
 	"bytes"
 	"fmt"
-	"html/template"
+	"io/fs"
 	"log/slog"
 	"net/http"
+	"text/template"
+
+	"github.com/haschi/dinge/validation"
 )
 
 // SeeOther erzeugt eine Umleitung mit HTTP Status Code 303 See Other
@@ -13,12 +16,6 @@ func SeeOther(format string, args ...any) http.HandlerFunc {
 	url := fmt.Sprintf(format, args...)
 	return func(w http.ResponseWriter, r *http.Request) {
 		http.Redirect(w, r, url, http.StatusSeeOther)
-	}
-}
-
-func PermanentRedirect(path string) http.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) {
-		http.Redirect(w, r, path, http.StatusPermanentRedirect)
 	}
 }
 
@@ -32,20 +29,32 @@ func ServerError(w http.ResponseWriter, cause error) {
 	http.Error(w, http.StatusText(status), status)
 }
 
+type TemplateData[T any] struct {
+	Styles           []string
+	Scripts          []string
+	FormValues       T
+	ValidationErrors validation.ErrorMap
+}
+
 // HtmlResponse liefert den HTML Inhalt für die Anwort auf eine Anfrage
-type HtmlResponse struct {
-	Template   *template.Template
-	Data       any
-	StatusCode int
+type HtmlResponse[T any] struct {
+	TemplateName string
+	Data         TemplateData[T]
+	StatusCode   int
 }
 
 // TODO Offen:
 // 1. Ausgabe des Fehlers im Log
 // 2. Doppelten Code vermeiden
-func (h HtmlResponse) Render(w http.ResponseWriter) error {
+func (h HtmlResponse[T]) Render(w http.ResponseWriter, fs fs.FS) error {
 
 	var buffer bytes.Buffer
-	if err := h.Template.Execute(&buffer, h.Data); err != nil {
+	template, err := getTemplate(fs, h.TemplateName)
+	if err != nil {
+		return err
+	}
+
+	if err := template.ExecuteTemplate(&buffer, "layout.tmpl", h.Data); err != nil {
 		return err
 	}
 
@@ -54,4 +63,19 @@ func (h HtmlResponse) Render(w http.ResponseWriter) error {
 		return err
 	}
 	return nil
+}
+
+func getTemplate(fs fs.FS, name string) (*template.Template, error) {
+
+	t, err := template.New("").ParseFS(
+		fs,
+		fmt.Sprintf("templates/pages/%v/*.tmpl", name),
+		"templates/layout/*.tmpl",
+	)
+
+	if err != nil {
+		return nil, err
+	}
+
+	return t, nil
 }
