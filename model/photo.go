@@ -2,6 +2,7 @@ package model
 
 import (
 	"image"
+	"image/draw"
 	_ "image/jpeg"
 	"image/png"
 	"io"
@@ -40,4 +41,31 @@ func Resize(src image.Image) image.Image {
 	}
 
 	return dst
+}
+
+func Crop(src image.Image) image.Image {
+
+	bounds := src.Bounds()
+	width := bounds.Dx()
+	height := bounds.Dy()
+
+	if width > height {
+		dst := image.NewRGBA(image.Rect(0, 0, height, height))
+		min := image.Pt((width/2)-(height/2), 0)
+		max := image.Pt((width/2)+(height/2), height)
+		crop := image.Rectangle{Min: min, Max: max}.Canon()
+		draw.Draw(dst, crop.Sub(min), src, min, draw.Src)
+		return dst
+	}
+
+	if width < height {
+		min := image.Pt(0, (height/2)-(width/2))
+		max := image.Pt(width, (height/2)+(width/2))
+		crop := image.Rectangle{Min: min, Max: max}.Canon()
+		dst := image.NewRGBA(image.Rect(0, 0, width, width))
+		draw.Draw(dst, crop.Sub(min), src, min, draw.Src)
+		return dst
+	}
+
+	return src
 }
