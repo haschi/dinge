@@ -70,6 +70,7 @@ func getTemplate(fs fs.FS, name string) (*template.Template, error) {
 	t, err := template.New("").ParseFS(
 		fs,
 		fmt.Sprintf("templates/pages/%v/*.tmpl", name),
+		"templates/common/*.tmpl",
 		"templates/layout/*.tmpl",
 	)
 
