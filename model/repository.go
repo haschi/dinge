@@ -210,8 +210,11 @@ func (r Repository) PhotoAktualisieren(ctx context.Context, id int64, image imag
 		return ErrInvalidParameter
 	}
 
+	// TODO in einen Thumbnail Service auslagern
+	zuschnitt := Crop(image)
+	thumbnail := Resize(zuschnitt)
+
 	var buffer bytes.Buffer
-	thumbnail := Resize(image)
 	if err := EncodeImage(&buffer, thumbnail); err != nil {
 		return err
 	}
