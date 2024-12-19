@@ -28,33 +28,13 @@ type DingRef struct {
 	PhotoUrl string
 }
 
-type Event struct {
-	Operation int
-	Anzahl    int
-	Created   time.Time
-	DingRef
-}
-
-func (e Event) String() string {
-	switch e.Operation {
-	case 1:
-		return fmt.Sprintf("Neu erfasst: %v Stück", e.Anzahl)
-	case 2:
-		return fmt.Sprintf("Eingelagert: %v Stück", e.Anzahl)
-	case 3:
-		return fmt.Sprintf("Entnommen: %v Stück", e.Anzahl)
-	default:
-		return "Unbekannte Operation"
-	}
-}
-
 type Repository struct {
 	Clock Clock
-	Tm    *sqlx.TransactionManager
+	Tm    sqlx.TransactionManager
 }
 
 func NewRepository(db *sql.DB, clock Clock) (*Repository, error) {
-	tm, err := sqlx.NewTransactionManager(db)
+	tm, err := sqlx.NewSqlTransactionManager(db)
 	if err != nil {
 		return nil, err
 	}
@@ -175,7 +155,7 @@ func (r Repository) MengeAktualisieren(ctx context.Context, code string, menge i
 		return &ding, fmt.Errorf("Wert ist zu groß: %v: %w", menge, ErrInvalidParameter)
 	}
 
-	if err := r.InsertEvent(ctx, 3, -menge, ding.Id); err != nil {
+	if err := r.LogEvent(ctx, 3, -menge, ding.Id); err != nil {
 		return &ding, err
 	}
 
@@ -233,72 +213,11 @@ func (r Repository) Insert(ctx context.Context, code string, anzahl int) (Insert
 		operation = 2
 	}
 
-	if err := r.InsertEvent(ctx, operation, anzahl, result.Id); err != nil {
+	if err := r.LogEvent(ctx, operation, anzahl, result.Id); err != nil {
 		return InsertResult{}, err
 	}
 
 	return result, tx.Commit()
-}
-
-func (r Repository) InsertEvent(ctx context.Context, operation int, count int, dingId int64) error {
-	statement := `INSERT INTO history(operation, count, created, dinge_id)
-	VALUES(:operation, :count, :created, :dinge_id)`
-
-	tx, err := r.Tm.BeginTx(ctx)
-	if err != nil {
-		return err
-	}
-	defer tx.Rollback()
-
-	_, err = tx.ExecContext(statement,
-		sql.Named("operation", operation),
-		sql.Named("count", count),
-		sql.Named("created", r.Clock.Now()),
-		sql.Named("dinge_id", dingId),
-	)
-	if err != nil {
-		return err
-	}
-
-	return tx.Commit()
-}
-
-func (r Repository) GetHistory(ctx context.Context, limit int) ([]Event, error) {
-	q := `
-		SELECT id, code, name, operation, count
-		FROM history
-		INNER JOIN dinge ON history.dinge_id = dinge.id
-		ORDER BY created DESC
-		LIMIT :limit
-		`
-
-	history := []Event{}
-
-	tx, err := r.Tm.BeginTx(ctx)
-	if err != nil {
-		return history, err
-	}
-	defer tx.Rollback()
-
-	rows, err := tx.QueryContext(q, sql.Named("limit", limit))
-	if err != nil {
-		return history, err
-	}
-
-	for rows.Next() {
-		event := Event{}
-		if err := rows.Scan(
-			&event.DingRef.Id,
-			&event.DingRef.Code,
-			&event.DingRef.Name,
-			&event.Operation,
-			&event.Anzahl); err != nil {
-			return history, err
-		}
-		history = append(history, event)
-	}
-
-	return history, nil
 }
 
 func (r Repository) PhotoAktualisieren(ctx context.Context, id int64, image image.Image) error {
