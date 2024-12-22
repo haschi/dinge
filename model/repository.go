@@ -28,6 +28,14 @@ type DingRef struct {
 	PhotoUrl string
 }
 
+func (d DingRef) Equal(other DingRef) bool {
+	return d.Id == other.Id &&
+		d.Name == other.Name &&
+		d.Code == other.Code &&
+		d.Anzahl == other.Anzahl &&
+		d.PhotoUrl == other.PhotoUrl
+}
+
 type Repository struct {
 	Clock Clock
 	Tm    sqlx.TransactionManager

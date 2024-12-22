@@ -16,4 +16,37 @@
     <a href="/dinge/{{.FormValues.Id}}">Entnehmen</a>
   </nav>
 </article>
+<article>
+  <h2>Letzte Änderungen</h2>
+  <table>
+    <thead>
+      <tr>
+        <th>Datum</th>
+        <th>Uhrzeit</th>
+        <th>Handlung</th>
+        <th>Menge</th>
+      </tr>
+    </thead>
+    <tbody>
+      {{range .FormValues.History}}
+      <tr>
+        <!-- Siehe https://pkg.go.dev/time#pkg-constants:
+        "Only these values are recognized" bedeuted: Tag = 02, Monat = 01, Stunde = 15 und Minut = 04!
+        TODO: Das Format ist abhängig von den Benutzereinstellungen.
+        -->
+        <td>{{.Created.Format "02.01.2006"}}</td>
+        <td>{{.Created.Format "15:04"}}</td>
+        <td>
+          {{if eq .Operation 1 2}}
+          Eingelagert
+          {{else}}
+          Entnommen
+          {{end}}
+        </td>
+        <td>{{.Anzahl}}</td>
+      </tr>
+      {{end}}
+    </tbody>
+  </table>
+</article>
 {{end}}

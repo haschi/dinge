@@ -65,7 +65,7 @@ type IndexFormData struct {
 // Liefert eine HTML Form zum Erzeugen eines neuen Dings.
 func (a DingeResource) NewForm(w http.ResponseWriter, r *http.Request) {
 
-	history, err := a.Repository.GetHistory(r.Context(), 12)
+	history, err := a.Repository.GetAllEvents(r.Context(), 12)
 	if err != nil {
 		webx.ServerError(w, err)
 		return
@@ -180,11 +180,20 @@ func (a DingeResource) Show(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	data := webx.TemplateData[model.Ding]{
-		FormValues: ding,
+	history, err := a.Repository.ProductHistory(r.Context(), id, 10)
+	if err != nil {
+		webx.ServerError(w, err)
+		return
 	}
 
-	response := webx.HtmlResponse[model.Ding]{
+	data := webx.TemplateData[ShowResponseData]{
+		FormValues: ShowResponseData{
+			Ding:    ding,
+			History: history,
+		},
+	}
+
+	response := webx.HtmlResponse[ShowResponseData]{
 		TemplateName: "ding",
 		Data:         data,
 		StatusCode:   http.StatusOK,
@@ -193,6 +202,11 @@ func (a DingeResource) Show(w http.ResponseWriter, r *http.Request) {
 	if err := response.Render(w, a.Templates); err != nil {
 		webx.ServerError(w, err)
 	}
+}
+
+type ShowResponseData struct {
+	model.Ding
+	History []model.Event
 }
 
 // Edit zeigt eine Form zum Bearbeiten eines spezifischen Dings
@@ -498,7 +512,7 @@ func (a DingeResource) Destroy(w http.ResponseWriter, r *http.Request) {
 
 // Zeigt eine Form an, um Dinge zu entnehmen.
 func (a DingeResource) DestroyForm(w http.ResponseWriter, r *http.Request) {
-	history, err := a.Repository.GetHistory(r.Context(), 12)
+	history, err := a.Repository.GetAllEvents(r.Context(), 12)
 	if err != nil {
 		webx.ServerError(w, err)
 		return

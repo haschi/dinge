@@ -5,6 +5,7 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
+	"time"
 
 	"github.com/mattn/go-sqlite3"
 )
@@ -58,15 +59,24 @@ var ErrDataAccess = errors.New("data access error")
 // ErrInsertEvent beschreibt einen Fehler, der beim Protokollieren eines Eregnisses auftritt.
 var ErrInsertEvent = errors.New("event cannot be logged")
 
-func (r Repository) GetHistory(ctx context.Context, limit int) ([]Event, error) {
-	q := `
-		SELECT id, code, name, operation, count
-		FROM history
-		INNER JOIN dinge ON history.dinge_id = dinge.id
-		ORDER BY created DESC
-		LIMIT :limit
-		`
+// ProductHistory liefert eine Liste der Ereignisse zu einem Ding
+//
+// TODO: Es muss differenziert werden zwischen der Historie eines Dings und der Historie in der Übersicht. Die Historie zu einem Ding benötigt keine Referenz zum Ding selbst, das dieses ja bekannt ist. Hingegen benötigt die Übersicht aber eben jene Referenz, damit eine Navigation möglich ist.
+func (r Repository) ProductHistory(ctx context.Context, dingId int64, limit int) ([]Event, error) {
 
+	q := `
+	SELECT id, code, name, operation, count, created
+	FROM history
+	INNER JOIN dinge ON history.dinge_id = dinge.id
+	WHERE dinge.id = :id
+	ORDER BY created DESC
+	LIMIT :limit
+	`
+
+	return r.GetEvents(ctx, q, sql.Named("id", dingId), sql.Named("limit", limit))
+}
+
+func (r Repository) GetEvents(ctx context.Context, query string, args ...any) ([]Event, error) {
 	history := []Event{}
 
 	tx, err := r.Tm.BeginTx(ctx)
@@ -75,7 +85,7 @@ func (r Repository) GetHistory(ctx context.Context, limit int) ([]Event, error) 
 	}
 	defer tx.Rollback()
 
-	rows, err := tx.QueryContext(q, sql.Named("limit", limit))
+	rows, err := tx.QueryContext(query, args...)
 	if err != nil {
 		return history, err
 	}
@@ -87,7 +97,8 @@ func (r Repository) GetHistory(ctx context.Context, limit int) ([]Event, error) 
 			&event.DingRef.Code,
 			&event.DingRef.Name,
 			&event.Operation,
-			&event.Anzahl); err != nil {
+			&event.Anzahl,
+			&event.Created); err != nil {
 			return history, err
 		}
 		history = append(history, event)
@@ -96,10 +107,34 @@ func (r Repository) GetHistory(ctx context.Context, limit int) ([]Event, error) 
 	return history, nil
 }
 
+func (r Repository) GetAllEvents(ctx context.Context, limit int) ([]Event, error) {
+	q := `
+		SELECT id, code, name, operation, count, created
+		FROM history
+		INNER JOIN dinge ON history.dinge_id = dinge.id
+		ORDER BY created DESC
+		LIMIT :limit
+		`
+
+	return r.GetEvents(ctx, q, sql.Named("limit", limit))
+}
+
 type Event struct {
 	Operation int
 	Anzahl    int
+	Created   time.Time
 	DingRef
+}
+
+func (e Event) Equal(other Event) bool {
+	return e.Operation == other.Operation &&
+		e.Anzahl == other.Anzahl &&
+		e.Created.Equal(other.Created) &&
+		e.DingRef.Equal(other.DingRef)
+}
+
+type Equatable[T any] interface {
+	Equal(other T) bool
 }
 
 func (e Event) String() string {
@@ -113,4 +148,18 @@ func (e Event) String() string {
 	default:
 		return "Unbekannte Operation"
 	}
+}
+
+func SliceEqual[T Equatable[T]](left []T, right []T) bool {
+	if len(left) != len(right) {
+		return false
+	}
+
+	for index, v := range left {
+		if !v.Equal(right[index]) {
+			return false
+		}
+	}
+
+	return true
 }

@@ -4,8 +4,8 @@ import (
 	"context"
 	"database/sql"
 	"errors"
-	"slices"
 	"testing"
+	"time"
 
 	"github.com/haschi/dinge/model"
 	"github.com/haschi/dinge/sqlx"
@@ -189,12 +189,12 @@ func TestRepository_GetHistory(t *testing.T) {
 					t.Fatal(err)
 				}
 
-				got, err := repository.GetHistory(context.Background(), tt.args.limit)
+				got, err := repository.GetAllEvents(context.Background(), tt.args.limit)
 				if (err != nil) != tt.wantErr {
 					t.Errorf("Repository.GetHistory() error = %v, wantErr %v", err, tt.wantErr)
 					return
 				}
-				if !slices.Equal(got, tt.want) {
+				if model.SliceEqual(got, tt.want) {
 					t.Errorf("Repository.GetHistory() = %v, want %v", got, tt.want)
 				}
 			})
@@ -274,4 +274,59 @@ func (t *CancelableTransaction) Commit() error {
 func (t *CancelableTransaction) Rollback() error {
 	defer t.cancel()
 	return t.Transaction.Rollback()
+}
+
+func TestRepository_ProductHistory(t *testing.T) {
+	type fields struct {
+		Clock model.Clock
+		Tm    sqlx.TransactionManager
+	}
+	type args struct {
+		ctx    context.Context
+		dingId int64
+		limit  int
+	}
+	tests := []struct {
+		name    string
+		fields  fields
+		args    args
+		want    []model.Event
+		wantErr bool
+	}{
+		{
+			name: "Produkt 111",
+			args: args{ctx: context.Background(), dingId: 1, limit: 10},
+			want: []model.Event{
+				{
+					DingRef: model.DingRef{
+						Id:       1,
+						Name:     "Paprika",
+						Code:     "111",
+						Anzahl:   0, // Eigentlich 1, wird aber nicht von ProductHistory gelesen.
+						PhotoUrl: "",
+					},
+					Operation: 1,
+					Anzahl:    1,
+					Created:   must(time.Parse(time.DateTime, "2024-11-13 18:48:01")),
+				},
+			},
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			withDatabase(t, theFixture, func(t *testing.T, db *sql.DB) {
+				repo := must(model.NewRepository(db, system.RealClock{}))
+				got, err := repo.ProductHistory(tt.args.ctx, tt.args.dingId, tt.args.limit)
+				if (err != nil) != tt.wantErr {
+					t.Errorf("Repository.ProductHistory() error = %v, wantErr %v", err, tt.wantErr)
+					return
+				}
+
+				if !model.SliceEqual(got, tt.want) {
+					t.Log(tt.want, got)
+					t.Errorf("Repository.ProductHistory() = %v, want %v", got, tt.want)
+				}
+			})
+		})
+	}
 }
