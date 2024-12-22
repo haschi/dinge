@@ -65,8 +65,18 @@ type IndexFormData struct {
 // Liefert eine HTML Form zum Erzeugen eines neuen Dings.
 func (a DingeResource) NewForm(w http.ResponseWriter, r *http.Request) {
 
+	history, err := a.Repository.GetAllEvents(r.Context(), 12)
+	if err != nil {
+		webx.ServerError(w, err)
+		return
+	}
+
 	data := webx.TemplateData[CreateData]{
-		FormValues: CreateData{Anzahl: 1},
+		FormValues: CreateData{
+			Code:    "",
+			Anzahl:  1,
+			History: history,
+		},
 	}
 
 	response := webx.HtmlResponse[CreateData]{
@@ -145,8 +155,9 @@ func (a DingeResource) Create(w http.ResponseWriter, r *http.Request) {
 }
 
 type CreateData struct {
-	Code   string
-	Anzahl int
+	Code    string
+	Anzahl  int
+	History []model.Event
 }
 
 // Zeigt ein spezifisches Ding an
@@ -169,11 +180,20 @@ func (a DingeResource) Show(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	data := webx.TemplateData[model.Ding]{
-		FormValues: ding,
+	history, err := a.Repository.ProductHistory(r.Context(), id, 10)
+	if err != nil {
+		webx.ServerError(w, err)
+		return
 	}
 
-	response := webx.HtmlResponse[model.Ding]{
+	data := webx.TemplateData[ShowResponseData]{
+		FormValues: ShowResponseData{
+			Ding:    ding,
+			History: history,
+		},
+	}
+
+	response := webx.HtmlResponse[ShowResponseData]{
 		TemplateName: "ding",
 		Data:         data,
 		StatusCode:   http.StatusOK,
@@ -182,6 +202,11 @@ func (a DingeResource) Show(w http.ResponseWriter, r *http.Request) {
 	if err := response.Render(w, a.Templates); err != nil {
 		webx.ServerError(w, err)
 	}
+}
+
+type ShowResponseData struct {
+	model.Ding
+	History []model.Event
 }
 
 // Edit zeigt eine Form zum Bearbeiten eines spezifischen Dings
@@ -487,10 +512,17 @@ func (a DingeResource) Destroy(w http.ResponseWriter, r *http.Request) {
 
 // Zeigt eine Form an, um Dinge zu entnehmen.
 func (a DingeResource) DestroyForm(w http.ResponseWriter, r *http.Request) {
+	history, err := a.Repository.GetAllEvents(r.Context(), 12)
+	if err != nil {
+		webx.ServerError(w, err)
+		return
+	}
+
 	data := webx.TemplateData[DestroyData]{
 		FormValues: DestroyData{
-			Code:  "",
-			Menge: 1,
+			Code:    "",
+			Menge:   1,
+			History: history,
 		},
 	}
 
@@ -506,6 +538,7 @@ func (a DingeResource) DestroyForm(w http.ResponseWriter, r *http.Request) {
 }
 
 type DestroyData struct {
-	Code  string
-	Menge int
+	Code    string
+	Menge   int
+	History []model.Event
 }

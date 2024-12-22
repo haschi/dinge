@@ -361,7 +361,6 @@ func TestRepository_PhotoAktualisieren(t *testing.T) {
 
 	type fields struct {
 		Clock model.Clock
-		Tm    *sqlx.TransactionManager
 	}
 	type args struct {
 		ctx context.Context

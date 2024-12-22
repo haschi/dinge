@@ -28,13 +28,21 @@ type DingRef struct {
 	PhotoUrl string
 }
 
+func (d DingRef) Equal(other DingRef) bool {
+	return d.Id == other.Id &&
+		d.Name == other.Name &&
+		d.Code == other.Code &&
+		d.Anzahl == other.Anzahl &&
+		d.PhotoUrl == other.PhotoUrl
+}
+
 type Repository struct {
 	Clock Clock
-	Tm    *sqlx.TransactionManager
+	Tm    sqlx.TransactionManager
 }
 
 func NewRepository(db *sql.DB, clock Clock) (*Repository, error) {
-	tm, err := sqlx.NewTransactionManager(db)
+	tm, err := sqlx.NewSqlTransactionManager(db)
 	if err != nil {
 		return nil, err
 	}
@@ -112,6 +120,7 @@ func (r Repository) GetPhotoById(ctx context.Context, id int64) ([]byte, error) 
 	return photo, tx.Commit()
 }
 
+// Todo: Wird nur von Destroy verwendet. Also Spezialisieren!!
 func (r Repository) MengeAktualisieren(ctx context.Context, code string, menge int) (*Ding, error) {
 
 	if ctx == nil {
@@ -152,6 +161,10 @@ func (r Repository) MengeAktualisieren(ctx context.Context, code string, menge i
 	if ding.Anzahl < 0 {
 		// Rollback!
 		return &ding, fmt.Errorf("Wert ist zu groß: %v: %w", menge, ErrInvalidParameter)
+	}
+
+	if err := r.LogEvent(ctx, 3, -menge, ding.Id); err != nil {
+		return &ding, err
 	}
 
 	return &ding, tx.Commit()
@@ -199,6 +212,17 @@ func (r Repository) Insert(ctx context.Context, code string, anzahl int) (Insert
 		if err != nil {
 			return InsertResult{}, err
 		}
+	}
+
+	var operation int
+	if result.Created {
+		operation = 1
+	} else {
+		operation = 2
+	}
+
+	if err := r.LogEvent(ctx, operation, anzahl, result.Id); err != nil {
+		return InsertResult{}, err
 	}
 
 	return result, tx.Commit()

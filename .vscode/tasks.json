@@ -7,9 +7,9 @@
 			"command": "go",
 			"args": [
 				"build",
+				"-tags",
+				"fts5",
 				"${workspaceFolder}",
-				"tags",
-				"fts5"
 			],
 			"problemMatcher": [
 				"$go"
@@ -21,9 +21,9 @@
 			"label": "go: run package",
 			"command": "go",
 			"args": [
-				"tags",
-				"fts5",
 				"run",
+				"-tags",
+				"fts5",
 				"${workspaceFolder}"
 			],
 			"problemMatcher": [

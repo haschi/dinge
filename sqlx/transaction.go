@@ -16,7 +16,7 @@ type Transaction interface {
 }
 
 type sqlTransaction struct {
-	tm   *TransactionManager
+	tm   *SqlTransactionManager
 	conn *sql.Conn
 	tx   *sql.Tx
 	ctx  context.Context
@@ -70,7 +70,7 @@ func (t sqlTransaction) Context() context.Context {
 }
 
 type nestedTransaction struct {
-	tm       *TransactionManager
+	tm       *SqlTransactionManager
 	comitted bool
 	parent   Transaction
 }

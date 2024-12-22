@@ -1,0 +1,23 @@
+{{define "history"}}
+<article>
+  <h2>Letzte Änderungen</h2>
+  <table>
+    <thead>
+      <tr>
+        <th>Code</th>
+        <th>Ding</th>
+        <th>Bemerkung</th>
+      </tr>
+    </thead>
+    <tbody>
+      {{range .}}
+      <tr>
+        <td>{{.Code}}</td>
+        <td><a href="/dinge/{{.Id}}">{{.Name}}</a></td>
+        <td>{{.}}</td>
+      </tr>
+      {{end}}
+    </tbody>
+  </table>
+</article>
+{{end}}
