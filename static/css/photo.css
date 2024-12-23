@@ -1,12 +1,46 @@
-#input-file {
+#canvas {
   display: none;
 }
 
 #image-view {
   width: 285px;
   height: 285px;
-  border-radius: 20px;
-  border: 2px dashed #bbbfff;
   background-position: center;
   background-size: cover;
+}
+
+::file-selector-button {
+  border-radius: var(--border-radius);
+  display: block;
+  font-size: medium;
+  font-weight: bold;
+  line-height: var(--line-height);
+  margin-bottom: 0.5rem;
+  padding: 1rem 2rem;
+  font-family: var(--font-family);
+  background-color: var(--color-link);
+  border: 2px solid var(--color-link);
+  color: var(--color-bg);
+}
+
+input[type=file] {
+  display: inline-block;
+  padding: 0;
+  margin: 0;
+  border: 0px;
+}
+
+form:invalid button[type="submit"] {
+  pointer-events: none;
+  cursor: not-allowed;
+  background-color: #888;
+  border-color: #333;
+}
+
+
+#video {
+  object-fit: cover;
+  width: 285px;
+  height: 285px;
+  display: block;
 }
