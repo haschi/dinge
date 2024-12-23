@@ -361,7 +361,7 @@ func (a DingeResource) PhotoUpload(w http.ResponseWriter, r *http.Request) {
 		defaultValues := webx.TemplateData[PhotoData]{
 			Scripts:          []string{"/static/photo.js"},
 			Styles:           []string{"/static/css/photo.css"},
-			FormValues:       PhotoData{Id: id},
+			FormValues:       PhotoData{Id: id, PhotoUrl: "/static/placeholder.svg"},
 			ValidationErrors: validation.ErrorMap{"file": "Fehlerhaft Bilddatei"},
 		}
 
