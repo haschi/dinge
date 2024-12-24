@@ -1,7 +1,7 @@
-{{define "content"}}
+{{define "header"}}
 {{if and (eq .FormValues.Q "") (eq .FormValues.S "") (not .FormValues.Result)}}
-{{template "usage"}}
+{{template "welcome" }}
 {{else}}
-{{template "results" .FormValues}}
+{{template "form" .FormValues}}
 {{end}}
 {{end}}

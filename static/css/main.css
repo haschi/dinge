@@ -1,4 +1,28 @@
- :root {
+@media(max-width: 768px) {
+  nav {
+    align-items: start;
+  }
+
+  nav ul li {
+    display: block;
+  }
+}
+
+:root {
+  --error-color: #f33;
+}
+
+nav {
+  margin-bottom: 0;
+}
+
+footer,
+header,
+main {
+  padding: 1rem 1rem;
+}
+
+/* :root {
    --background-color: #eee;
    --foreground-color: #333;
    --error-color: #f33;
@@ -10,93 +34,88 @@
    --width-card-wide: 800px;
    --width-card: 285px;
  }
+ */
 
- footer,
- header,
- main {
-   padding: 0;
-   margin-bottom: 1rem;
- }
+input:invalid {
+  border-color: var(--error-color);
+}
 
- section,
- nav {
-   margin-bottom: 1rem;
- }
+input:invalid~button[type="submit"] {
+  cursor: not-allowed;
+  background-color: #888;
+  border-color: #333;
+}
 
- input:invalid {
-   border-color: var(--error-color);
- }
+.error {
+  color: var(--error-color)
+}
 
- input:invalid~button[type="submit"] {
-   cursor: not-allowed;
-   background-color: #888;
-   border-color: #333;
- }
+.tooltip {
+  position: relative;
+  display: inline-block;
+  border-bottom: 1px dotted black;
+}
 
- .error {
-   color: var(--error-color)
- }
+.tooltip .tooltiptext {
+  visibility: hidden;
+  width: 200px;
+  background-color: #333;
+  color: #fff;
+  border-radius: var(--border-radius);
+  padding: 1rem 1rem;
+  position: absolute;
+  z-index: 1;
+  bottom: 125%;
+  left: 50%;
+  margin-right: -60%;
+  opacity: 0;
+  transition: opacity 1.0s;
+}
 
- .tooltip {
-   position: relative;
-   display: inline-block;
-   border-bottom: 1px dotted black;
- }
+.tooltip .tooltiptext::after {
+  content: "";
+  position: absolute;
+  top: 100%;
+  left: 50%;
+  margin-left: -5px;
+  border-width: 5px;
+  border-style: solid;
+  border-color: #555 transparent transparent transparent;
+}
 
- .tooltip .tooltiptext {
-   visibility: hidden;
-   width: 200px;
-   background-color: #333;
-   color: #fff;
-   border-radius: var(--border-radius);
-   padding: 1rem 1rem;
-   position: absolute;
-   z-index: 1;
-   bottom: 125%;
-   left: 50%;
-   margin-right: -60%;
-   opacity: 0;
-   transition: opacity 1.0s;
- }
+.tooltip:hover .tooltiptext {
+  visibility: visible;
+  opacity: 0.85;
+}
 
- .tooltip .tooltiptext::after {
-   content: "";
-   position: absolute;
-   top: 100%;
-   left: 50%;
-   margin-left: -5px;
-   border-width: 5px;
-   border-style: solid;
-   border-color: #555 transparent transparent transparent;
- }
+/* Anklickbare Cards */
+section aside {
+  position: relative
+}
 
- .tooltip:hover .tooltiptext {
-   visibility: visible;
-   opacity: 0.85;
- }
+/* Wenn a das erste Kindelement von aside ist, wird die Card anklickbar.*/
+section aside>a:first-child {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+}
 
- /* Anklickbare Cards */
- section aside {
-   position: relative
- }
+/* Formular horizontal */
+article form {
+  max-width: 100%;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 1.5rem;
+  padding: 1rem;
+}
 
- section aside a {
-   position: absolute;
-   top: 0;
-   bottom: 0;
-   left: 0;
-   width: 100%;
- }
+article form button[type="submit"] {
+  margin: 0;
+}
 
- /* Formular horizontal */
- article form {
-   max-width: 100%;
-   display: flex;
-   align-items: baseline;
-   gap: 1.5rem;
-   padding: 1rem;
- }
-
- article form button[type="submit"] {
-   margin: 0;
- }
+article form input[type="text"] {
+  width: auto;
+}

@@ -627,7 +627,7 @@ func TestRepository_GetLatest(t *testing.T) {
 					t.Fatal(err)
 				}
 
-				got, err := r.GetLatest(context.Background(), tt.args.limit, tt.args.query, tt.args.sort)
+				got, err := r.Search(context.Background(), tt.args.limit, tt.args.query, tt.args.sort)
 				if (err != nil) != tt.wantErr {
 					t.Errorf("Repository.GetLatest() error = %v, wantErr %v", err, tt.wantErr)
 					return
