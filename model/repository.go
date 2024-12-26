@@ -333,7 +333,7 @@ func (r Repository) DingAktualisieren(ctx context.Context, id int64, name string
 }
 
 // TODO: Iterator statt Slice zurückgeben.
-func (r Repository) GetLatest(ctx context.Context, limit int, query string, sort string) ([]DingRef, error) {
+func (r Repository) Search(ctx context.Context, limit int, query string, sort string) ([]DingRef, error) {
 
 	q := `
 		SELECT id, name, code, anzahl,

@@ -1,0 +1,15 @@
+{{define "form"}}
+<article>
+  <form action="/dinge" method="get">
+    <input id="input-suche" style="flex-grow: 1;" name="q" value="{{.Q}}" type="text" autofocus
+      maxlength="100" />
+    <select id="input-sort" name="s">
+      <option {{if eq .S "alpha" }}selected{{end}} value="alpha">Alphabetisch aufsteigend</option>
+      <option {{if eq .S "omega" }}selected{{end}} value="omega">Alphabetisch absteigend</option>
+      <option {{if eq .S "latest" }}selected{{end}} value="latest">Datum aufsteigend</option>
+      <option {{if eq .S "oldest" }}selected{{end}} value="oldest">Datum absteigend</option>
+    </select>
+    <button type="submit">Suchen</button>
+  </form>
+</article>
+{{end}}

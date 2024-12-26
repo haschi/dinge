@@ -36,7 +36,7 @@ func (a DingeResource) Index(w http.ResponseWriter, r *http.Request) {
 		validation.String("s", &content.FormValues.S, sortOptions),
 	)
 
-	dinge, err := a.Repository.GetLatest(r.Context(), 12, content.FormValues.Q, content.FormValues.S)
+	dinge, err := a.Repository.Search(r.Context(), 12, content.FormValues.Q, content.FormValues.S)
 	if err != nil {
 		webx.ServerError(w, err)
 		return

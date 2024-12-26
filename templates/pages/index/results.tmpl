@@ -1,0 +1,16 @@
+{{define "results"}}
+{{if .Result}}
+<section>
+  {{range .Result }}
+  <aside>
+    <a href="/dinge/{{.Id}}"></a>
+    <img src="{{.PhotoUrl}}">
+    <h2>{{.Name}}<sup>{{.Anzahl}}</sup></h2>
+    <p>{{.Code}}</p>
+  </aside>
+  {{end}}
+</section>
+{{else}}
+<p>Keine Ergebnisse gefunden</p>
+{{end}}
+{{end}}
