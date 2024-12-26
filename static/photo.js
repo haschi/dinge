@@ -39,29 +39,33 @@
     webcamDiv.style.display = "none";
   }
 
-  navigator.mediaDevices.getUserMedia({ video: true })
-    .then((stream) => {
-      showLive();
-      video.srcObject = stream;
-    })
-    .catch((err) => {
-      console.info("Access to the camera is not possible", err)
-      showPreview();
+  if (navigator.mediaDevices !== undefined) {
+    navigator.mediaDevices.getUserMedia({ video: true })
+      .then((stream) => {
+        showLive();
+        video.srcObject = stream;
+      })
+      .catch((err) => {
+        showPreview();
+      });
+
+    const imageFormat = "image/png";
+
+    captureButton.addEventListener("click", (event) => {
+      event.preventDefault();
+      const context = canvas.getContext("2d");
+      canvas.width = video.videoWidth;
+      canvas.height = video.videoHeight;
+      context.drawImage(video, 0, 0, canvas.width, canvas.height);
+
+      canvas.toBlob((blob) => {
+        const file = new File([blob], "webcam.png", { type: imageFormat });
+        const dataTransfer = new DataTransfer();
+        dataTransfer.items.add(file);
+        inputFile.files = dataTransfer.files;
+        changeImage();
+      }, imageFormat);
     });
+  }
 
-  captureButton.addEventListener("click", (event) => {
-    event.preventDefault();
-    const context = canvas.getContext("2d");
-    canvas.width = video.videoWidth;
-    canvas.height = video.videoHeight;
-    context.drawImage(video, 0, 0, canvas.width, canvas.height);
-
-    canvas.toBlob((blob) => {
-      const file = new File([blob], "webcam.png", { type: "image/png" });
-      const dataTransfer = new DataTransfer();
-      dataTransfer.items.add(file);
-      inputFile.files = dataTransfer.files;
-      changeImage();
-    }, 'image/png');
-  });
 })();
