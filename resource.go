@@ -72,6 +72,10 @@ func (a DingeResource) NewForm(w http.ResponseWriter, r *http.Request) {
 	}
 
 	data := webx.TemplateData[CreateData]{
+		Scripts: []string{
+			"/static/barcode.js",
+		},
+		Styles: []string{"/static/css/new.css"},
 		FormValues: CreateData{
 			Code:    "",
 			Anzahl:  1,
