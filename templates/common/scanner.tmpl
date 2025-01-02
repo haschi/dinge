@@ -1,0 +1,22 @@
+{{define "scanner"}}
+
+<form id="new-form" action="{{.FormValues.ActionUrl}}" method="post">
+  <h2>{{.FormValues.Title}}</h2>
+  <p>Gebe den Produktcode des Dings ein oder scanne den Produktcode mit der Kamera auf der Verpackung</p>
+  <video id="video"></video>
+  <label for="code-input">Produktcode</label>
+  <input id="code-input" type="text" name="code" value="{{.FormValues.Code}}" autocomplete="off" autofocus required>
+  {{with .ValidationErrors.code}}
+  <p class="error">{{.}}</p>
+  {{end}}
+
+  <label for="anzahl-input">Anzahl</label>
+  <input id="anzahl-input" type="number" name="anzahl" value="{{.FormValues.Anzahl}}" required min="1" max="99">
+  <span></span>
+  {{with .ValidationErrors.anzahl}}
+  <p class="error">{{.}}</p>
+  {{end}}
+
+  <button type="submit">{{.FormValues.SubmitButtonText}}</button>
+</form>
+{{end}}

@@ -59,6 +59,7 @@ async function scan() {
             console.log("Aufnahme wird angehalten")
             stream.getTracks().forEach(track => track.stop());
           }
+          newForm.submit();
         }
       }
     } catch (error) {

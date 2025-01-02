@@ -11,6 +11,7 @@ import (
 	"net/http"
 	"strconv"
 
+	"github.com/haschi/dinge/dto"
 	"github.com/haschi/dinge/model"
 	"github.com/haschi/dinge/validation"
 	"github.com/haschi/dinge/webx"
@@ -24,7 +25,7 @@ type DingeResource struct {
 // Zeigt eine Liste aller Dinge
 func (a DingeResource) Index(w http.ResponseWriter, r *http.Request) {
 
-	content := webx.TemplateData[IndexFormData]{}
+	content := webx.TemplateData[dto.IndexFormData]{}
 
 	form := validation.NewForm(r)
 	defer form.Close()
@@ -45,7 +46,7 @@ func (a DingeResource) Index(w http.ResponseWriter, r *http.Request) {
 	content.FormValues.Result = dinge
 
 	// TODO: Validierungsfehler in index.tmpl anzeigen
-	response := webx.HtmlResponse[IndexFormData]{
+	response := webx.HtmlResponse[dto.IndexFormData]{
 		TemplateName: "index",
 		Data:         content,
 		StatusCode:   http.StatusOK,
@@ -54,12 +55,6 @@ func (a DingeResource) Index(w http.ResponseWriter, r *http.Request) {
 	if err := response.Render(w, a.Templates); err != nil {
 		webx.ServerError(w, err)
 	}
-}
-
-type IndexFormData struct {
-	Q      string
-	S      string
-	Result []model.DingRef
 }
 
 // Liefert eine HTML Form zum Erzeugen eines neuen Dings.
@@ -71,19 +66,8 @@ func (a DingeResource) NewForm(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	data := webx.TemplateData[CreateData]{
-		Scripts: []string{
-			"/static/barcode.js",
-		},
-		Styles: []string{"/static/css/new.css"},
-		FormValues: CreateData{
-			Code:    "",
-			Anzahl:  1,
-			History: history,
-		},
-	}
-
-	response := webx.HtmlResponse[CreateData]{
+	data := dto.NewScannerFormData("", 1, history)
+	response := webx.HtmlResponse[dto.ScannerFormData]{
 		TemplateName: "new",
 		Data:         data,
 		StatusCode:   http.StatusOK,
@@ -111,10 +95,8 @@ func (a DingeResource) Create(w http.ResponseWriter, r *http.Request) {
 	form := validation.NewForm(r)
 	defer form.Close()
 
-	data := webx.TemplateData[CreateData]{
-		FormValues:       CreateData{},
-		ValidationErrors: form.ValidationErrors,
-	}
+	data := dto.NewScannerFormData("", 0, nil)
+	data.ValidationErrors = form.ValidationErrors
 
 	err := form.Scan(
 		validation.String(Code, &data.FormValues.Code, validation.IsNotBlank),
@@ -129,7 +111,7 @@ func (a DingeResource) Create(w http.ResponseWriter, r *http.Request) {
 	if !form.IsValid() {
 		// "fehler in den übermittelten Daten"
 
-		response := webx.HtmlResponse[CreateData]{
+		response := webx.HtmlResponse[dto.ScannerFormData]{
 			TemplateName: "new",
 			Data:         data,
 			StatusCode:   http.StatusUnprocessableEntity,
@@ -158,12 +140,6 @@ func (a DingeResource) Create(w http.ResponseWriter, r *http.Request) {
 	webx.SeeOther("/dinge/new").ServeHTTP(w, r)
 }
 
-type CreateData struct {
-	Code    string
-	Anzahl  int
-	History []model.Event
-}
-
 // Zeigt ein spezifisches Ding an
 func (a DingeResource) Show(w http.ResponseWriter, r *http.Request) {
 
@@ -190,14 +166,14 @@ func (a DingeResource) Show(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	data := webx.TemplateData[ShowResponseData]{
-		FormValues: ShowResponseData{
+	data := webx.TemplateData[dto.ShowResponseData]{
+		FormValues: dto.ShowResponseData{
 			Ding:    ding,
 			History: history,
 		},
 	}
 
-	response := webx.HtmlResponse[ShowResponseData]{
+	response := webx.HtmlResponse[dto.ShowResponseData]{
 		TemplateName: "ding",
 		Data:         data,
 		StatusCode:   http.StatusOK,
@@ -206,11 +182,6 @@ func (a DingeResource) Show(w http.ResponseWriter, r *http.Request) {
 	if err := response.Render(w, a.Templates); err != nil {
 		webx.ServerError(w, err)
 	}
-}
-
-type ShowResponseData struct {
-	model.Ding
-	History []model.Event
 }
 
 // Edit zeigt eine Form zum Bearbeiten eines spezifischen Dings
@@ -332,14 +303,14 @@ func (a DingeResource) PhotoForm(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	defaultValues := webx.TemplateData[PhotoData]{
+	defaultValues := webx.TemplateData[dto.PhotoData]{
 		Scripts:          []string{"/static/photo.js"},
 		Styles:           []string{"/static/css/photo.css"},
-		FormValues:       PhotoData{Id: id, PhotoUrl: ding.PhotoUrl},
+		FormValues:       dto.PhotoData{Id: id, PhotoUrl: ding.PhotoUrl},
 		ValidationErrors: nil,
 	}
 
-	response := webx.HtmlResponse[PhotoData]{
+	response := webx.HtmlResponse[dto.PhotoData]{
 		TemplateName: "photo",
 		Data:         defaultValues,
 		StatusCode:   http.StatusOK,
@@ -362,14 +333,14 @@ func (a DingeResource) PhotoUpload(w http.ResponseWriter, r *http.Request) {
 	image, err := imageFromForm(r, "file", 1<<Megabyte)
 	if err != nil {
 
-		defaultValues := webx.TemplateData[PhotoData]{
+		defaultValues := webx.TemplateData[dto.PhotoData]{
 			Scripts:          []string{"/static/photo.js"},
 			Styles:           []string{"/static/css/photo.css"},
-			FormValues:       PhotoData{Id: id, PhotoUrl: "/static/placeholder.svg"},
+			FormValues:       dto.PhotoData{Id: id, PhotoUrl: "/static/placeholder.svg"},
 			ValidationErrors: validation.ErrorMap{"file": "Fehlerhaft Bilddatei"},
 		}
 
-		response := webx.HtmlResponse[PhotoData]{
+		response := webx.HtmlResponse[dto.PhotoData]{
 			TemplateName: "photo",
 			Data:         defaultValues,
 			StatusCode:   http.StatusUnprocessableEntity,
@@ -422,11 +393,6 @@ func imageFromForm(r *http.Request, field string, limit int64) (image.Image, err
 
 	return im, nil
 
-}
-
-type PhotoData struct {
-	Id       int64
-	PhotoUrl string
 }
 
 func (a DingeResource) PhotoDownload(w http.ResponseWriter, r *http.Request) {
@@ -489,15 +455,15 @@ func (a DingeResource) Destroy(w http.ResponseWriter, r *http.Request) {
 
 	if !form.IsValid() {
 
-		data := webx.TemplateData[DestroyData]{
-			FormValues: DestroyData{
-				Code:  code,
-				Menge: anzahl,
-			},
-			ValidationErrors: form.ValidationErrors,
+		history, err := a.Repository.GetAllEvents(r.Context(), 12)
+		if err != nil {
+			webx.ServerError(w, err)
+			return
 		}
+		data := dto.NewDestroyFormData(code, anzahl, history)
+		data.ValidationErrors = form.ValidationErrors
+		response := webx.HtmlResponse[dto.ScannerFormData]{
 
-		response := webx.HtmlResponse[DestroyData]{
 			TemplateName: "entnehmen",
 			Data:         data,
 			StatusCode:   http.StatusUnprocessableEntity,
@@ -522,15 +488,9 @@ func (a DingeResource) DestroyForm(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	data := webx.TemplateData[DestroyData]{
-		FormValues: DestroyData{
-			Code:    "",
-			Menge:   1,
-			History: history,
-		},
-	}
+	data := dto.NewDestroyFormData("", 1, history)
 
-	response := webx.HtmlResponse[DestroyData]{
+	response := webx.HtmlResponse[dto.ScannerFormData]{
 		TemplateName: "entnehmen",
 		Data:         data,
 		StatusCode:   http.StatusOK,
@@ -539,10 +499,4 @@ func (a DingeResource) DestroyForm(w http.ResponseWriter, r *http.Request) {
 	if err := response.Render(w, a.Templates); err != nil {
 		webx.ServerError(w, err)
 	}
-}
-
-type DestroyData struct {
-	Code    string
-	Menge   int
-	History []model.Event
 }
