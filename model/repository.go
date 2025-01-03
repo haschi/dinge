@@ -203,6 +203,7 @@ func (r Repository) Insert(ctx context.Context, code string, anzahl int) (Insert
 		return result, err
 	}
 
+	// BUG: Die Annahme, dass der Datensatz neu erzeugt wurde, wenn neueAnzahl == anzahl, ist falsch. Diese Bedingung ist auch wahr, wenn die alte Anzahl == 0 ist. Dadurch kommt es fälschlicherweise zu eine INSERT in die fulltext Tabelle, was einen Constraint Fehler verursacht.
 	result.Created = neueAnzahl == anzahl
 
 	if result.Created {
