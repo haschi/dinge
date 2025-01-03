@@ -3,23 +3,7 @@ package model
 import (
 	"image"
 	"image/draw"
-	_ "image/jpeg"
-	"image/png"
-	"io"
 )
-
-func LoadImage(reader io.Reader) (image.Image, error) {
-	im, _, err := image.Decode(reader)
-	if err != nil {
-		return nil, err
-	}
-
-	return im, nil
-}
-
-func EncodeImage(w io.Writer, image image.Image) error {
-	return png.Encode(w, image)
-}
 
 const thumbnailWidth = 285
 

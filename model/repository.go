@@ -7,6 +7,7 @@ import (
 	"errors"
 	"fmt"
 	"image"
+	"image/png"
 	"time"
 
 	"github.com/haschi/dinge/sqlx"
@@ -97,7 +98,44 @@ func (r Repository) GetById(ctx context.Context, id int64) (Ding, error) {
 	return ding, tx.Commit()
 }
 
-func (r Repository) GetPhotoById(ctx context.Context, id int64) ([]byte, error) {
+// GetUrl liefert die URL des Photos eines Dings.
+//
+// [id] ist die id eines Dings.
+func (r Repository) GetUrl(ctx context.Context, dingId int64) (string, error) {
+
+	url := "/static/placeholder.svg"
+
+	if ctx == nil {
+		return url, errors.New("no context provided")
+	}
+
+	suchen := `
+	SELECT COUNT(rowid)
+	FROM photos
+	WHERE dinge_id = :dingId
+	`
+
+	tx, err := r.Tm.BeginTx(ctx)
+	if err != nil {
+		return url, err
+	}
+
+	defer tx.Rollback()
+
+	row := tx.QueryRowContext(suchen, sql.Named("dingId", dingId))
+	var count int
+	if err := row.Scan(&count); err != nil {
+		return url, err
+	}
+
+	if count == 1 {
+		url = fmt.Sprintf("/photos/%v", dingId)
+	}
+
+	return url, tx.Commit()
+}
+
+func (r Repository) GetPhotoById(ctx context.Context, dingId int64) ([]byte, error) {
 
 	suchen := `SELECT photo FROM photos WHERE dinge_id = :id`
 
@@ -109,7 +147,7 @@ func (r Repository) GetPhotoById(ctx context.Context, id int64) ([]byte, error) 
 	defer tx.Rollback()
 
 	var photo []byte
-	row := tx.QueryRowContext(suchen, sql.Named("id", id))
+	row := tx.QueryRowContext(suchen, sql.Named("id", dingId))
 	if err := row.Scan(&photo); err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			return nil, ErrNoRecord
@@ -240,7 +278,7 @@ func (r Repository) PhotoAktualisieren(ctx context.Context, id int64, image imag
 	thumbnail := Resize(zuschnitt)
 
 	var buffer bytes.Buffer
-	if err := EncodeImage(&buffer, thumbnail); err != nil {
+	if err := png.Encode(&buffer, thumbnail); err != nil {
 		return err
 	}
 

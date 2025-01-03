@@ -38,6 +38,7 @@ import (
 	"time"
 
 	"github.com/haschi/dinge/model"
+	"github.com/haschi/dinge/photo"
 	"github.com/haschi/dinge/sqlx"
 	"github.com/haschi/dinge/system"
 	_ "github.com/mattn/go-sqlite3"
@@ -119,7 +120,12 @@ func run(ctx context.Context, stdout io.Writer, _ []string, environment func(str
 		return err
 	}
 
-	application := DingeResource{
+	dinge := DingeResource{
+		Repository: repository,
+		Templates:  TemplatesFileSystem,
+	}
+
+	photos := photo.Resource{
 		Repository: repository,
 		Templates:  TemplatesFileSystem,
 	}
@@ -127,7 +133,7 @@ func run(ctx context.Context, stdout io.Writer, _ []string, environment func(str
 	server := &http.Server{
 		Addr:     httpAddress,
 		ErrorLog: slog.NewLogLogger(logger.Handler(), slog.LevelInfo),
-		Handler:  routes(logger, application),
+		Handler:  routes(logger, dinge, photos),
 	}
 
 	var wg sync.WaitGroup

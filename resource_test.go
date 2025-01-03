@@ -11,6 +11,7 @@ import (
 	"testing"
 
 	"github.com/haschi/dinge/model"
+	"github.com/haschi/dinge/photo"
 	"github.com/haschi/dinge/system"
 	"golang.org/x/net/html"
 )
@@ -506,10 +507,15 @@ func newDingeResource(logger *slog.Logger, db *sql.DB) (http.Handler, error) {
 	if err != nil {
 		return nil, err
 	}
-	resource := &DingeResource{
+	dinge := DingeResource{
 		Repository: repository,
 		Templates:  TemplatesFileSystem,
 	}
 
-	return routes(logger, *resource), nil
+	photos := photo.Resource{
+		Repository: repository,
+		Templates:  TemplatesFileSystem,
+	}
+
+	return routes(logger, dinge, photos), nil
 }

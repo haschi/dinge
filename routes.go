@@ -4,6 +4,7 @@ import (
 	"log/slog"
 	"net/http"
 
+	"github.com/haschi/dinge/photo"
 	"github.com/haschi/dinge/webx"
 )
 
@@ -15,7 +16,7 @@ func compose(m1, m2 webx.Middleware) webx.Middleware {
 	})
 }
 
-func routes(logger *slog.Logger, dinge DingeResource) http.Handler {
+func routes(logger *slog.Logger, dinge DingeResource, photos photo.Resource) http.Handler {
 	mux := http.NewServeMux()
 
 	// middleware
@@ -46,9 +47,9 @@ func routes(logger *slog.Logger, dinge DingeResource) http.Handler {
 	mux.Handle("GET /dinge/{id}", webx.CombineFunc(dinge.Show, defaultMiddleware))
 	mux.Handle("GET /dinge/{id}/edit", webx.CombineFunc(dinge.Edit, defaultMiddleware))
 	mux.Handle("POST /dinge/{id}", webx.CombineFunc(dinge.Update, requestLogger)) // Update
-	mux.Handle("GET /dinge/{id}/photo", webx.CombineFunc(dinge.PhotoForm, defaultMiddleware))
-	mux.Handle("POST /dinge/{id}/photo", webx.CombineFunc(dinge.PhotoUpload, requestLogger))
-	mux.Handle("GET /photos/{id}", webx.CombineFunc(dinge.PhotoDownload, requestLogger))
+	mux.Handle("GET /dinge/{id}/photo", webx.CombineFunc(photos.Form, defaultMiddleware))
+	mux.Handle("POST /dinge/{id}/photo", webx.CombineFunc(photos.Upload, requestLogger))
+	mux.Handle("GET /photos/{id}", webx.CombineFunc(photos.Download, requestLogger))
 	mux.Handle("GET /dinge/delete", webx.CombineFunc(dinge.DestroyForm, defaultMiddleware))
 	mux.Handle("POST /dinge/delete", webx.CombineFunc(dinge.Destroy, requestLogger))
 
