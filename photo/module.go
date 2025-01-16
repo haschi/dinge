@@ -2,7 +2,6 @@ package photo
 
 import (
 	"bytes"
-	"context"
 	"errors"
 	"fmt"
 	"image"
@@ -11,7 +10,6 @@ import (
 	"net/http"
 	"strconv"
 
-	"github.com/haschi/dinge/model"
 	"github.com/haschi/dinge/validation"
 	"github.com/haschi/dinge/webx"
 
@@ -19,19 +17,18 @@ import (
 	_ "image/png"
 )
 
-type Resource struct {
-	Repository Repository
+type Module struct {
+	Repository *Repository
 	Templates  fs.FS
 }
 
-type Repository interface {
-	GetUrl(ctx context.Context, dingId int64) (string, error)
-	PhotoAktualisieren(ctx context.Context, id int64, image image.Image) error
-	GetPhotoById(ctx context.Context, id int64) ([]byte, error)
+func (m *Module) Mount(mux *http.ServeMux, prefix string, middleware ...webx.Middleware) {
+	mux.Handle(fmt.Sprintf("GET %v/", prefix), webx.CombineFunc(m.Form, middleware...))
+	mux.Handle(fmt.Sprintf("POST %v/", prefix), webx.CombineFunc(m.Upload, middleware...))
 }
 
 // Form liefert eine Ansicht für die Bearbeitung eines Photos
-func (res Resource) Form(w http.ResponseWriter, r *http.Request) {
+func (res Module) Form(w http.ResponseWriter, r *http.Request) {
 
 	id, err := strconv.ParseInt(r.PathValue("id"), 10, 64)
 	if err != nil || id < 1 {
@@ -39,10 +36,15 @@ func (res Resource) Form(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	if res.Repository == nil {
+		webx.ServerError(w, errors.New("repository not available"))
+		return
+	}
+
 	url, err := res.Repository.GetUrl(r.Context(), id)
 
 	if err != nil {
-		if errors.Is(err, model.ErrNoRecord) {
+		if errors.Is(err, ErrNoRecord) {
 			http.NotFound(w, r)
 			return
 		}
@@ -71,7 +73,7 @@ func (res Resource) Form(w http.ResponseWriter, r *http.Request) {
 const Megabyte = 20
 
 // Upload nimmt ein neues Photo entgegen und speichert es in der Datenbank
-func (res Resource) Upload(w http.ResponseWriter, r *http.Request) {
+func (res Module) Upload(w http.ResponseWriter, r *http.Request) {
 	id, err := strconv.ParseInt(r.PathValue("id"), 10, 64)
 	if err != nil || id < 1 {
 		http.NotFound(w, r)
@@ -111,7 +113,7 @@ func (res Resource) Upload(w http.ResponseWriter, r *http.Request) {
 }
 
 // Download liefert ein in der Datenbank gespeichertes Photo aus
-func (res Resource) Download(w http.ResponseWriter, r *http.Request) {
+func (res Module) Download(w http.ResponseWriter, r *http.Request) {
 	id, err := strconv.ParseInt(r.PathValue("id"), 10, 64)
 	if err != nil || id < 1 {
 		http.NotFound(w, r)
@@ -122,7 +124,7 @@ func (res Resource) Download(w http.ResponseWriter, r *http.Request) {
 
 	photo, err := res.Repository.GetPhotoById(r.Context(), id)
 	if err != nil {
-		if errors.Is(err, model.ErrNoRecord) {
+		if errors.Is(err, ErrNoRecord) {
 			http.NotFound(w, r)
 			return
 		}

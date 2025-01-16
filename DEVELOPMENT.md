@@ -7,5 +7,13 @@ Die Anwendung benötigt einen [Secure context](https://developer.mozilla.org/en-
 Um einen Browser auf dem Entwicklungs-Client verwenden zu können, verwende ich Port Forwarding über einen SSH Tunnel. Das folgende Beispiel zeigt, wie ich einen Tunnel zum Entwicklungsserver *development.local* herstelle und den Port *9080* an den Entwicklungsclient weiterleite. Der Port ist auf dem Entwicklungsclient dann als Port *8080* verfügbar. Die Anwendung kann im Browser mit der URL *http://localhost:8080* erreicht werden.
 
 ```bash
-ssh -L 8080:localhost:9080 development.local
+ssh -L 8080:localhost:9443 development.local
+```
+
+## Test
+
+Um die Tests auszuführen musst du das Tag *fts5* setzen. Dies wird von der Volltextsuche der SQLite Datenbank benötigt.
+
+```bash
+go test --tags fts5 ./...
 ```

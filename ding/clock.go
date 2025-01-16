@@ -1,4 +1,4 @@
-package model
+package ding
 
 import "time"
 

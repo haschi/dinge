@@ -1,10 +1,12 @@
-package model
+package photo_test
 
 import (
 	"image"
 	_ "image/jpeg"
 	"reflect"
 	"testing"
+
+	"github.com/haschi/dinge/photo"
 )
 
 func TestResize(t *testing.T) {
@@ -20,7 +22,7 @@ func TestResize(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if got := Resize(tt.args.src); !reflect.DeepEqual(got, tt.want) {
+			if got := photo.Resize(tt.args.src); !reflect.DeepEqual(got, tt.want) {
 				t.Errorf("Resize() = %v, want %v", got, tt.want)
 			}
 		})
@@ -54,7 +56,7 @@ func TestCrop(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			zuschnitt := Crop(tt.img)
+			zuschnitt := photo.Crop(tt.img)
 			if !tt.want.Eq(zuschnitt.Bounds()) {
 				t.Errorf("want zuschnitt.Bounds().Eq(tt.want)), want %v.Eq(%v)", zuschnitt.Bounds(), tt.want)
 			}

@@ -1,27 +1,38 @@
-package main
+package ding
 
 import (
 	"database/sql"
 	"errors"
+	"fmt"
 	"io/fs"
 	"net/http"
 	"strconv"
 
-	"github.com/haschi/dinge/dto"
-	"github.com/haschi/dinge/model"
 	"github.com/haschi/dinge/validation"
 	"github.com/haschi/dinge/webx"
 )
 
-type DingeResource struct {
-	Repository *model.Repository
+type Module struct {
+	Repository *Repository
 	Templates  fs.FS
+	Photos     webx.Module
+}
+
+func (m *Module) Mount(mux *http.ServeMux, prefix string, middleware ...webx.Middleware) {
+	mux.Handle(fmt.Sprintf("GET %v/", prefix), webx.CombineFunc(m.Index, middleware...))
+	mux.Handle(fmt.Sprintf("GET %v/new", prefix), webx.CombineFunc(m.NewForm, middleware...))
+	mux.Handle(fmt.Sprintf("POST %v/", prefix), webx.CombineFunc(m.Create, middleware...))
+	mux.Handle(fmt.Sprintf("GET %v/{id}", prefix), webx.CombineFunc(m.Show, middleware...))
+	mux.Handle(fmt.Sprintf("GET %v/{id}/edit", prefix), webx.CombineFunc(m.Edit, middleware...))
+	mux.Handle(fmt.Sprintf("POST %v/{id}", prefix), webx.CombineFunc(m.Update, middleware...))
+	mux.Handle(fmt.Sprintf("GET %v/delete", prefix), webx.CombineFunc(m.DestroyForm, middleware...))
+	mux.Handle(fmt.Sprintf("POST %v/delete", prefix), webx.CombineFunc(m.Destroy, middleware...))
 }
 
 // Zeigt eine Liste aller Dinge
-func (a DingeResource) Index(w http.ResponseWriter, r *http.Request) {
+func (m Module) Index(w http.ResponseWriter, r *http.Request) {
 
-	content := webx.TemplateData[dto.IndexFormData]{}
+	content := webx.TemplateData[IndexFormData]{}
 
 	form := validation.NewForm(r)
 	defer form.Close()
@@ -33,7 +44,7 @@ func (a DingeResource) Index(w http.ResponseWriter, r *http.Request) {
 		validation.String("s", &content.FormValues.S, sortOptions),
 	)
 
-	dinge, err := a.Repository.Search(r.Context(), 12, content.FormValues.Q, content.FormValues.S)
+	dinge, err := m.Repository.Search(r.Context(), 12, content.FormValues.Q, content.FormValues.S)
 	if err != nil {
 		webx.ServerError(w, err)
 		return
@@ -42,39 +53,39 @@ func (a DingeResource) Index(w http.ResponseWriter, r *http.Request) {
 	content.FormValues.Result = dinge
 
 	// TODO: Validierungsfehler in index.tmpl anzeigen
-	response := webx.HtmlResponse[dto.IndexFormData]{
+	response := webx.HtmlResponse[IndexFormData]{
 		TemplateName: "index",
 		Data:         content,
 		StatusCode:   http.StatusOK,
 	}
 
-	if err := response.Render(w, a.Templates); err != nil {
+	if err := response.Render(w, m.Templates); err != nil {
 		webx.ServerError(w, err)
 	}
 }
 
-// Liefert eine HTML Form zum Erzeugen eines neuen Dings.
-func (a DingeResource) NewForm(w http.ResponseWriter, r *http.Request) {
+// Liefert eine HTML Form zum Einlagern eines neuen Dings.
+func (m Module) NewForm(w http.ResponseWriter, r *http.Request) {
 
-	history, err := a.Repository.GetAllEvents(r.Context(), 12)
+	history, err := m.Repository.GetAllEvents(r.Context(), 12)
 	if err != nil {
 		webx.ServerError(w, err)
 		return
 	}
 
-	data := dto.NewScannerFormData("", 1, history)
-	response := webx.HtmlResponse[dto.ScannerFormData]{
+	data := NewScannerFormData("", 1, history)
+	response := webx.HtmlResponse[ScannerFormData]{
 		TemplateName: "new",
 		Data:         data,
 		StatusCode:   http.StatusOK,
 	}
 
-	if err := response.Render(w, a.Templates); err != nil {
+	if err := response.Render(w, m.Templates); err != nil {
 		webx.ServerError(w, err)
 	}
 }
 
-// Erzeugt ein neues Ding.
+// Lagert Dinge ein.
 //
 // Ziel der Form von NewForm.
 //
@@ -86,12 +97,12 @@ func (a DingeResource) NewForm(w http.ResponseWriter, r *http.Request) {
 // werden kann und weitere Dinge hinzugefügt werden können. Wenn es sich um ein
 // neues Ding handelt, wird nach /:id/edit weitergeleitet, um weitere Daten über
 // das Ding anzufordern.
-func (a DingeResource) Create(w http.ResponseWriter, r *http.Request) {
+func (m Module) Create(w http.ResponseWriter, r *http.Request) {
 
 	form := validation.NewForm(r)
 	defer form.Close()
 
-	data := dto.NewScannerFormData("", 0, nil)
+	data := NewScannerFormData("", 0, nil)
 	data.ValidationErrors = form.ValidationErrors
 
 	err := form.Scan(
@@ -107,13 +118,13 @@ func (a DingeResource) Create(w http.ResponseWriter, r *http.Request) {
 	if !form.IsValid() {
 		// "fehler in den übermittelten Daten"
 
-		response := webx.HtmlResponse[dto.ScannerFormData]{
+		response := webx.HtmlResponse[ScannerFormData]{
 			TemplateName: "new",
 			Data:         data,
 			StatusCode:   http.StatusUnprocessableEntity,
 		}
 
-		if err := response.Render(w, a.Templates); err != nil {
+		if err := response.Render(w, m.Templates); err != nil {
 			webx.ServerError(w, err)
 			return
 		}
@@ -122,7 +133,7 @@ func (a DingeResource) Create(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// TODO: data.FormValues übergeben.
-	result, err := a.Repository.Insert(r.Context(), data.FormValues.Code, data.FormValues.Anzahl)
+	result, err := m.Repository.Insert(r.Context(), data.FormValues.Code, data.FormValues.Anzahl)
 	if err != nil {
 		webx.ServerError(w, err)
 		return
@@ -137,7 +148,7 @@ func (a DingeResource) Create(w http.ResponseWriter, r *http.Request) {
 }
 
 // Zeigt ein spezifisches Ding an
-func (a DingeResource) Show(w http.ResponseWriter, r *http.Request) {
+func (m Module) Show(w http.ResponseWriter, r *http.Request) {
 
 	id, err := strconv.ParseInt(r.PathValue("id"), 10, 64)
 	if err != nil || id < 1 {
@@ -145,7 +156,7 @@ func (a DingeResource) Show(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	ding, err := a.Repository.GetById(r.Context(), id)
+	ding, err := m.Repository.GetById(r.Context(), id)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			http.NotFound(w, r)
@@ -156,39 +167,39 @@ func (a DingeResource) Show(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	history, err := a.Repository.ProductHistory(r.Context(), id, 10)
+	history, err := m.Repository.ProductHistory(r.Context(), id, 10)
 	if err != nil {
 		webx.ServerError(w, err)
 		return
 	}
 
-	data := webx.TemplateData[dto.ShowResponseData]{
-		FormValues: dto.ShowResponseData{
+	data := webx.TemplateData[ShowResponseData]{
+		FormValues: ShowResponseData{
 			Ding:    ding,
 			History: history,
 		},
 	}
 
-	response := webx.HtmlResponse[dto.ShowResponseData]{
+	response := webx.HtmlResponse[ShowResponseData]{
 		TemplateName: "ding",
 		Data:         data,
 		StatusCode:   http.StatusOK,
 	}
 
-	if err := response.Render(w, a.Templates); err != nil {
+	if err := response.Render(w, m.Templates); err != nil {
 		webx.ServerError(w, err)
 	}
 }
 
 // Edit zeigt eine Form zum Bearbeiten eines spezifischen Dings
-func (a DingeResource) Edit(w http.ResponseWriter, r *http.Request) {
+func (m Module) Edit(w http.ResponseWriter, r *http.Request) {
 	id, err := strconv.ParseInt(r.PathValue("id"), 10, 64)
 	if err != nil || id < 1 {
 		http.NotFound(w, r)
 		return
 	}
 
-	ding, err := a.Repository.GetById(r.Context(), id)
+	ding, err := m.Repository.GetById(r.Context(), id)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			http.NotFound(w, r)
@@ -199,22 +210,23 @@ func (a DingeResource) Edit(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	data := webx.TemplateData[model.Ding]{
+	data := webx.TemplateData[Ding]{
 		FormValues: ding,
 	}
 
-	response := webx.HtmlResponse[model.Ding]{
+	response := webx.HtmlResponse[Ding]{
 		TemplateName: "edit",
 		Data:         data,
 		StatusCode:   http.StatusOK,
 	}
 
-	if err := response.Render(w, a.Templates); err != nil {
+	if err := response.Render(w, m.Templates); err != nil {
 		webx.ServerError(w, err)
 	}
 }
 
-func (a DingeResource) Update(w http.ResponseWriter, r *http.Request) {
+// Bearbeitet ein Ding
+func (m Module) Update(w http.ResponseWriter, r *http.Request) {
 
 	id, err := strconv.ParseInt(r.PathValue("id"), 10, 64)
 	if err != nil || id < 1 {
@@ -239,26 +251,26 @@ func (a DingeResource) Update(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if !form.IsValid() {
-		// a.ServerError(w, r, fmt.Errorf("Validierungsfehler"))
-		ding, err := a.Repository.GetById(r.Context(), id)
+		// m.ServerError(w, r, fmt.Errorf("Validierungsfehler"))
+		ding, err := m.Repository.GetById(r.Context(), id)
 		if err != nil {
 			// TODO: Fehler differenzieren.
 			http.NotFound(w, r)
 			return
 		}
 
-		data := webx.TemplateData[model.Ding]{
+		data := webx.TemplateData[Ding]{
 			FormValues:       ding,
 			ValidationErrors: form.ValidationErrors,
 		}
 
-		response := webx.HtmlResponse[model.Ding]{
+		response := webx.HtmlResponse[Ding]{
 			TemplateName: "edit",
 			Data:         data,
 			StatusCode:   http.StatusUnprocessableEntity,
 		}
 
-		if err := response.Render(w, a.Templates); err != nil {
+		if err := response.Render(w, m.Templates); err != nil {
 			webx.ServerError(w, err)
 			return
 		}
@@ -266,9 +278,9 @@ func (a DingeResource) Update(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err = a.Repository.DingAktualisieren(r.Context(), id, name, beschreibung)
+	err = m.Repository.DingAktualisieren(r.Context(), id, name, beschreibung)
 	if err != nil {
-		if errors.Is(err, model.ErrNoRecord) {
+		if errors.Is(err, ErrNoRecord) {
 			http.NotFound(w, r)
 			return
 		}
@@ -277,10 +289,11 @@ func (a DingeResource) Update(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Im Erfolgsfall zur Datailansicht weiterleiten
+	// TODO: Der Präfix darf nicht hart codiert werden, damit das Modul nicht an einen konkreten Pfad gebunden ist und verschoben werden kann.
 	webx.SeeOther("/dinge/%v", id).ServeHTTP(w, r)
 }
 
-func (a DingeResource) Destroy(w http.ResponseWriter, r *http.Request) {
+func (m Module) Destroy(w http.ResponseWriter, r *http.Request) {
 
 	form := validation.NewForm(r)
 
@@ -296,14 +309,14 @@ func (a DingeResource) Destroy(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	var ding *model.Ding
+	var ding *Ding
 	if form.IsValid() {
-		ding, err = a.Repository.MengeAktualisieren(r.Context(), code, -anzahl)
+		ding, err = m.Repository.MengeAktualisieren(r.Context(), code, -anzahl)
 		if err != nil {
 			switch {
-			case errors.Is(err, model.ErrNoRecord):
+			case errors.Is(err, ErrNoRecord):
 				form.ValidationErrors[Code] = "Unbekannter Produktcode"
-			case errors.Is(err, model.ErrInvalidParameter):
+			case errors.Is(err, ErrInvalidParameter):
 				form.ValidationErrors[Anzahl] = "Anzahl zu groß"
 			default:
 				webx.ServerError(w, err)
@@ -314,21 +327,21 @@ func (a DingeResource) Destroy(w http.ResponseWriter, r *http.Request) {
 
 	if !form.IsValid() {
 
-		history, err := a.Repository.GetAllEvents(r.Context(), 12)
+		history, err := m.Repository.GetAllEvents(r.Context(), 12)
 		if err != nil {
 			webx.ServerError(w, err)
 			return
 		}
-		data := dto.NewDestroyFormData(code, anzahl, history)
+		data := NewDestroyFormData(code, anzahl, history)
 		data.ValidationErrors = form.ValidationErrors
-		response := webx.HtmlResponse[dto.ScannerFormData]{
+		response := webx.HtmlResponse[ScannerFormData]{
 
 			TemplateName: "entnehmen",
 			Data:         data,
 			StatusCode:   http.StatusUnprocessableEntity,
 		}
 
-		if err := response.Render(w, a.Templates); err != nil {
+		if err := response.Render(w, m.Templates); err != nil {
 			webx.ServerError(w, err)
 			return
 		}
@@ -340,22 +353,22 @@ func (a DingeResource) Destroy(w http.ResponseWriter, r *http.Request) {
 }
 
 // Zeigt eine Form an, um Dinge zu entnehmen.
-func (a DingeResource) DestroyForm(w http.ResponseWriter, r *http.Request) {
-	history, err := a.Repository.GetAllEvents(r.Context(), 12)
+func (m Module) DestroyForm(w http.ResponseWriter, r *http.Request) {
+	history, err := m.Repository.GetAllEvents(r.Context(), 12)
 	if err != nil {
 		webx.ServerError(w, err)
 		return
 	}
 
-	data := dto.NewDestroyFormData("", 1, history)
+	data := NewDestroyFormData("", 1, history)
 
-	response := webx.HtmlResponse[dto.ScannerFormData]{
+	response := webx.HtmlResponse[ScannerFormData]{
 		TemplateName: "entnehmen",
 		Data:         data,
 		StatusCode:   http.StatusOK,
 	}
 
-	if err := response.Render(w, a.Templates); err != nil {
+	if err := response.Render(w, m.Templates); err != nil {
 		webx.ServerError(w, err)
 	}
 }

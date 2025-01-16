@@ -37,10 +37,12 @@ import (
 	"sync"
 	"time"
 
-	"github.com/haschi/dinge/model"
+	"github.com/haschi/dinge/about"
+	"github.com/haschi/dinge/ding"
 	"github.com/haschi/dinge/photo"
 	"github.com/haschi/dinge/sqlx"
 	"github.com/haschi/dinge/system"
+	"github.com/haschi/dinge/templates"
 	_ "github.com/mattn/go-sqlite3"
 )
 
@@ -114,26 +116,42 @@ func run(ctx context.Context, stdout io.Writer, _ []string, environment func(str
 		return err
 	}
 
-	clock := system.RealClock{}
-	repository, err := model.NewRepository(db, clock)
+	tm, err := sqlx.NewSqlTransactionManager(db)
 	if err != nil {
 		return err
 	}
 
-	dinge := DingeResource{
-		Repository: repository,
-		Templates:  TemplatesFileSystem,
+	clock := system.RealClock{}
+	photoRepository := &photo.Repository{
+		Clock: clock,
+		Tm:    tm,
 	}
 
-	photos := photo.Resource{
-		Repository: repository,
-		Templates:  TemplatesFileSystem,
+	photos := &photo.Module{
+		Repository: photoRepository,
+		Templates:  templates.TemplatesFileSystem,
 	}
+
+	dingRepository := &ding.Repository{
+		Clock: clock,
+		Tm:    tm,
+	}
+
+	dinge := &ding.Module{
+		Repository: dingRepository,
+		Templates:  templates.TemplatesFileSystem,
+		Photos:     photos,
+	}
+
+	staticHandler := newStaticHandler(logger)
+	aboutResource := about.Module{Templates: templates.TemplatesFileSystem}
+	routes := routes(logger, staticHandler, &aboutResource, dinge, photos)
+	routes.HandleFunc("GET /photos/{id}", photos.Download)
 
 	server := &http.Server{
 		Addr:     httpAddress,
 		ErrorLog: slog.NewLogLogger(logger.Handler(), slog.LevelInfo),
-		Handler:  routes(logger, dinge, photos),
+		Handler:  routes,
 	}
 
 	var wg sync.WaitGroup
