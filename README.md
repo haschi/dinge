@@ -1,3 +1,5 @@
+[workflow](https://github.com/haschi/dinge/actions/workflows/go.yml/badge.svg)
+
 # dinge
 
 Dinge verwalten
