@@ -1,4 +1,4 @@
-package model_test
+package ding_test
 
 import (
 	"context"
@@ -7,7 +7,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/haschi/dinge/model"
+	"github.com/haschi/dinge/ding"
 	"github.com/haschi/dinge/sqlx"
 	"github.com/haschi/dinge/system"
 	"github.com/haschi/dinge/testx"
@@ -62,54 +62,52 @@ func TestRepository_LogEvent(t *testing.T) {
 			precondition: testx.SetupFunc(theFixture).AndThen(closeDatabase),
 			args:         validEvent,
 			maxTxOps:     -1,
-			wantErr:      model.ErrDataAccess,
+			wantErr:      ding.ErrDataAccess,
 		},
 		{
 			name:         "context closed before transaction",
 			precondition: theFixture,
 			args:         validEvent,
 			maxTxOps:     0,
-			wantErr:      model.ErrDataAccess,
+			wantErr:      ding.ErrDataAccess,
 		},
 		{
 			name:         "context closed during transaction",
 			precondition: theFixture,
 			args:         validEvent,
 			maxTxOps:     1,
-			wantErr:      model.ErrDataAccess,
+			wantErr:      ding.ErrDataAccess,
 		},
 		{
 			name:         "context closed before commit",
 			precondition: theFixture,
 			args:         validEvent,
 			maxTxOps:     2,
-			wantErr:      model.ErrDataAccess,
+			wantErr:      ding.ErrDataAccess,
 		},
 		{
 			name:         "foreign key violation ding",
 			precondition: theFixture,
 			args:         invalidDing,
 			maxTxOps:     -1,
-			wantErr:      model.ErrInvalidParameter,
+			wantErr:      ding.ErrInvalidParameter,
 		},
 		{
 			name:         "foreign key violation operation",
 			precondition: theFixture,
 			args:         invalidOperation,
 			maxTxOps:     -1,
-			wantErr:      model.ErrInvalidParameter,
+			wantErr:      ding.ErrInvalidParameter,
 		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			withDatabase(t, tt.precondition, func(t *testing.T, db *sql.DB) {
-				repository, err := model.NewRepository(db, system.RealClock{})
+				tm, err := NewCancableTransactionManager(db, tt.maxTxOps)
 				if err != nil {
 					t.Fatal(err)
 				}
-
-				repository.Tm = must(NewCancableTransactionManager(db, tt.maxTxOps))
-
+				repository := ding.Repository{Clock: system.RealClock{}, Tm: tm}
 				if err := repository.LogEvent(tt.args.ctx, tt.args.operation, tt.args.count, tt.args.dingId); !errors.Is(err, tt.wantErr) {
 					t.Errorf("Repository.InsertEvent() error = %v, want %v", err, tt.wantErr)
 				}
@@ -120,11 +118,11 @@ func TestRepository_LogEvent(t *testing.T) {
 
 func TestRepository_GetHistory(t *testing.T) {
 
-	fullHistory := []model.Event{
+	fullHistory := []ding.Event{
 		{
 			Operation: 1,
 			Anzahl:    3,
-			DingRef: model.DingRef{
+			DingRef: ding.DingRef{
 				Id:   3,
 				Name: "Tomate",
 				Code: "333",
@@ -133,7 +131,7 @@ func TestRepository_GetHistory(t *testing.T) {
 		{
 			Operation: 1,
 			Anzahl:    2,
-			DingRef: model.DingRef{
+			DingRef: ding.DingRef{
 				Id:   2,
 				Name: "Gurke",
 				Code: "222",
@@ -143,7 +141,7 @@ func TestRepository_GetHistory(t *testing.T) {
 
 			Operation: 1,
 			Anzahl:    1,
-			DingRef: model.DingRef{
+			DingRef: ding.DingRef{
 				Id:   1,
 				Name: "Paprika",
 				Code: "111",
@@ -157,7 +155,7 @@ func TestRepository_GetHistory(t *testing.T) {
 	tests := []struct {
 		name    string
 		args    args
-		want    []model.Event
+		want    []ding.Event
 		wantErr bool
 	}{
 		{
@@ -183,19 +181,71 @@ func TestRepository_GetHistory(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			withDatabase(t, theFixture, func(t *testing.T, db *sql.DB) {
-				repository, err := model.NewRepository(db, system.RealClock{})
-				if err != nil {
-					t.Fatal(err)
-				}
+			withTransactionManager(t, theFixture, func(t *testing.T, tm sqlx.TransactionManager) {
+				repository := &ding.Repository{Clock: system.RealClock{}, Tm: tm}
 
 				got, err := repository.GetAllEvents(context.Background(), tt.args.limit)
 				if (err != nil) != tt.wantErr {
 					t.Errorf("Repository.GetHistory() error = %v, wantErr %v", err, tt.wantErr)
 					return
 				}
-				if model.SliceEqual(got, tt.want) {
+				if ding.SliceEqual(got, tt.want) {
 					t.Errorf("Repository.GetHistory() = %v, want %v", got, tt.want)
+				}
+			})
+		})
+	}
+}
+
+func TestRepository_ProductHistory(t *testing.T) {
+	type fields struct {
+		Clock ding.Clock
+		Tm    sqlx.TransactionManager
+	}
+	type args struct {
+		ctx    context.Context
+		dingId int64
+		limit  int
+	}
+	tests := []struct {
+		name    string
+		fields  fields
+		args    args
+		want    []ding.Event
+		wantErr bool
+	}{
+		{
+			name: "Produkt 111",
+			args: args{ctx: context.Background(), dingId: 1, limit: 10},
+			want: []ding.Event{
+				{
+					DingRef: ding.DingRef{
+						Id:       1,
+						Name:     "Paprika",
+						Code:     "111",
+						Anzahl:   0, // Eigentlich 1, wird aber nicht von ProductHistory gelesen.
+						PhotoUrl: "",
+					},
+					Operation: 1,
+					Anzahl:    1,
+					Created:   must(time.Parse(time.DateTime, "2024-11-13 18:48:01")),
+				},
+			},
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			withTransactionManager(t, theFixture, func(t *testing.T, tm sqlx.TransactionManager) {
+				repo := &ding.Repository{Clock: system.RealClock{}, Tm: tm}
+				got, err := repo.ProductHistory(tt.args.ctx, tt.args.dingId, tt.args.limit)
+				if (err != nil) != tt.wantErr {
+					t.Errorf("Repository.ProductHistory() error = %v, wantErr %v", err, tt.wantErr)
+					return
+				}
+
+				if !ding.SliceEqual(got, tt.want) {
+					t.Log(tt.want, got)
+					t.Errorf("Repository.ProductHistory() = %v, want %v", got, tt.want)
 				}
 			})
 		})
@@ -274,59 +324,4 @@ func (t *CancelableTransaction) Commit() error {
 func (t *CancelableTransaction) Rollback() error {
 	defer t.cancel()
 	return t.Transaction.Rollback()
-}
-
-func TestRepository_ProductHistory(t *testing.T) {
-	type fields struct {
-		Clock model.Clock
-		Tm    sqlx.TransactionManager
-	}
-	type args struct {
-		ctx    context.Context
-		dingId int64
-		limit  int
-	}
-	tests := []struct {
-		name    string
-		fields  fields
-		args    args
-		want    []model.Event
-		wantErr bool
-	}{
-		{
-			name: "Produkt 111",
-			args: args{ctx: context.Background(), dingId: 1, limit: 10},
-			want: []model.Event{
-				{
-					DingRef: model.DingRef{
-						Id:       1,
-						Name:     "Paprika",
-						Code:     "111",
-						Anzahl:   0, // Eigentlich 1, wird aber nicht von ProductHistory gelesen.
-						PhotoUrl: "",
-					},
-					Operation: 1,
-					Anzahl:    1,
-					Created:   must(time.Parse(time.DateTime, "2024-11-13 18:48:01")),
-				},
-			},
-		},
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			withDatabase(t, theFixture, func(t *testing.T, db *sql.DB) {
-				repo := must(model.NewRepository(db, system.RealClock{}))
-				got, err := repo.ProductHistory(tt.args.ctx, tt.args.dingId, tt.args.limit)
-				if (err != nil) != tt.wantErr {
-					t.Errorf("Repository.ProductHistory() error = %v, wantErr %v", err, tt.wantErr)
-					return
-				}
-
-				if !model.SliceEqual(got, tt.want) {
-					t.Log(tt.want, got)
-					t.Errorf("Repository.ProductHistory() = %v, want %v", got, tt.want)
-				}
-			})
-		})
-	}
 }

@@ -29,7 +29,11 @@
           <a href="/dinge/delete">Entnehmen</a>
         </li>
         <li>
-          <a href="/about" rel="license">About</a>
+          <a href="#">Über</a>
+          <ul>
+            <li><a href="/about/license" rel="license">License</a></li>
+            <li><a href="/about/usage">Usage</a></li>
+          </ul>
         </li>
       </ul>
     </nav>
@@ -40,7 +44,7 @@
   </main>
 
   {{range .Scripts}}
-  <script src="{{.}}" type="module"></script>
+  {{/*<script src="{{.}}" type="module"></script>*/}}
   {{end}}
 </body>
 

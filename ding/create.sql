@@ -9,12 +9,6 @@ CREATE TABLE dinge(
 CREATE INDEX idx_dinge_aktualisiert ON dinge(aktualisiert);
 CREATE UNIQUE INDEX idx_dinge_code ON dinge(code);
 CREATE VIRTUAL TABLE fulltext USING fts5(code, name, beschreibung);
-CREATE TABLE photos(
-  photo BLOB NOT NULL,
-  mime_type VARCHAR(100) NOT NULL,
-  dinge_id INTEGER NOT NULL REFERENCES dinge
-);
-CREATE UNIQUE INDEX idx_photos_dinge_id ON photos(dinge_id);
 CREATE TABLE history(
   operation INTEGER NOT NULL REFERENCES operation,
   count INTEGER NOT NULL,

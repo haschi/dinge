@@ -1,34 +1,21 @@
-package main
+package ding_test
 
 import (
-	"bytes"
 	"database/sql"
 	"fmt"
-	"log/slog"
 	"net/http"
-	"net/http/httptest"
 	"net/url"
 	"testing"
 
-	"github.com/haschi/dinge/model"
+	"github.com/haschi/dinge/ding"
+	"github.com/haschi/dinge/sqlx"
 	"github.com/haschi/dinge/system"
+	"github.com/haschi/dinge/templates"
+	"github.com/haschi/dinge/webx"
 	"golang.org/x/net/html"
 )
 
-func TestResource_GetAbout(t *testing.T) {
-
-	testserver := newTestServer(t, newDingeResource)
-	defer testserver.Close()
-
-	response := testserver.Get("/about")
-	defer response.Body.Close()
-
-	if response.StatusCode != http.StatusOK {
-		t.Errorf("GET /about want 200; got %v", response.StatusCode)
-	}
-}
-
-func TestResource_GetDinge(t *testing.T) {
+func TestModule_GetDinge(t *testing.T) {
 
 	type args struct {
 		url string
@@ -49,17 +36,18 @@ func TestResource_GetDinge(t *testing.T) {
 	testcases := []testcase{
 		{
 			name: "Ohne Parameter",
-			args: args{url: "/dinge"},
+			args: args{url: "/dinge/"},
 			want: want{q: "", s: "", status: http.StatusOK},
 		},
 		{
 			name: "Mit Parameter",
-			args: args{url: "/dinge?q=paprika&s=alpha"},
+			args: args{url: "/dinge/?q=paprika&s=alpha"},
 			want: want{q: "paprika", s: "alpha", status: http.StatusOK},
 		},
 	}
 
-	testserver := newTestServer(t, newDingeResource)
+	config := newTestConfig()
+	testserver := webx.NewTestserver(t, "/dinge", config)
 	defer testserver.Close()
 
 	for _, testcase := range testcases {
@@ -78,19 +66,19 @@ func TestResource_GetDinge(t *testing.T) {
 				t.Fatal(err)
 			}
 
-			q := getById(doc, "input-suche")
+			q := webx.GetElementById(doc, "input-suche")
 			if q == nil {
 				t.Error("HTML element not found")
 				return
 			}
 
-			value := getAttributeValue(q, "value")
+			value := webx.GetAttributeValue(q, "value")
 			if value != testcase.want.q {
 				t.Errorf("<input id='%v'> value = '%v'; want %v", "q", value, testcase.want.q)
 			}
 
-			s := getById(doc, "input-sort")
-			selected := getSelectedOption(s)
+			s := webx.GetElementById(doc, "input-sort")
+			selected := webx.GetSelectedOption(s)
 			if selected != testcase.want.s {
 				t.Errorf("<select id='%v'> selected option value = '%v'; want %v", "s", selected, testcase.want.s)
 			}
@@ -98,60 +86,10 @@ func TestResource_GetDinge(t *testing.T) {
 	}
 }
 
-func getSelectedOption(n *html.Node) string {
-	for descendant := range n.Descendants() {
-		if descendant.Type == html.ElementNode && descendant.Data == "option" {
-			if hasAttribute(descendant, "selected") {
-				return getAttributeValue(descendant, "value")
-			}
-		}
-	}
-	return ""
-}
+func TestModule_GetDingeNew(t *testing.T) {
+	config := newTestConfig()
+	testserver := webx.NewTestserver(t, "/dinge", config)
 
-func hasAttribute(n *html.Node, key string) bool {
-	for _, attr := range n.Attr {
-		if attr.Key == key {
-			return true
-		}
-	}
-
-	return false
-}
-
-func getAttributeValue(node *html.Node, key string) string {
-	for _, attr := range node.Attr {
-		if attr.Key == key {
-			return attr.Val
-		}
-	}
-
-	return ""
-}
-
-func getById(node *html.Node, id string) *html.Node {
-
-	if getAttributeValue(node, "id") == id {
-		return node
-	}
-
-	next := node.NextSibling
-	for next != nil {
-		if result := getById(next, id); result != nil {
-			return result
-		}
-		next = next.NextSibling
-	}
-
-	for child := range node.Descendants() {
-		return getById(child, id)
-	}
-
-	return nil
-}
-
-func TestResource_GetDingeNew(t *testing.T) {
-	testserver := newTestServer(t, newDingeResource)
 	defer testserver.Close()
 
 	response := testserver.Get("/dinge/new")
@@ -162,9 +100,11 @@ func TestResource_GetDingeNew(t *testing.T) {
 	}
 }
 
-func TestResource_GetDingeId(t *testing.T) {
+func TestModule_GetDingeId(t *testing.T) {
 
-	testserver := newTestServer(t, newDingeResource)
+	config := newTestConfig()
+	testserver := webx.NewTestserver(t, "/dinge", config)
+
 	defer testserver.Close()
 
 	tests := []struct {
@@ -173,12 +113,12 @@ func TestResource_GetDingeId(t *testing.T) {
 		want int
 	}{
 		{
-			name: "GET existing id",
+			name: "Show known thing",
 			arg:  1,
 			want: http.StatusOK,
 		},
 		{
-			name: "GET unknown id",
+			name: "Show unknown thing",
 			arg:  42,
 			want: http.StatusNotFound,
 		},
@@ -197,8 +137,9 @@ func TestResource_GetDingeId(t *testing.T) {
 	}
 }
 
-func TestResource_GetDingeIdEdit(t *testing.T) {
-	testserver := newTestServer(t, newDingeResource)
+func TestModule_GetDingeIdEdit(t *testing.T) {
+	config := newTestConfig()
+	testserver := webx.NewTestserver(t, "/dinge", config)
 	defer testserver.Close()
 
 	tests := []struct {
@@ -207,12 +148,12 @@ func TestResource_GetDingeIdEdit(t *testing.T) {
 		want int
 	}{
 		{
-			name: "GET existing id",
+			name: "Edit an existing thing",
 			arg:  1,
 			want: http.StatusOK,
 		},
 		{
-			name: "GET unknown id",
+			name: "Edit unknown thing",
 			arg:  42,
 			want: http.StatusNotFound,
 		},
@@ -231,9 +172,11 @@ func TestResource_GetDingeIdEdit(t *testing.T) {
 	}
 }
 
-func TestResource_PostDinge(t *testing.T) {
+func TestModule_PostDinge(t *testing.T) {
 
-	testserver := newTestServer(t, newDingeResource)
+	config := newTestConfig()
+	testserver := webx.NewTestserver(t, "/dinge", config)
+
 	defer testserver.Close()
 
 	type fixture struct {
@@ -245,28 +188,28 @@ func TestResource_PostDinge(t *testing.T) {
 
 	tests := []fixture{
 		{
-			name: "Neues Ding",
+			name: "Add new things",
 			data: url.Values{
-				Code:   []string{"42"},
-				Anzahl: []string{"7"},
+				ding.Code:   []string{"42"},
+				ding.Anzahl: []string{"7"},
 			},
 			wantStatusCode: http.StatusSeeOther,
 			wantLocation:   "/dinge/4/edit",
 		},
 		{
-			name: "Ding aktualisieren",
+			name: "Add known things",
 			data: url.Values{
-				Code:   []string{"111"},
-				Anzahl: []string{"7"},
+				ding.Code:   []string{"111"},
+				ding.Anzahl: []string{"7"},
 			},
 			wantStatusCode: http.StatusSeeOther,
 			wantLocation:   "/dinge/new",
 		},
 		{
-			name: "Ungültige Daten",
+			name: "Add known things with invalid data.",
 			data: url.Values{
-				Code:   []string{"111"},
-				Anzahl: []string{"invalid number"},
+				ding.Code:   []string{"111"},
+				ding.Anzahl: []string{"invalid number"},
 			},
 			wantStatusCode: http.StatusUnprocessableEntity,
 		},
@@ -275,7 +218,7 @@ func TestResource_PostDinge(t *testing.T) {
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
 
-			resp := testserver.Post("/dinge", test.data)
+			resp := testserver.Post("/dinge/", test.data)
 			if resp.StatusCode != test.wantStatusCode {
 				t.Errorf("POST /dinge = %v; want %v", resp.StatusCode, test.wantStatusCode)
 			}
@@ -288,8 +231,9 @@ func TestResource_PostDinge(t *testing.T) {
 	}
 }
 
-func TestResource_PostDingeId(t *testing.T) {
-	testserver := newTestServer(t, newDingeResource)
+func TestModule_PostDingeId(t *testing.T) {
+	config := newTestConfig()
+	testserver := webx.NewTestserver(t, "/dinge", config)
 	defer testserver.Close()
 
 	type fixture struct {
@@ -302,34 +246,34 @@ func TestResource_PostDingeId(t *testing.T) {
 
 	tests := []fixture{
 		{
-			name: "Aktualisierunge Ding",
+			name: "Rename a known thing.",
 			path: "/dinge/1",
 			data: url.Values{
-				Name: []string{"Salat"},
+				ding.Name: []string{"Salat"},
 			},
 
 			wantStatusCode: http.StatusSeeOther,
 			wantLocation:   "/dinge/1",
 		},
 		{
-			name:           "Missgebildeter Identitätsbezeichner",
+			name:           "Rename thing with malformed identity identifier.",
 			path:           "/dinge/malformed",
 			data:           url.Values{},
 			wantStatusCode: http.StatusNotFound,
 		},
 		{
-			name: "Nicht vorhandenes Ding aktualisieren",
+			name: "Rename unknown thing",
 			path: "/dinge/42",
 			data: url.Values{
-				Name: []string{"Kenn ich nicht"},
+				ding.Name: []string{"Kenn ich nicht"},
 			},
 			wantStatusCode: http.StatusNotFound,
 		},
 		{
-			name: "Ungültige Daten",
+			name: "Renaming with invalid names for a thing",
 			path: "/dinge/1",
 			data: url.Values{
-				Name: []string{""},
+				ding.Name: []string{""},
 			},
 			wantStatusCode: http.StatusUnprocessableEntity,
 		},
@@ -352,8 +296,9 @@ func TestResource_PostDingeId(t *testing.T) {
 	}
 }
 
-func TestResource_PostDingeDelete(t *testing.T) {
-	testserver := newTestServer(t, newDingeResource)
+func TestModule_PostDingeDelete(t *testing.T) {
+	config := newTestConfig()
+	testserver := webx.NewTestserver(t, "/dinge", config)
 	defer testserver.Close()
 
 	type fixture struct {
@@ -365,28 +310,28 @@ func TestResource_PostDingeDelete(t *testing.T) {
 
 	tests := []fixture{
 		{
-			name: "Entnehme ein Paprika",
+			name: "Remove a familiar thing",
 			data: url.Values{
-				Code:   []string{"111"},
-				Anzahl: []string{"1"},
+				ding.Code:   []string{"111"},
+				ding.Anzahl: []string{"1"},
 			},
 
 			wantStatusCode: http.StatusSeeOther,
 			wantLocation:   "/dinge/1",
 		},
 		{
-			name: "Ungültiger Code",
+			name: "Remove thing with malformed identity identifier",
 			data: url.Values{
-				Code:   []string{"malfomed"},
-				Anzahl: []string{"1"},
+				ding.Code:   []string{"malfomed"},
+				ding.Anzahl: []string{"1"},
 			},
 			wantStatusCode: http.StatusUnprocessableEntity,
 		},
 		{
-			name: "Entnehme drei Paprika",
+			name: "Remove several known things",
 			data: url.Values{
-				Code:   []string{"111"},
-				Anzahl: []string{"3"},
+				ding.Code:   []string{"111"},
+				ding.Anzahl: []string{"3"},
 			},
 			wantStatusCode: http.StatusUnprocessableEntity,
 		},
@@ -409,8 +354,9 @@ func TestResource_PostDingeDelete(t *testing.T) {
 		})
 	}
 }
-func TestResource_GetDingeDelete(t *testing.T) {
-	testserver := newTestServer(t, newDingeResource)
+func TestModule_GetDingeDelete(t *testing.T) {
+	config := newTestConfig()
+	testserver := webx.NewTestserver(t, "/dinge", config)
 	defer testserver.Close()
 
 	path := "/dinge/delete"
@@ -423,93 +369,37 @@ func TestResource_GetDingeDelete(t *testing.T) {
 
 }
 
-const dataSource = "file::memory:?cache=shared"
-
-type testserver struct {
-	t      *testing.T
-	db     *sql.DB
-	server *httptest.Server
-	logger *slog.Logger
-}
-
-func newTestServer(t *testing.T, fn func(*slog.Logger, *sql.DB) (http.Handler, error)) *testserver {
-	t.Helper()
-
-	db, err := sql.Open("sqlite3", dataSource)
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	scripts := []string{model.CreateScript, model.FixtureScript}
-	if err := model.ExecuteScripts(db, scripts...); err != nil {
-		t.Fatal(err)
-	}
-
-	var buffer bytes.Buffer
-	var loglevel = new(slog.LevelVar)
-	loghandler := slog.NewJSONHandler(&buffer, &slog.HandlerOptions{Level: loglevel})
-	logger := slog.New(loghandler)
-
-	resource, err := fn(logger, db)
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	testserver := &testserver{
-		db:     db,
-		server: httptest.NewTLSServer(resource),
-		logger: logger,
-	}
-
-	client := testserver.server.Client()
-	client.CheckRedirect = func(req *http.Request, via []*http.Request) error {
-		return http.ErrUseLastResponse
-	}
-
-	return testserver
-}
-
-func (t *testserver) Close() {
-	if t.server != nil {
-		t.server.Close()
-	}
-
-	if t.db != nil {
-		if err := t.db.Close(); err != nil {
-			t.t.Fatal(err)
+func newDingTestModule(initFncs ...sqlx.DatabaseInitFunc) webx.ModuleConstructor {
+	return func(db *sql.DB) (webx.Module, error) {
+		for _, fn := range initFncs {
+			if err := fn(db); err != nil {
+				return nil, err
+			}
 		}
+
+		tm, err := sqlx.NewSqlTransactionManager(db)
+		if err != nil {
+			return nil, err
+		}
+
+		repository := &ding.Repository{Clock: system.RealClock{}, Tm: tm}
+
+		module := &ding.Module{
+			Repository: repository,
+			Templates:  templates.TemplatesFileSystem,
+		}
+
+		return module, nil
 	}
 }
 
-func (t *testserver) Get(path string) *http.Response {
-	client := t.server.Client()
-	resp, err := client.Get(t.server.URL + path)
-	if err != nil {
-		t.t.Fatal(err)
-	}
-	return resp
-}
-
-func (t *testserver) Post(path string, data url.Values) *http.Response {
-	url := t.server.URL + path
-	resp, err := t.server.Client().PostForm(url, data)
-	if err != nil {
-		t.t.Fatal(err)
-	}
-	defer resp.Body.Close()
-
-	return resp
-}
-
-func newDingeResource(logger *slog.Logger, db *sql.DB) (http.Handler, error) {
-	repository, err := model.NewRepository(db, system.RealClock{})
-	if err != nil {
-		return nil, err
-	}
-	resource := &DingeResource{
-		Repository: repository,
-		Templates:  TemplatesFileSystem,
+func newTestConfig() webx.TestserverConfig {
+	scripts := sqlx.Execute(ding.CreateScript, ding.FixtureScript)
+	config := webx.TestserverConfig{
+		Database:   webx.InMemoryDatabase(),
+		Module:     newDingTestModule(scripts),
+		Middleware: []webx.Middleware{},
 	}
 
-	return routes(logger, *resource), nil
+	return config
 }

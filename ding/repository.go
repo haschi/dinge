@@ -1,62 +1,18 @@
-package model
+package ding
 
 import (
-	"bytes"
 	"context"
 	"database/sql"
 	"errors"
 	"fmt"
-	"image"
-	"time"
 
 	"github.com/haschi/dinge/sqlx"
-	"github.com/mattn/go-sqlite3"
 )
-
-type Ding struct {
-	DingRef
-	Beschreibung string
-	Aktualisiert time.Time
-}
-
-// DingRef repräsentiert ein Ding in der Übersicht.
-type DingRef struct {
-	Id       int64
-	Name     string
-	Code     string
-	Anzahl   int
-	PhotoUrl string
-}
-
-func (d DingRef) Equal(other DingRef) bool {
-	return d.Id == other.Id &&
-		d.Name == other.Name &&
-		d.Code == other.Code &&
-		d.Anzahl == other.Anzahl &&
-		d.PhotoUrl == other.PhotoUrl
-}
 
 type Repository struct {
 	Clock Clock
 	Tm    sqlx.TransactionManager
 }
-
-func NewRepository(db *sql.DB, clock Clock) (*Repository, error) {
-	tm, err := sqlx.NewSqlTransactionManager(db)
-	if err != nil {
-		return nil, err
-	}
-
-	repository := &Repository{
-		Clock: clock,
-		Tm:    tm,
-	}
-
-	return repository, nil
-}
-
-var ErrNoRecord = errors.New("no record found")
-var ErrInvalidParameter = errors.New("invalid paramater")
 
 func (r Repository) GetById(ctx context.Context, id int64) (Ding, error) {
 
@@ -65,14 +21,8 @@ func (r Repository) GetById(ctx context.Context, id int64) (Ding, error) {
 	}
 
 	suchen := `
-	SELECT id, name, code, anzahl, beschreibung, aktualisiert,
-		CASE
-		  WHEN photo IS NULL THEN '/static/placeholder.svg'
-			WHEN photo IS NOT NULL THEN '/photos/' || photos.dinge_id
-			ELSE ''
-		END PhotoUrl
+	SELECT id, name, code, anzahl, beschreibung, aktualisiert, ('/photos/' || id) AS PhotoUrl
 	FROM dinge
-	LEFT JOIN photos ON photos.dinge_id = dinge.id
 	WHERE id = ?
 	`
 
@@ -95,29 +45,6 @@ func (r Repository) GetById(ctx context.Context, id int64) (Ding, error) {
 	ding.Beschreibung = beschreibung.String
 
 	return ding, tx.Commit()
-}
-
-func (r Repository) GetPhotoById(ctx context.Context, id int64) ([]byte, error) {
-
-	suchen := `SELECT photo FROM photos WHERE dinge_id = :id`
-
-	tx, err := r.Tm.BeginTx(ctx)
-	if err != nil {
-		return nil, err
-	}
-
-	defer tx.Rollback()
-
-	var photo []byte
-	row := tx.QueryRowContext(suchen, sql.Named("id", id))
-	if err := row.Scan(&photo); err != nil {
-		if errors.Is(err, sql.ErrNoRows) {
-			return nil, ErrNoRecord
-		}
-
-		return photo, err
-	}
-	return photo, tx.Commit()
 }
 
 // Todo: Wird nur von Destroy verwendet. Also Spezialisieren!!
@@ -229,55 +156,6 @@ func (r Repository) Insert(ctx context.Context, code string, anzahl int) (Insert
 	return result, tx.Commit()
 }
 
-func (r Repository) PhotoAktualisieren(ctx context.Context, id int64, image image.Image) error {
-
-	if image == nil {
-		return ErrInvalidParameter
-	}
-
-	// TODO in einen Thumbnail Service auslagern
-	zuschnitt := Crop(image)
-	thumbnail := Resize(zuschnitt)
-
-	var buffer bytes.Buffer
-	if err := EncodeImage(&buffer, thumbnail); err != nil {
-		return err
-	}
-
-	timestamp := r.Clock.Now()
-
-	statement := `
-	INSERT INTO photos(photo, mime_type, dinge_id)
-	VALUES(:photo, :mime_type, :id)
-	ON CONFLICT (dinge_id)
-	DO UPDATE SET photo = :photo, mime_type = :mime_type;
-	`
-
-	tx, err := r.Tm.BeginTx(ctx)
-	if err != nil {
-		return nil
-	}
-
-	defer tx.Rollback()
-
-	_, err = tx.ExecContext(statement,
-		sql.Named("id", id),
-		sql.Named("photo", buffer.Bytes()),
-		sql.Named("mime_type", "image/png"),
-		sql.Named("aktualisiert", timestamp))
-
-	if err != nil {
-		if e, ok := err.(sqlite3.Error); ok {
-			if e.Code == sqlite3.ErrConstraint {
-				return ErrNoRecord
-			}
-		}
-		return err
-	}
-
-	return tx.Commit()
-}
-
 func (r Repository) DingAktualisieren(ctx context.Context, id int64, name string, beschreibung string) error {
 
 	if ctx == nil {
@@ -337,13 +215,8 @@ func (r Repository) DingAktualisieren(ctx context.Context, id int64, name string
 func (r Repository) Search(ctx context.Context, limit int, query string, sort string) ([]DingRef, error) {
 
 	q := `
-		SELECT id, name, code, anzahl,
-		  CASE
-			  WHEN photo IS NULL THEN '/static/placeholder.svg'
-				ELSE '/photos/' || photos.dinge_id
-			END PhotoUrl
+		SELECT id, name, code, anzahl, ('/photos/' || id) AS PhotoUrl
 			FROM dinge
-			  LEFT JOIN photos ON photos.dinge_id = dinge.id
 			WHERE
 			  CASE
 				  WHEN :query <> ''
@@ -363,6 +236,7 @@ func (r Repository) Search(ctx context.Context, limit int, query string, sort st
 	if err != nil {
 		return []DingRef{}, err
 	}
+
 	defer tx.Rollback()
 
 	rows, err := tx.QueryContext(q,
@@ -390,6 +264,16 @@ func (r Repository) Search(ctx context.Context, limit int, query string, sort st
 
 	return dinge, tx.Commit()
 }
+
+// ErrDataAccess beschreibt einen Fehler während des Zugriffs auf die Daten des Repositories.
+//
+// Es handelt sich dabei um einen nicht näher bezeichneten technischen Fehler. Üblicherweise verursachen [context.Canceled] oder [sql.ErrConnDone], [sql.ErrNoRows] oder [sql.ErrTxDone] diesen Fehler.
+var ErrDataAccess = errors.New("data access error")
+
+// ErrInsertEvent beschreibt einen Fehler, der beim Protokollieren eines Eregnisses auftritt.
+var ErrInsertEvent = errors.New("event cannot be logged")
+var ErrNoRecord = errors.New("no record found")
+var ErrInvalidParameter = errors.New("invalid paramater")
 
 type InsertResult struct {
 	Created bool

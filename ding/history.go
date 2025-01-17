@@ -1,4 +1,4 @@
-package model
+package ding
 
 import (
 	"context"
@@ -51,14 +51,6 @@ func dataAccessError(err error) error {
 	return ErrDataAccess
 }
 
-// ErrDataAccess beschreibt einen Fehler während des Zugriffs auf die Daten des Repositories.
-//
-// Es handelt sich dabei um einen nicht näher bezeichneten technischen Fehler. Üblicherweise verursachen [context.Canceled] oder [sql.ErrConnDone], [sql.ErrNoRows] oder [sql.ErrTxDone] diesen Fehler.
-var ErrDataAccess = errors.New("data access error")
-
-// ErrInsertEvent beschreibt einen Fehler, der beim Protokollieren eines Eregnisses auftritt.
-var ErrInsertEvent = errors.New("event cannot be logged")
-
 // ProductHistory liefert eine Liste der Ereignisse zu einem Ding
 //
 // TODO: Es muss differenziert werden zwischen der Historie eines Dings und der Historie in der Übersicht. Die Historie zu einem Ding benötigt keine Referenz zum Ding selbst, das dieses ja bekannt ist. Hingegen benötigt die Übersicht aber eben jene Referenz, damit eine Navigation möglich ist.
@@ -83,6 +75,7 @@ func (r Repository) GetEvents(ctx context.Context, query string, args ...any) ([
 	if err != nil {
 		return history, err
 	}
+
 	defer tx.Rollback()
 
 	rows, err := tx.QueryContext(query, args...)
@@ -101,6 +94,7 @@ func (r Repository) GetEvents(ctx context.Context, query string, args ...any) ([
 			&event.Created); err != nil {
 			return history, err
 		}
+
 		history = append(history, event)
 	}
 
@@ -133,10 +127,6 @@ func (e Event) Equal(other Event) bool {
 		e.DingRef.Equal(other.DingRef)
 }
 
-type Equatable[T any] interface {
-	Equal(other T) bool
-}
-
 func (e Event) String() string {
 	switch e.Operation {
 	case 1:
@@ -150,7 +140,11 @@ func (e Event) String() string {
 	}
 }
 
-func SliceEqual[T Equatable[T]](left []T, right []T) bool {
+type Comperable[T any] interface {
+	Equal(other T) bool
+}
+
+func SliceEqual[T Comperable[T]](left []T, right []T) bool {
 	if len(left) != len(right) {
 		return false
 	}

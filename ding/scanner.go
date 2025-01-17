@@ -1,7 +1,6 @@
-package dto
+package ding
 
 import (
-	"github.com/haschi/dinge/model"
 	"github.com/haschi/dinge/webx"
 )
 
@@ -12,10 +11,10 @@ type ScannerFormData struct {
 
 	Code    string
 	Anzahl  int
-	History []model.Event
+	History []Event
 }
 
-func NewScannerFormData(code string, anzahl int, history []model.Event) webx.TemplateData[ScannerFormData] {
+func NewScannerFormData(code string, anzahl int, history []Event) webx.TemplateData[ScannerFormData] {
 	return webx.TemplateData[ScannerFormData]{
 		Scripts: []string{
 			"/static/barcode.js",
@@ -23,7 +22,7 @@ func NewScannerFormData(code string, anzahl int, history []model.Event) webx.Tem
 		Styles: []string{"/static/css/barcode.css"},
 		FormValues: ScannerFormData{
 			Title:            "Einlagern",
-			ActionUrl:        "/dinge",
+			ActionUrl:        "/dinge/",
 			SubmitButtonText: "Einlagern",
 			Code:             "",
 			Anzahl:           1,
@@ -32,7 +31,7 @@ func NewScannerFormData(code string, anzahl int, history []model.Event) webx.Tem
 	}
 }
 
-func NewDestroyFormData(code string, anzahl int, history []model.Event) webx.TemplateData[ScannerFormData] {
+func NewDestroyFormData(code string, anzahl int, history []Event) webx.TemplateData[ScannerFormData] {
 	return webx.TemplateData[ScannerFormData]{
 		Scripts: []string{
 			"/static/barcode.js",
