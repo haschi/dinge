@@ -115,6 +115,7 @@ func TestRepository_MengeAktualisieren(t *testing.T) {
 					PhotoUrl: dinge[0].PhotoUrl,
 				},
 				Beschreibung: dinge[0].Beschreibung,
+				Allgemein:    dinge[0].Allgemein,
 				Aktualisiert: dinge[0].Aktualisiert,
 			},
 			wantErr: false,
@@ -241,10 +242,8 @@ func TestRepository_Insert(t *testing.T) {
 func TestRepository_NamenAktualisieren(t *testing.T) {
 
 	type args struct {
-		ctx          context.Context
-		id           int64
-		name         string
-		beschreibung string
+		ctx     context.Context
+		anfrage ding.Aktualisierungsanfrage
 	}
 	tests := []struct {
 		name         string
@@ -269,10 +268,13 @@ func TestRepository_NamenAktualisieren(t *testing.T) {
 			name:         "Beschreibung ändern",
 			precondition: theFixture,
 			args: args{
-				ctx:          context.Background(),
-				id:           dinge[0].Id,
-				name:         "Pepperoni",
-				beschreibung: "Neue Beschreibung",
+				ctx: context.Background(),
+				anfrage: ding.Aktualisierungsanfrage{
+					Id:           dinge[0].Id,
+					Name:         "Pepperoni",
+					Beschreibung: "Neue Beschreibung",
+					Allgemein:    dinge[0].Allgemein,
+				},
 			},
 			timestamp: must(time.Parse(time.DateTime, "2024-11-13 19:38:04")),
 			want: ding.Ding{
@@ -284,6 +286,7 @@ func TestRepository_NamenAktualisieren(t *testing.T) {
 					PhotoUrl: dinge[0].PhotoUrl,
 				},
 				Beschreibung: "Neue Beschreibung",
+				Allgemein:    dinge[0].Allgemein,
 				Aktualisiert: must(time.Parse(time.DateTime, "2024-11-13 19:38:04")),
 			},
 			wantErr: false,
@@ -293,10 +296,13 @@ func TestRepository_NamenAktualisieren(t *testing.T) {
 
 			precondition: theFixture,
 			args: args{
-				ctx:          context.Background(),
-				id:           dinge[0].Id,
-				name:         "Pepperoni",
-				beschreibung: dinge[0].Beschreibung,
+				ctx: context.Background(),
+				anfrage: ding.Aktualisierungsanfrage{
+					Id:           dinge[0].Id,
+					Name:         "Pepperoni",
+					Beschreibung: dinge[0].Beschreibung,
+					Allgemein:    dinge[0].Allgemein,
+				},
 			},
 			timestamp: must(time.Parse(time.DateTime, "2024-11-13 19:38:04")),
 			want: ding.Ding{
@@ -308,6 +314,7 @@ func TestRepository_NamenAktualisieren(t *testing.T) {
 					PhotoUrl: dinge[0].PhotoUrl,
 				},
 				Beschreibung: dinge[0].Beschreibung,
+				Allgemein:    dinge[0].Allgemein,
 				Aktualisiert: must(time.Parse(time.DateTime, "2024-11-13 19:38:04")),
 			},
 			wantErr: false,
@@ -316,8 +323,13 @@ func TestRepository_NamenAktualisieren(t *testing.T) {
 			name: "update unknown",
 
 			precondition: theFixture,
-			args:         args{ctx: context.Background(), id: 42, name: "doesn't matter"},
-			wantErr:      true,
+			args: args{ctx: context.Background(),
+				anfrage: ding.Aktualisierungsanfrage{
+					Id:   42,
+					Name: "doesn't matter",
+				},
+			},
+			wantErr: true,
 		},
 	}
 	for _, tt := range tests {
@@ -328,12 +340,12 @@ func TestRepository_NamenAktualisieren(t *testing.T) {
 					Tm:    tm,
 				}
 
-				if err := r.DingAktualisieren(tt.args.ctx, tt.args.id, tt.args.name, tt.args.beschreibung); (err != nil) != tt.wantErr {
+				if err := r.Aktualisieren(tt.args.ctx, tt.args.anfrage); (err != nil) != tt.wantErr {
 					t.Errorf("Repository.NamenAktualisieren() error = %v, wantErr %v", err, tt.wantErr)
 				}
 
 				if !tt.wantErr {
-					got, err := r.GetById(tt.args.ctx, tt.args.id)
+					got, err := r.GetById(tt.args.ctx, tt.args.anfrage.Id)
 					if err != nil {
 						t.Fatal("unexpected condition")
 					}
@@ -572,6 +584,7 @@ var dinge = []ding.Ding{
 			PhotoUrl: "/photos/1",
 		},
 		Beschreibung: "Eine Planzengattung, die zur Familie der Nachtschattengewächse gehört",
+		Allgemein:    "Gemüse",
 		Aktualisiert: must(time.Parse(time.DateTime, "2024-11-13 18:48:01")),
 	},
 
@@ -584,6 +597,7 @@ var dinge = []ding.Ding{
 			PhotoUrl: "/photos/2",
 		},
 		Beschreibung: "",
+		Allgemein:    "Gemüse",
 		Aktualisiert: must(time.Parse(time.DateTime, "2024-11-13 19:05:02")),
 	},
 
@@ -596,6 +610,7 @@ var dinge = []ding.Ding{
 			PhotoUrl: "/photos/3",
 		},
 		Beschreibung: "",
+		Allgemein:    "Gemüse",
 		Aktualisiert: must(time.Parse(time.DateTime, "2024-11-13 19:06:03")),
 	},
 }

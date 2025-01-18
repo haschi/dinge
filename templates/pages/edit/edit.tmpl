@@ -11,6 +11,9 @@
       {{with .ValidationErrors.name}}
       <p class="error">{{.}}</p>
       {{end}}
+      <label for="common-input">Allgemeiner Name</label>
+      <input id="common-input" type="text" name="allgemein" value="{{.FormValues.Allgemein}}">
+
       <label for="input-beschreibung">Beschreibung</label>
       <textarea id="input-beschreibung" name="beschreibung" rows="4" cols="50">{{.FormValues.Beschreibung}}</textarea>
     </div>
