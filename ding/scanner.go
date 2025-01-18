@@ -16,10 +16,8 @@ type ScannerFormData struct {
 
 func NewScannerFormData(code string, anzahl int, history []Event) webx.TemplateData[ScannerFormData] {
 	return webx.TemplateData[ScannerFormData]{
-		Scripts: []string{
-			"/static/barcode.js",
-		},
-		Styles: []string{"/static/css/barcode.css"},
+		Scripts: []string{"/static/barcode.js"},
+		Styles:  []string{"/static/css/barcode.css"},
 		FormValues: ScannerFormData{
 			Title:            "Einlagern",
 			ActionUrl:        "/dinge/",
@@ -33,10 +31,8 @@ func NewScannerFormData(code string, anzahl int, history []Event) webx.TemplateD
 
 func NewDestroyFormData(code string, anzahl int, history []Event) webx.TemplateData[ScannerFormData] {
 	return webx.TemplateData[ScannerFormData]{
-		Scripts: []string{
-			"/static/barcode.js",
-		},
-		Styles: []string{"/static/css/barcode.css"},
+		Scripts: []string{"/static/barcode.js"},
+		Styles:  []string{"/static/css/barcode.css"},
 		FormValues: ScannerFormData{
 			Title:            "Entnehmen",
 			ActionUrl:        "/dinge/delete",

@@ -211,6 +211,7 @@ func (m Module) Edit(w http.ResponseWriter, r *http.Request) {
 	}
 
 	data := webx.TemplateData[Ding]{
+		Scripts:    []string{"/static/photo.js"},
 		FormValues: ding,
 	}
 
