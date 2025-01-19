@@ -4,9 +4,10 @@
   <!-- <img src="https://picsum.photos/800/450?random{{.FormValues.Id}}" alt=""> -->
   <img src="{{.FormValues.PhotoUrl}}" alt="">
   <h4>{{.FormValues.Name}}<sup>{{.FormValues.Anzahl}}</sup></h4>
-  <p>{{.FormValues.Code}}</p>
-  <p>{{.FormValues.Anzahl}}</p>
+  <p>Code: {{.FormValues.Code}}</p>
+  <p>Anzahl: {{.FormValues.Anzahl}}</p>
 
+  <p>Allgemeiner Name: {{.FormValues.Allgemein}}</p>
   <pre>{{.FormValues.Beschreibung}}</pre>
 
   <nav>
