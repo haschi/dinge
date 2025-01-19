@@ -138,8 +138,8 @@ func (r Repository) Insert(ctx context.Context, code string, anzahl int) (Insert
 	result.Created = neueAnzahl == anzahl
 
 	if result.Created {
-		fts := ` INSERT INTO fulltext(rowid, code, name, beschreibung)
-		VALUES(:id, :code, '', '')`
+		fts := ` INSERT INTO fulltext(rowid, code, name, allgemein, beschreibung)
+		VALUES(:id, :code, '', '', '')`
 		_, err := tx.ExecContext(fts, sql.Named("id", result.Id), sql.Named("code", code))
 		if err != nil {
 			return InsertResult{}, err
@@ -208,13 +208,14 @@ func (r Repository) Aktualisieren(ctx context.Context, anfrage Aktualisierungsan
 
 	// Update: code kann sich nicht ändern
 	updateFulltext := `UPDATE fulltext
-	SET name = :name, beschreibung = :beschreibung
+	SET name = :name, beschreibung = :beschreibung, allgemein = :allgemein
 	WHERE rowid = :id`
 
 	if _, err := tx.ExecContext(updateFulltext,
 		sql.Named("id", anfrage.Id),
 		sql.Named("name", anfrage.Name),
 		sql.Named("beschreibung", anfrage.Beschreibung),
+		sql.Named("allgemein", anfrage.Allgemein),
 	); err != nil {
 		return fmt.Errorf("Fehler bei der Abfrage des Volltext-Tabelle: %w", err)
 	}

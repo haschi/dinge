@@ -9,7 +9,7 @@ CREATE TABLE dinge(
 );
 CREATE INDEX idx_dinge_aktualisiert ON dinge(aktualisiert);
 CREATE UNIQUE INDEX idx_dinge_code ON dinge(code);
-CREATE VIRTUAL TABLE fulltext USING fts5(code, name, beschreibung);
+CREATE VIRTUAL TABLE fulltext USING fts5(code, name, allgemein, beschreibung);
 CREATE TABLE history(
   operation INTEGER NOT NULL REFERENCES operation,
   count INTEGER NOT NULL,
