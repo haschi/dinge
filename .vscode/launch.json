@@ -10,7 +10,7 @@
       "request": "launch",
       "mode": "auto",
       "buildFlags": [
-        "-tags",
+        "--tags",
         "fts5 development",
       ],
       "program": "${workspaceFolder}",
@@ -28,7 +28,7 @@
       "request": "launch",
       "mode": "auto",
       "buildFlags": [
-        "-tags",
+        "--tags",
         "fts5 development",
       ],
       "program": "${workspaceFolder}",

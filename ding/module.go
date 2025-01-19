@@ -211,6 +211,7 @@ func (m Module) Edit(w http.ResponseWriter, r *http.Request) {
 	}
 
 	data := webx.TemplateData[Ding]{
+		Scripts:    []string{"/static/photo.js"},
 		FormValues: ding,
 	}
 
@@ -239,9 +240,11 @@ func (m Module) Update(w http.ResponseWriter, r *http.Request) {
 
 	var name string
 	var beschreibung string
+	var allgemein string
 
 	err = form.Scan(
 		validation.String(Name, &name, validation.IsNotBlank),
+		validation.String(Allgemein, &allgemein),
 		validation.String(Beschreibung, &beschreibung),
 	)
 
@@ -278,7 +281,15 @@ func (m Module) Update(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err = m.Repository.DingAktualisieren(r.Context(), id, name, beschreibung)
+	aktualisierung := Aktualisierungsanfrage{
+		Id:           id,
+		Name:         name,
+		Beschreibung: beschreibung,
+		Allgemein:    allgemein,
+	}
+
+	err = m.Repository.Aktualisieren(r.Context(), aktualisierung)
+
 	if err != nil {
 		if errors.Is(err, ErrNoRecord) {
 			http.NotFound(w, r)

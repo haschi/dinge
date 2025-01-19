@@ -1,20 +1,41 @@
 {{define "header"}}{{end}}
 {{define "content"}}
 <article>
-  <!-- <img src="https://picsum.photos/800/450?random{{.FormValues.Id}}" alt=""> -->
-  <img src="{{.FormValues.PhotoUrl}}" alt="">
-  <h4>{{.FormValues.Name}}<sup>{{.FormValues.Anzahl}}</sup></h4>
-  <p>{{.FormValues.Code}}</p>
-  <p>{{.FormValues.Anzahl}}</p>
 
-  <pre>{{.FormValues.Beschreibung}}</pre>
+  <h1>{{.FormValues.Name}}</h1>
 
-  <nav>
-    <a href="/dinge/{{.FormValues.Id}}/edit">Bearbeiten</a>
-    <a href="/dinge/{{.FormValues.Id}}/photo">Foto Bearbeiten</a>
-    <a href="/dinge/{{.FormValues.Id}}">Einlagern</a>
-    <a href="/dinge/{{.FormValues.Id}}">Entnehmen</a>
-  </nav>
+  <figure>
+    <img src="{{.FormValues.PhotoUrl}}" alt="">
+    <figcaption>{{.FormValues.Name}}</figcaption>
+  </figure>
+
+  <article>
+
+    <p><a href="/dinge?q={{.FormValues.Allgemein}}">{{.FormValues.Allgemein}}</a></p>
+    <p>{{.FormValues.Anzahl}} Stück eingelagert</p>
+    <pre>{{.FormValues.Beschreibung}}</pre>
+  </article>
+
+  <footer>
+    <nav>
+      <ul>
+        <li>
+          <a href="/dinge/{{.FormValues.Id}}/edit"><b>Bearbeiten</b></a>
+        </li>
+        <li>
+          <b>
+            <a href="/dinge/{{.FormValues.Id}}/photo"><i>Foto Bearbeiten</i></a>
+          </b>
+        </li>
+        <li>
+          <a href="/dinge/{{.FormValues.Id}}"><i>Einlagern</i></a>
+        </li>
+        <li>
+          <a href="/dinge/{{.FormValues.Id}}"><i>Entnehmen</i></a>
+        </li>
+      </ul>
+    </nav>
+  </footer>
 </article>
 <article>
   <h2>Letzte Änderungen</h2>

@@ -21,7 +21,7 @@ func (r Repository) GetById(ctx context.Context, id int64) (Ding, error) {
 	}
 
 	suchen := `
-	SELECT id, name, code, anzahl, beschreibung, aktualisiert, ('/photos/' || id) AS PhotoUrl
+	SELECT id, name, code, anzahl, beschreibung, aktualisiert, allgemein, ('/photos/' || id) AS PhotoUrl
 	FROM dinge
 	WHERE id = ?
 	`
@@ -33,16 +33,19 @@ func (r Repository) GetById(ctx context.Context, id int64) (Ding, error) {
 
 	defer tx.Rollback()
 
-	// TODO: Das ist hier eine Notlösung. Eigendlich sollte die Logik keine Nullwerte speichern können. Irgendetwas stimmt hier nicht.
-	var beschreibung sql.NullString
-
 	var ding Ding
 	row := tx.QueryRowContext(suchen, id)
-	if err := row.Scan(&ding.Id, &ding.Name, &ding.Code, &ding.Anzahl, &beschreibung, &ding.Aktualisiert, &ding.PhotoUrl); err != nil {
+	if err := row.Scan(
+		&ding.Id,
+		&ding.Name,
+		&ding.Code,
+		&ding.Anzahl,
+		&ding.Beschreibung,
+		&ding.Aktualisiert,
+		&ding.Allgemein,
+		&ding.PhotoUrl); err != nil {
 		return ding, err
 	}
-
-	ding.Beschreibung = beschreibung.String
 
 	return ding, tx.Commit()
 }
@@ -108,8 +111,8 @@ func (r Repository) Insert(ctx context.Context, code string, anzahl int) (Insert
 
 	defer tx.Rollback()
 
-	statement := `INSERT INTO dinge(name, code, anzahl, beschreibung, aktualisiert)
-			VALUES(:name, :code, :anzahl, :beschreibung, :aktualisiert)
+	statement := `INSERT INTO dinge(name, code, anzahl, beschreibung, allgemein, aktualisiert)
+			VALUES(:name, :code, :anzahl, :beschreibung, :allgemein, :aktualisiert)
 			ON CONFLICT (code)
 			DO
 			UPDATE SET anzahl = anzahl + :anzahl, aktualisiert = :aktualisiert
@@ -123,6 +126,7 @@ func (r Repository) Insert(ctx context.Context, code string, anzahl int) (Insert
 		sql.Named("code", code),
 		sql.Named("anzahl", anzahl),
 		sql.Named("beschreibung", ""),
+		sql.Named("allgemein", ""),
 		sql.Named("aktualisiert", timestamp))
 
 	var neueAnzahl int
@@ -134,8 +138,8 @@ func (r Repository) Insert(ctx context.Context, code string, anzahl int) (Insert
 	result.Created = neueAnzahl == anzahl
 
 	if result.Created {
-		fts := ` INSERT INTO fulltext(rowid, code, name, beschreibung)
-		VALUES(:id, :code, '', '')`
+		fts := ` INSERT INTO fulltext(rowid, code, name, allgemein, beschreibung)
+		VALUES(:id, :code, '', '', '')`
 		_, err := tx.ExecContext(fts, sql.Named("id", result.Id), sql.Named("code", code))
 		if err != nil {
 			return InsertResult{}, err
@@ -156,8 +160,14 @@ func (r Repository) Insert(ctx context.Context, code string, anzahl int) (Insert
 	return result, tx.Commit()
 }
 
-func (r Repository) DingAktualisieren(ctx context.Context, id int64, name string, beschreibung string) error {
+type Aktualisierungsanfrage struct {
+	Id           int64
+	Name         string
+	Beschreibung string
+	Allgemein    string
+}
 
+func (r Repository) Aktualisieren(ctx context.Context, anfrage Aktualisierungsanfrage) error {
 	if ctx == nil {
 		return errors.New("no context provided")
 	}
@@ -171,16 +181,17 @@ func (r Repository) DingAktualisieren(ctx context.Context, id int64, name string
 
 	statement := `
 		UPDATE dinge
-		SET name = :name, beschreibung = :beschreibung, aktualisiert = :aktualisiert
+		SET name = :name, beschreibung = :beschreibung, allgemein = :allgemein, aktualisiert = :aktualisiert
 		WHERE id = :id;
 	`
 
 	timestamp := r.Clock.Now()
 	result, err := tx.ExecContext(statement,
-		sql.Named("name", name),
-		sql.Named("beschreibung", beschreibung),
-		sql.Named("aktualisiert", timestamp),
-		sql.Named("id", id))
+		sql.Named(Name, anfrage.Name),
+		sql.Named(Beschreibung, anfrage.Beschreibung),
+		sql.Named(Allgemein, anfrage.Allgemein),
+		sql.Named(Aktualisiert, timestamp),
+		sql.Named("id", anfrage.Id))
 
 	if err != nil {
 		return err
@@ -197,13 +208,14 @@ func (r Repository) DingAktualisieren(ctx context.Context, id int64, name string
 
 	// Update: code kann sich nicht ändern
 	updateFulltext := `UPDATE fulltext
-	SET name = :name, beschreibung = :beschreibung
+	SET name = :name, beschreibung = :beschreibung, allgemein = :allgemein
 	WHERE rowid = :id`
 
 	if _, err := tx.ExecContext(updateFulltext,
-		sql.Named("id", id),
-		sql.Named("name", name),
-		sql.Named("beschreibung", beschreibung),
+		sql.Named("id", anfrage.Id),
+		sql.Named("name", anfrage.Name),
+		sql.Named("beschreibung", anfrage.Beschreibung),
+		sql.Named("allgemein", anfrage.Allgemein),
 	); err != nil {
 		return fmt.Errorf("Fehler bei der Abfrage des Volltext-Tabelle: %w", err)
 	}

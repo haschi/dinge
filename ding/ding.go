@@ -5,6 +5,7 @@ import "time"
 type Ding struct {
 	DingRef
 	Beschreibung string
+	Allgemein    string
 	Aktualisiert time.Time
 }
 
