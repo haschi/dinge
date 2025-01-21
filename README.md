@@ -9,7 +9,8 @@ Dinge verwalten
 Bevor du die Anwendung benutzen kannst, musst du eine Datenbank anlegen. Gebe dazu folgenden Befehl in der Konsole ein:
 
 ```bash
-sqlite3 dinge.db < model/create.sql
+sqlite3 dinge.db < ding/create.sql
+sqlite3 dinge.db < photo/create.sql
 ```
 
 Anschließend sollte sich die Datei *dinge.db* im aktuellen Verzeichnis befinden.
