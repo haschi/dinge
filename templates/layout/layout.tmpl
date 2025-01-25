@@ -14,7 +14,7 @@
 <body>
   <header>
     <nav>
-      <ul>
+      <menu>
         <li>
           <a href="/dinge">Übersicht</a>
         </li>
@@ -26,19 +26,21 @@
         </li>
         <li>
           <span>Über</span>
-          <ul>
+          <menu label="Über">
             <li><a href="/about/license" rel="license">License</a></li>
             <li><a href="/about/usage">Usage</a></li>
-          </ul>
+          </menu>
         </li>
-      </ul>
+      </menu>
     </nav>
     {{template "header" .}}
   </header>
   <main>
     {{template "content" .}}
   </main>
-
+  <footer>
+    <p>Das ist die Fußzeile</p>
+  </footer>
   {{range .Scripts}}
   <script src="{{.}}" type="module"></script>
   {{end}}

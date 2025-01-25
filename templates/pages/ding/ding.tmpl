@@ -6,19 +6,40 @@
 
   <figure>
     <img src="{{.FormValues.PhotoUrl}}" alt="">
-    <figcaption>{{.FormValues.Name}}</figcaption>
   </figure>
 
-  <article>
+  <dl itemscope itemtype="https://schema.org/Thing">
+    <div>
+      <dt>Name</dt>
+      <dt>Der genaue Namen des Dings</dt>
+      <dd itemprop="name">{{.FormValues.Name}}</dd>
+    </div>
 
-    <p><a href="/dinge?q={{.FormValues.Allgemein}}">{{.FormValues.Allgemein}}</a></p>
-    <p>{{.FormValues.Anzahl}} Stück eingelagert</p>
+    <div>
+      <dt>Allgemeiner Name</dt>
+      <dd itemprop="alternateName">
+        <a href="/dinge?q={{.FormValues.Allgemein}}">{{.FormValues.Allgemein}}</a>
+      </dd>
+    </div>
+
+    <div>
+      <dt>Anzahl</dt>
+      <dt>Die Anzahl dieser Dinge, die du besitzt</dt>
+      <dd itemprop="description">{{.FormValues.Anzahl}}</dd>
+    </div>
+
+    <dt>Nach ein Label</dt>
+    <dd>Ein Wert</dd>
+  </dl>
+
+  <details>
+    <summary>Beschreibung</summary>
     <pre>{{.FormValues.Beschreibung}}</pre>
-  </article>
+  </details>
 
   <footer>
     <nav>
-      <ul>
+      <menu>
         <li>
           <a href="/dinge/{{.FormValues.Id}}/edit"><b>Bearbeiten</b></a>
         </li>
@@ -33,7 +54,7 @@
         <li>
           <a href="/dinge/{{.FormValues.Id}}"><i>Entnehmen</i></a>
         </li>
-      </ul>
+      </menu>
     </nav>
   </footer>
 </article>

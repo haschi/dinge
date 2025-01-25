@@ -3,23 +3,43 @@
   --layout-border: thin dotted darkgrey;
 }
 
-nav {
-  display: flex;
-  justify-content: center;
+html {
+  height: 100%;
+}
 
+body {
+  height: 100%;
+}
+
+body {
+  margin: 0;
+  padding: 0;
+
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  align-items: center;
+
+  main {
+    /* flex-grow: 1; */
+  }
+}
+
+nav {
   a {
     text-decoration: none;
   }
 
-  ul {
+  menu {
     display: flex;
+    justify-content: center;
+    flex-flow: row wrap;
     border: var(--layout-border);
     margin: 0;
     padding-left: 0;
 
-    li ul {
+    li menu {
       visibility: hidden;
-      opacity: 0;
       min-width: 5rem;
       position: absolute;
       margin-top: 1rem;
@@ -30,10 +50,9 @@ nav {
       }
     }
 
-    li:hover>ul,
-    li ul:hover {
+    li:hover>menu,
+    li menu:hover {
       visibility: visible;
-      opacity: 1;
       display: block;
     }
   }
@@ -48,3 +67,98 @@ nav {
     cursor: pointer;
   }
 }
+
+main {}
+
+footer {
+  width: 100%;
+  border: var(--layout-border);
+}
+
+
+/* Detailansicht */
+
+dl div {
+  border: var(--layout-border);
+  display: grid;
+  grid-template-columns: [term] max-content [description] 1fr;
+  grid-auto-rows: auto;
+  grid-auto-flow: dense;
+
+  dt {
+    grid-column: term;
+  }
+
+  dd {
+    grid-column: description;
+    justify-self: end;
+    align-self: center;
+    border: var(--layout-border);
+  }
+
+  dt+dt+dd {
+    grid-row: span 2;
+  }
+}
+
+article {
+  text-align: center;
+}
+
+dl {
+  border: var(--layout-border);
+
+  display: grid;
+  grid-template-columns: [term] max-content [description] 1fr;
+  grid-auto-rows: auto;
+  grid-auto-flow: dense;
+  gap: 10px;
+
+  div {
+    grid-column: span 2;
+  }
+
+  /* div {
+    grid-column-start: term;
+    grid-column-end: span 2;
+    border: var(--layout-border);
+    margin-bottom: 1em;
+  } */
+
+  dt {
+    grid-column: term;
+  }
+
+
+  dt+dt+dd {
+    grid-row: span 2;
+  }
+
+  dd {
+    grid-column: description;
+    justify-self: end;
+    align-self: center;
+    border: var(--layout-border);
+  }
+
+}
+
+/* TODO:
+Mir bislang unbekannte HTML Elemente:
+  menu - Semantisch besser als ul für Menüs.
+  hgroup
+  output
+  search
+  slot (Web Component Slot)
+  template
+  time
+
+Formulare
+  Um Formulare wie in GNOME darzustellen, könnte ich fieldsets verwenden
+  Ich kann mir das id Attribut für label sparen, wenn das input Element
+  ein Kindelement des Labels ist. Labels sind nur für button, input,
+  meter, output, progress, select und textare zu gebrauchen.
+
+Um Detailansichten (ähnlich Formulare) zu gestalten könnte ich dl benutzen
+Für Akkordeon das details element
+*/
