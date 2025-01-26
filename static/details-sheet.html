@@ -1,0 +1,99 @@
+<!doctype html>
+<html lang="de" color-mode="user">
+
+<head>
+  <meta charset="utf-8">
+  <link rel="stylesheet" href="/static/css/main.css">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Dinge</title>
+</head>
+
+<body>
+  <header>
+    <nav>
+      <menu>
+        <li>
+          <a href="#">Übersicht</a>
+        </li>
+        <li>
+          <a href="#">Einlagern</a>
+        </li>
+        <li>
+          <a href="#">Entnehmen</a>
+        </li>
+        <li>
+          <span>Über</span>
+          <menu label="Über">
+            <li><a href="#" rel="license">License</a></li>
+            <li><a href="#">Usage</a></li>
+          </menu>
+        </li>
+      </menu>
+    </nav>
+  </header>
+  <main>
+    <article>
+
+      <figure>
+        <img src="/static/placeholder.svg" alt="">
+      </figure>
+
+      <h1>Ein tolles Ding</h1>
+
+      <dl itemscope itemtype="https://schema.org/Thing">
+        <div>
+          <dt>Name</dt>
+          <dt>Der genaue Namen des Dings</dt>
+          <dd itemprop="name">Ein tollen Ding</dd>
+        </div>
+
+        <div>
+          <dt>Allgemeiner Name</dt>
+          <dd itemprop="alternateName">
+            <a href="#">Ding</a>
+          </dd>
+        </div>
+
+        <div>
+          <dt>Anzahl</dt>
+          <dt>Die Anzahl dieser Dinge, die du besitzt</dt>
+          <dd itemprop="description">42</dd>
+        </div>
+
+        <dt>Nach ein Label</dt>
+        <dd>Ein Wert</dd>
+      </dl>
+
+      <details>
+        <summary>Beschreibung</summary>
+        <pre>Ein tolles Ding. Zum Beispiel ein Auto, ein Windrad, ein ....</pre>
+      </details>
+
+      <footer>
+        <nav>
+          <menu>
+            <li>
+              <a href="#"><b>Bearbeiten</b></a>
+            </li>
+            <li>
+              <b>
+                <a href="#"><i>Foto Bearbeiten</i></a>
+              </b>
+            </li>
+            <li>
+              <a href="#"><i>Einlagern</i></a>
+            </li>
+            <li>
+              <a href="#"><i>Entnehmen</i></a>
+            </li>
+          </menu>
+        </nav>
+      </footer>
+    </article>
+  </main>
+  <footer>
+    <p>Das ist die Fußzeile. Aber ich weis nicht, ob ich die jemals benutzen werde.</p>
+  </footer>
+</body>
+
+</html>
