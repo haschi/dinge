@@ -9,7 +9,8 @@
 </head>
 
 <body>
-  <header>
+  <header>Header</header>
+  <aside>
     <nav>
       <menu>
         <li>
@@ -29,8 +30,16 @@
           </menu>
         </li>
       </menu>
+      <menu>
+        <li>Beschreibungsliste</li>
+        <menu>
+          <li>Mit Trennlinie</li>
+          <li>Ohne Trennlinie</li>
+        </menu>
+        <li>Akkordion</li>
+      </menu>
     </nav>
-  </header>
+  </aside>
   <main>
     <article>
 
@@ -38,35 +47,65 @@
         <img src="/static/placeholder.svg" alt="">
       </figure>
 
-      <h1>Ein tolles Ding</h1>
+      <h1>Beschreibungslisten</h1>
+      <p>Details werden als Beschreibungslisten dargestellt. Sie können wahlweise mit oder ohne Trennlinie angezeigt
+        werden. Für eine Trennlinie werden die Begriffsgruppen mit div Elementen umgeben.</p>
 
+      <h2>Beschreibungsliste mit Trennlinien</h2>
       <dl itemscope itemtype="https://schema.org/Thing">
         <div>
-          <dt>Name</dt>
-          <dt>Der genaue Namen des Dings</dt>
-          <dd itemprop="name">Ein tollen Ding</dd>
+          <dt>Einzelner Begriff</dt>
+          <dd>Einzelne Beschreibungt</dd>
         </div>
 
         <div>
-          <dt>Allgemeiner Name</dt>
+          <dt>Erster von zwei Begriffen</dt>
+          <dt>Zweiter von zwei Begriffen</dt>
+          <dd>Einzelne Beschreibung</dd>
+        </div>
+
+        <div>
+          <dt>Einzelner Begriff</dt>
           <dd itemprop="alternateName">
-            <a href="#">Ding</a>
+            <a href="#">Beschreibung als Link</a>
           </dd>
         </div>
 
         <div>
-          <dt>Anzahl</dt>
-          <dt>Die Anzahl dieser Dinge, die du besitzt</dt>
-          <dd itemprop="description">42</dd>
+          <dt>Begriff mit zwei Beschreibungen</dt>
+          <dd>Erste Beschreibung</dd>
+          <dd>Zweite Beschreibung</dd>
         </div>
 
-        <dt>Nach ein Label</dt>
-        <dd>Ein Wert</dd>
+      </dl>
+
+      <h2>Beschreibungsliste ohne Trennlinien</h2>
+      <dl>
+        <dt>Einzelner Begriff</dt>
+        <dd>Einzelne Beschreibungt</dd>
+
+        <dt>Erster von zwei Begriffen</dt>
+        <dt>Zweiter von zwei Begriffen</dt>
+        <dd>Einzelne Beschreibung</dd>
+
+        <dt>Einzelner Begriff</dt>
+        <dd itemprop="alternateName">
+          <a href="#">Beschreibung als Link</a>
+        </dd>
+
+        <dt>Begriff mit zwei Beschreibungen</dt>
+        <dd>Erste Beschreibung</dd>
+        <dd>Zweite Beschreibung</dd>
+
       </dl>
 
       <details>
         <summary>Beschreibung</summary>
-        <pre>Ein tolles Ding. Zum Beispiel ein Auto, ein Windrad, ein ....</pre>
+        <p>Lorem ipsum dolor sit amet, consectetur adipiscing elit. Pellentesque urna diam, tincidunt nec porta sed,
+          auctor id velit. Etiam venenatis nisl ut orci consequat, vitae tempus quam commodo. Nulla non mauris ipsum.
+          Aliquam eu posuere orci. Nulla convallis lectus rutrum quam endrerit, in facilisis elit sollicitudin. Mauris
+          pulvinar pulvinar mi, dictum tristique elit auctor quis. Maecenas ac ipsum ultrices, porta turpis sit amet,
+          congue turpis.</p>
       </details>
 
       <footer>
