@@ -118,14 +118,12 @@ header nav {
   }
 }
 
-div,
 aside,
 main,
 nav,
 header,
 footer {
-  border: var(--layout-border);
-  border-radius: 5px;
+  outline: var(--layout-border);
 }
 
 
@@ -135,11 +133,6 @@ footer {
 */
 
 /* Detailansicht */
-
-article {
-  /* max-width: 640px; */
-  /* text-align: center; */
-}
 
 dl,
 dl div {
@@ -238,6 +231,62 @@ details summary::after {
 
 details[open] summary::after {
   transform: rotate(90deg);
+}
+
+/* Cards */
+
+/* Effekte */
+/* Bei Karten mit Fokus oder Hover das enthaltene Bild heranzoomen und einen Schatten erzeugen */
+main section.articles {
+  article {
+    --image-scale: 1.001;
+    overflow: hidden;
+    transform-origin: center;
+
+    img {
+      max-width: 100%;
+      transform-origin: center;
+      transform: scale(var(--img-scale));
+      transition: transform 0.4s ease-in-out;
+    }
+
+    /* Links mit Fokus durch einen Rahmen hervorheben */
+    a:focus {
+      outline: 1px dotted #28666e;
+    }
+  }
+
+  /* Aktive Karten hervorheben */
+  article:has(:hover, :focus) {
+    --img-scale: 1.1;
+    box-shadow: rgba(0, 0, 0, 0.16) 0px 10px 36px 0px, rgba(0, 0, 0, 0.06) 0px 0px 0px 1px;
+  }
+}
+
+/* Layout für Karten in einem Raster. */
+main section.articles {
+  display: flex;
+  flex-wrap: wrap;
+
+  article {
+    /* Karten müssen eine feste Breite besitzen */
+    width: 300px;
+    position: relative;
+    outline: var(--layout-border);
+
+    a {
+      text-decoration: none;
+    }
+
+    /* Der Trick, dass Karten anklickbar sind */
+    a::after {
+      position: absolute;
+      inset-block: 0;
+      inset-inline: 0;
+      cursor: pointer;
+      content: "";
+    }
+  }
 }
 
 /* TODO:
