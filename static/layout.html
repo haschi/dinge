@@ -5,70 +5,154 @@
   <meta charset="utf-8">
   <link rel="stylesheet" href="/static/css/main.css">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Dinge</title>
+  <title>Layout</title>
 </head>
 
 <body>
+  <!-- Beispiele für den Header:
+  1. GNOME Wetter.
+  Links: Schalftfläche Reload
+  Mitte: Schaltflächen Stündlich, Täglich
+  Rechts: Anwendungsmenü
+
+  2. GNOME Uhren
+  Links: Schaltfläche Ort hinzufügen oder Neuer Wecker (Je nach Ansicht)
+  Mitte: Welt, Wecker, Stoppuhr, Timer (Ansichten)
+  Rechts: Anwendungsmenü
+
+  3. Systemüberwachung
+  Links: Suchen (nur Prozesse Ansicht)
+  Mitte: Ressourcen, Prozesse, Dateisysteme
+  Rechts: Anwendungsmenü
+
+  4. Kontakte
+  Seitenleiste Header:
+  Links: Kontakt Hinzufügen,
+  Mitte: Titel,
+  Rechts: Kontakt auswählen, Hauptmenü
+  Inhaltsbereich Header:
+  Rechts: Kontakt bearbeiten, Kontaktmenü
+
+  5. Texteditor
+  Links: Öffnen (Dropdown), Neuer Reiter
+  Mitte: Dokumenttitel (Neues Dokument, falls leer)
+  Rechts: Ansichtsoptionen (Dropdown Menü), Hauptmenu (Dropdown Menü)
+
+  6. Dateien
+  Große Ansicht
+  Seitenleiste:
+  Links: Suchen
+  Mitte: Dateien (Anwendungsname)
+  Rechts: Hauptmenü
+  Inhaltsbereich:
+  Rechts: Zurück, Vor
+  Mitte: Aktueller Order als Pfad, Menü des aktuellen Ordner, Aktuellen Ordner durchsuchen
+  Rechts: Ansichtsoptionen (Dropdown)
+  Kleine Ansicht
+  Links: Seitenleiste Anzeigen
+  Mitte Aktuelle Order, Menu des aktuellen Ordners (Dropdown)
+  Rechts: Aktuellen Ordner durchsuchen
+  Footer:
+  Links: Zurück, Vor
+  Rechts: Ansichtsoptionen (Dropdown) -->
+
   <header>
-    <search>
-      <form>
-        <label>Suchen</label>
-        <input type="search" id="search" name="q">
-        <button type="submit">Search</button>
-      </form>
-    </search>
-  </header>
-  <nav>
-    <menu>
-      <li>Netzwerk</li>
-      <li>Bluetooth</li>
-    </menu>
-    <menu>
-      <li>Bildschirm</li>
-      <li>Audio</li>
-      <li>Energie</li>
-      <li>Multitasking</li>
-      <li>Erscheinungsbild</li>
-    </menu>
-    <menu>
-      <li>Anwendungen</li>
-      <li>Benachrichtigungen</li>
-      <li>Suchen</li>
-      <li>Online-Konten</li>
-      <li>Freigabe</li>
-    </menu>
-    <menu>
-      <li>Maus und Tastenfeld</li>
-      <li>Tastatur</li>
-      <li>Farbe</li>
-      <li>Drucker</li>
-    </menu>
-    <menu>
-      <li>Barrierefreiheit</li>
-      <li>Datenschutz und Sicherheit</li>
-      <li>System</li>
-      <details>
-        <summary>Submenu</summary>
-        <menu>
-          <li>Region und Sprache</li>
-          <li>Datum und Zeit</li>
-          <li>Benutzer</li>
-          <li>Bildschirmfreigabe</li>
-          <li>Secure Shell</li>
-          <li>Info</li>
-          <li>Softwareaktualisierung</li>
-        </menu>
-      </details>
+    <div>Left</div>
+    <div class="fill">
+      <search>
+        <form>
+          <input type="search" id="search" name="q" placeholder="Center" class="fill">
+          <button type="submit">Suchen</button>
+        </form>
+      </search>
+    </div>
+    <nav>
       <menu>
+        <li>One</li>
+        <li> <!-- nav menu li = class dropdown-->
+          <span>Two</span>
+          <menu>
+            <li>Sub-1</li>
+            <li>Sub-2</li>
+            <li>Sub-3</li>
+            <li>Sub-4</li>
+            <li>Sub-5</li>
+          </menu>
         </li>
+        <li>Three</li>
       </menu>
-  </nav>
+    </nav>
+  </header>
+
+  <aside>
+    <header>
+      <div>Left</div>
+      <div>Center</div>
+      <nav>
+        <menu>
+          <li>Hauptmenü
+            <menu>
+              <li>Item 1</li>
+              <li>Item 2</li>
+              <li>Item 3</li>
+            </menu>
+          </li>
+        </menu>
+      </nav>
+    </header>
+    <nav>
+      <menu>
+        <li>Netzwerk</li>
+        <li>Bluetooth</li>
+      </menu>
+      <menu>
+        <li>Bildschirm</li>
+        <li>Audio</li>
+        <li>Energie</li>
+        <li>Multitasking</li>
+        <li>Erscheinungsbild</li>
+      </menu>
+      <menu>
+        <li>Anwendungen</li>
+        <li>Benachrichtigungen</li>
+        <li>Suchen</li>
+        <li>Online-Konten</li>
+        <li>Freigabe</li>
+      </menu>
+      <menu>
+        <li>Maus und Tastenfeld</li>
+        <li>Tastatur</li>
+        <li>Farbe</li>
+        <li>Drucker</li>
+      </menu>
+      <menu>
+        <li>Barrierefreiheit</li>
+        <li>Datenschutz und Sicherheit</li>
+        <li>System</li>
+        <details>
+          <summary>Submenu</summary>
+          <menu>
+            <li>Region und Sprache</li>
+            <li>Datum und Zeit</li>
+            <li>Benutzer</li>
+            <li>Bildschirmfreigabe</li>
+            <li>Secure Shell</li>
+            <li>Info</li>
+            <li>Softwareaktualisierung</li>
+          </menu>
+        </details>
+        <menu>
+          </li>
+        </menu>
+    </nav>
+  </aside>
+
   <main>
     <h1>Content</h1>
     <p>Wahlweise als div Element, das die gesamte Fläche ausfüllt, für Ansichten ähnlich des Dateimanagers, oder article
       Element, das Formulare und Begriffslisten mit eingeschränkter Breite einzeigt, wie z.B. GNOME Einstellung etc.</p>
   </main>
-  <aside>Sidebar</aside>
+
   <footer>Footer</footer>
 </body>
 

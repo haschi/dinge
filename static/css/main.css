@@ -5,6 +5,7 @@
   /* Anwendungsweite Variablen */
   --app-spacing: 1rem;
   --app-transition: 0.2s ease-in-out;
+  --background-color: white;
 }
 
 /* Klassenlose HTML Struktur */
@@ -22,11 +23,11 @@ body {
   margin: 0;
   display: grid;
   grid-template-areas:
-    "nav header header"
-    "nav content sidebar"
-    "footer footer footer";
+    "sidebar header"
+    "sidebar content"
+    "footer footer";
 
-  grid-template-rows: minmax(auto, 2rem) auto 25px;
+  grid-template-rows: minmax(auto, 2rem) auto;
 
   header {
     grid-area: header;
@@ -36,10 +37,6 @@ body {
     grid-area: content;
   }
 
-  nav {
-    grid-area: nav;
-  }
-
   aside {
     grid-area: sidebar;
   }
@@ -47,6 +44,26 @@ body {
   footer {
     grid-area: footer;
   }
+}
+
+
+header {
+  display: flex;
+  flex-flow: row nowrap;
+  justify-content: space-between;
+  align-items: center;
+
+  form {
+    display: flex;
+  }
+
+  :nth-child(2) {
+    /* min-width: fit-content; */
+  }
+}
+
+.fill {
+  flex-grow: 1;
 }
 
 nav {
@@ -59,12 +76,49 @@ nav {
     padding: 0;
     margin: 0;
   }
+}
 
-  li:hover {
-    cursor: default;
+header nav {
+
+  border: var(--layout-border);
+  display: inline-block;
+
+  ul,
+  menu {
+    position: relative;
+    display: flex;
+    flex-direction: row;
+    list-style-type: none;
+
+    li {
+      padding: 0 1rem;
+
+      a {
+        text-decoration: none;
+      }
+
+      ul,
+      menu {
+        background-color: var(--background-color);
+        visibility: hidden;
+        opacity: 0;
+        position: absolute;
+        display: block;
+      }
+
+      &:hover {
+
+        ul,
+        menu {
+          visibility: visible;
+          opacity: 1;
+        }
+      }
+    }
   }
 }
 
+div,
 aside,
 main,
 nav,
@@ -132,9 +186,38 @@ dl div {
   }
 }
 
+details.dropdown {
+  position: relative;
+
+  summary~* {
+    display: flex;
+    flex-direction: column;
+    position: absolute;
+    right: 0;
+    width: 100%;
+
+    min-width: fit-content;
+    margin: 0;
+    padding: 0;
+    border: var(--layout-border);
+    z-index: 99;
+    opacity: 1;
+    background-color: var(--background-color)
+  }
+}
+
+fieldset {
+  margin: 0;
+  padding: 0;
+  border: none;
+  display: flex;
+  flex-direction: column;
+}
+
+
+
 details {
   display: block;
-  margin-bottom: var(--app-spacing);
 }
 
 details summary {
