@@ -55,124 +55,288 @@
     </header>
     <nav>
       <menu>
-        <li>Netzwerk</li>
-        <li>Bluetooth</li>
+        <li><a href="#karten">Karten</a></li>
+        <li><a href="#listen">Listen</a></li>
       </menu>
       <menu>
-        <li>Bildschirm</li>
-        <li>Audio</li>
-        <li>Energie</li>
-        <li>Multitasking</li>
-        <li>Erscheinungsbild</li>
+        <li><a href="#details">Detailansicht</a></li>
+        <li>Formular</li>
+        <li>Navigation</li>
+        <li>Scannen</li>
+        <li>Leere Seite</li>
+        <li>Dialoge</li>
       </menu>
-      <menu>
-        <li>Anwendungen</li>
-        <li>Benachrichtigungen</li>
-        <li>Suchen</li>
-        <li>Online-Konten</li>
-        <li>Freigabe</li>
-      </menu>
-      <menu>
-        <li>Maus und Tastenfeld</li>
-        <li>Tastatur</li>
-        <li>Farbe</li>
-        <li>Drucker</li>
-      </menu>
-      <menu>
-        <li>Barrierefreiheit</li>
-        <li>Datenschutz und Sicherheit</li>
-        <li>System</li>
-        <details>
-          <summary>Submenu</summary>
-          <menu>
-            <li>Region und Sprache</li>
-            <li>Datum und Zeit</li>
-            <li>Benutzer</li>
-            <li>Bildschirmfreigabe</li>
-            <li>Secure Shell</li>
-            <li>Info</li>
-            <li>Softwareaktualisierung</li>
-          </menu>
-        </details>
-        <menu>
-          </li>
-        </menu>
     </nav>
   </aside>
 
   <main>
-    <section class="articles">
-      <article>
+    <section id="karten" class="details">
+      <h2>Karten</h2>
+      <p>Eine mit Karten gefüllte Rasteransicht im Inhaltsbereich wird mit einem
+        <code>&lt;article class="grid"&gt;</code> Element eingeleitet. Jede Karte ist ein
+        <code>&lt;section&gt;</code> Element innerhalb dieses Elternelements.
+      </p>
+      <p>Karten können einen Link enthalten. Die anklickbare Fläche des Links erstreckt sich über die gesamte Karte.</p>
+      <pre>
+          &lt;article class="grid"&gt;
+            &lt;section&gt;
+              &lt;img src="https://picsum.photo/id/0/300/200" alt=""&gt;
+              &lt;div&gt;
+                &lt;h2&gt;Überschrift Karte 1&lt;/h2&gt;
+                &lt;p&gt;Beschreibung der Karte&lt;/p&gt;
+                &lt;a href="#"&gt;&lt;/a&gt;
+              &lt;/div&gt;
+            &lt;/section&gt;
+          &lt;/article&gt;
+
+        </pre>
+    </section>
+
+    <article class="grid">
+      <section>
         <img src="https://picsum.photos/id/0/300/200" alt="" />
         <div>
           <h2>Übersicht Karten</h2>
           <p>Vorlage für eine Übersicht, die Elemente als Karten präsentiert.</p>
-          <a href="/static/gnome.html"></a>
+          <a href="#karten"></a>
         </div>
-      </article>
+      </section>
 
-      <article>
+      <section>
         <img src="https://picsum.photos/id/1/300/200" alt="" />
         <div>
           <h2>Übersicht Listen</h2>
           <p>Vorlage für eine Übersicht, die Elemente als Liste darstellt.</p>
-          <a href="#"></a>
+          <a href="#listen"></a>
         </div>
-      </article>
+      </section>
 
-      <article>
+      <section>
         <img src="https://picsum.photos/id/2/300/200" alt="" />
         <div>
           <h2>Detailansicht</h2>
           <p>Vorlage für die Detailansicht von Daten eines einzelnen Elements.</p>
           <a href="#"></a>
         </div>
-      </article>
+      </section>
 
-      <article>
+      <section>
         <img src="https://picsum.photos/id/3/300/200" alt="" />
         <div>
           <h2>Formular</h2>
           <p>Vorlage für die Bearbeitung von Daten in einem Formular.</p>
           <a href="#"></a>
         </div>
-      </article>
+      </section>
 
-      <article>
+      <section>
         <img src="https://picsum.photos/id/4/300/200" alt="" />
         <div>
           <h2>Navigation</h2>
           <p>Vorlagen für Navigationselemente</p>
           <a href="#"></a>
         </div>
-      </article>
+      </section>
 
-      <article>
+      <section>
         <img src="https://picsum.photos/id/5/300/200" alt="" />
         <div>
           <h2>Scannen</h2>
           <p>Vorlage für eine Seite auf der ein Bild mit der Kamera aufgenommen werden kann.</p>
           <a href="#"></a>
         </div>
-      </article>
+      </section>
 
-      <article>
+      <section>
         <img src="https://picsum.photos/id/6/300/200" alt="" />
         <div>
           <h2>Leere Seite</h2>
           <p>Vorlage für eine leere Seite, falls keine Elemente für die Anzeige vorhanden sind.</p>
           <a href="#"></a>
         </div>
-      </article>
+      </section>
 
-      <article>
+      <section>
         <img src="https://picsum.photos/id/7/300/200" alt="" />
         <div>
           <h2>Dialog</h2>
           <p>Beispiel für Dialoge</p>
           <a href="#"></a>
         </div>
-      </article>
+      </section>
+    </article>
+
+    <section id="listen" class="details">
+      <h2>Listen</h2>
+      <p>Ähnlich der Kartenansicht liefert die Listenansicht eine Übersicht gleichartiger Elemente. Jedes Element
+        erstreckt sich über die gesamte Breite des Inhaltsbereichs und alle Elemente werden untereinander angezeigt.</p>
+      <p>Elemente in der Listenansicht sind Tabellenzeilen (<code>&lt;tr&gt;</code>) in einer Tabelle
+        (<code>&lt;table&gt;</code>). Der Haupttext kommt in die erste Spalte oder in die zweite Spalte, wenn zu dem
+        Element ein Bild angezeigt werden soll. Das Bild kommt dann in die erste Spalte und die Überschrift des
+        Haupttextes erstreckt sich dann über die ersten beiden Spalten.</p>
+      <p>Alle weiteren Daten und Steuerelemente erscheinen ab der zweiten bzw. dritten Spalte</p>
+
+      <pre>
+          &lt;table&gt;
+            &lt;caption&gt;
+              Optionale Überschrift der Tabelle
+            &lt;/caption&gt;
+            &lt;colgroup&gt;
+              &lt;col style="width: 50px;"&gt;
+              &lt;col style="width: 100%;"&gt;
+              &lt;col /&gt;
+              &lt;col /&gt;
+            &lt;/colgroup&gt;
+            &lt;thead&gt;
+              &lt;th colspan="2"&gt;Name&lt;/th&gt;
+              &lt;th&gt;Anzahl&lt;/th&gt;
+              &lt;th&gt;Geändert&lt;/th&gt;
+            &lt;/thead&gt;
+            &lt;tbody&gt;
+              &lt;tr&gt;
+                &lt;td&gt;&lt;img src="https://picsum.photos/id/0/300/200" alt="" /&gt;&lt;/td&gt;
+                &lt;td&gt;Tomaten&lt;/td&gt;
+                &lt;td&gt;8&lt;/td&gt;
+                &lt;td&gt;&lt;time&gt;2025-02-01T15:25&lt;/time&gt;&lt;/td&gt;
+              &lt;/tr&gt;
+              &lt;tr&gt;
+                &lt;td&gt;&lt;img src="https://picsum.photos/id/1/300/200" alt="" /&gt;&lt;/td&gt;
+                &lt;td&gt;Gurken&lt;/td&gt;
+                &lt;td&gt;2&lt;/td&gt;
+                &lt;td&gt;&lt;time&gt;2025-02-01T16:38&lt;/time&gt;&lt;/td&gt;
+              &lt;/tr&gt;
+              &lt;tr&gt;
+                &lt;td&gt;&lt;img src="https://picsum.photos/id/3/300/200" alt="" /&gt;&lt;/td&gt;
+                &lt;td&gt;Paprika&lt;/td&gt;
+                &lt;td&gt;4&lt;/td&gt;
+                &lt;td&gt;&lt;time&gt;2025-02-01T16:39&lt;/time&gt;&lt;/td&gt;
+              &lt;/tr&gt;
+            &lt;/tbody&gt;
+          &lt;/table&gt;
+      </pre>
+    </section>
+
+    <table>
+      <caption>
+        Beispiel einer Listenansicht
+      </caption>
+      <colgroup>
+        <col style="width: 50px;">
+        <col style="width: 100%;">
+        <col />
+        <col />
+      </colgroup>
+      <thead>
+        <th colspan="2">Name</th>
+        <th>Anzahl</th>
+        <th>Geändert</th>
+      </thead>
+      <tbody>
+        <tr>
+          <td><img src="https://picsum.photos/id/0/300/200" alt="" /></td>
+          <td>Tomaten</td>
+          <td>8</td>
+          <td><time>2025-02-01T15:25</time></td>
+        </tr>
+        <tr>
+          <td><img src="https://picsum.photos/id/1/300/200" alt="" /></td>
+          <td>Gurken</td>
+          <td>2</td>
+          <td><time>2025-02-01T16:38</time></td>
+        </tr>
+        <tr>
+          <td><img src="https://picsum.photos/id/3/300/200" alt="" /></td>
+          <td>Paprika</td>
+          <td>4</td>
+          <td><time>2025-02-01T16:39</time></td>
+        </tr>
+      </tbody>
+    </table>
+
+
+
+    <section id="details" class="details">
+      <h2>Detailansicht</h2>
+      <p>Dies ist eine Blaupause für die Anzeige von detaillierten Daten eines einzelnen Elements.</p>
+      <p>Die angezeigten Elemente werden zentriert im Inhaltsbereich ausgegeben und nehmen nicht die volle Breite des
+        Inhaltsbereichs ein.</p>
+      <p>Im einfachsten Fall werden die Daten als Description-List dargestellt. Dabei können Daten in Gruppen
+        zusammengefasst werden, wenn die Gruppen jeweils eine eigene Description-List besitzen. Die Gruppen können eine
+        Überschrift mit einem <code>&lt;h1&gt;</code> bis <code>&lt;h6&gt;</code> Element bekommen. Die Überschrift
+        erfolgt aber in der Regel im Zentralbereich des Headers.
+      </p>
+      <pre>
+        &lt;dl&gt;
+          &lt;dt&gt;Name&lt;/dt&gt;
+          &lt;dd&gt;Paprika&lt;/dd&gt;
+          &lt;dt&gt;Anzahl&lt;/dt&gt;
+          &lt;dd&gt;8&lt;/dd&gt;
+          &lt;dt&gt;Änderung&lt;/dt&gt;
+          &lt;dd&gt;&lt;time&gt;2025-02-01T17:06&lt;/time&gt;&lt;/dd&gt;
+        &lt;/dl&gt;
+      </pre>
+    </section>
+    <section class="details">
+      <figure>
+        <img src="https://picsum.photos/id/8/300/200" alt="">
+      </figure>
+      <h2>Paprika</h2>
+      <dl>
+        <dt>Name</dt>
+        <dd>Paprika</dd>
+        <dt>Anzahl</dt>
+        <dd>8</dd>
+        <dt>Änderung</dt>
+        <dd><time>2025-02-01T17:06</time></dd>
+      </dl>
+    </section>
+    <section class="details">
+      <h3>Trennlinien</h3>
+      <p>Nach einer Gruppe von Daten, die sich in der selben Description-List befinden, kann die folgende Zeilen mit
+        einer Linie getrennt werden. Dazu müssen die Paare von <code>dt</code> und <code>dd</code> Elementen von einem
+        <code>div</code> Element umgeben werden.
+      </p>
+    </section>
+    <section class="details">
+      <dl>
+        <div>
+          <dt>Name</dt>
+          <dd>Rote Paprika</dd>
+          <dt>Allgemeiner Name</dt>
+          <dd>Paprika</dd>
+        </div>
+        <dt>Anzahl</dt>
+        <dd>6</dd>
+      </dl>
+    </section>
+    <section class="details">
+      <h2>Mehrere Definitionsterme für einen Wert</h2>
+      <p>Für einen Wert können in der Description-List mehrere Definitionsterme angegeben werden. Dabei wird der erste
+        Term hervorgehoben und die nachfolgenden Terme unterhalb des ersten Terms angeordnet, während der darzustellende
+        Wert als Description-Details Element vertikal zentriert auf der linken Seite erscheint.</p>
+      <aside>
+        <p>Ich könnte auch mal versuchen, die Description-List in einer Tabelle auszugeben anstatt ein Grid zu
+          verwenden. Siehe dazu die Beschreibung <a
+            href="https://css-tricks.com/complete-guide-table-element/#aa-making-semantic-elements-behave-like-a-table">Making
+            Semantic Elements Behave Like a Table</a>
+
+        </p>
+      </aside>
+    </section>
+    <section class="details">
+      <dl>
+        <dt>Einzelner Term</dt>
+        <dd>Wert 1</dd>
+        <dt>Zweiter Term</dt>
+        <dt>Mit einem nachrangigen zweiten Term</dt>
+        <dd>Wert 2</dd>
+        <dt>Abgefahrener dritter Term</dt>
+        <dt>Mit dem ersten nachrangigen Term</dt>
+        <dt>Mit dem zweiten nachrangigen Term</dt>
+        <dd>Wert 3</dd>
+        <dt>Wieder ein einzelner Term</dt>
+        <dd>Funktioniert nicht!</dd>
+      </dl>
     </section>
   </main>
 
