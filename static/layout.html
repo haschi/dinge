@@ -60,7 +60,7 @@
       </menu>
       <menu>
         <li><a href="#details">Detailansicht</a></li>
-        <li>Formular</li>
+        <li><a href="#forms">Formular</a></li>
         <li>Navigation</li>
         <li>Scannen</li>
         <li>Leere Seite</li>
@@ -253,8 +253,6 @@
       </tbody>
     </table>
 
-
-
     <section id="details" class="details">
       <h2>Detailansicht</h2>
       <p>Dies ist eine Blaupause für die Anzeige von detaillierten Daten eines einzelnen Elements.</p>
@@ -338,6 +336,59 @@
         <dd>Funktioniert nicht!</dd>
       </dl>
     </section>
+
+    <section id="forms" class="details">
+      <h2>Formulare</h2>
+      <p>Formulare werden mit einem <code>form</code> Element umschlossen. Das <code>label</code> umschließt das
+        dazugehörige <code>input</code> Element. Damit kann auf das Attribute <code>for</code> für das Label und
+        <code>id</code> für das Eingabeelemente verzichtet werden.
+      </p>
+      <p>Das <code>form</code> Element ist direktes Kind des <code>main</code> Elements. Es zentriert das Formular im
+        Inhaltsbereich und beschränkt die Breite.</p>
+      <p>Eingabefelder werden durch <code>fieldset</code> Elemente gruppiert.</p>
+      <aside>
+        Ich möchte, dass Formulare aussehen wie in Gnome Anwendungen. Solange das Eingabeelement nicht den Fokus hält,
+        erscheint der Inhalt des Eingabefeldes ohne Chrome.
+      </aside>
+    </section>
+
+    <form>
+      <fieldset>
+        <label>
+          Voller Name
+          <input type="text" name="name">
+        </label>
+      </fieldset>
+      <fieldset>
+        <label>
+          E-Mail hinzufügen
+          <input type="email" name="email" />
+        </label>
+        <label>
+          Bezeichnung
+          <select name="select" required>
+            <option value="" selected="">Select...</option>
+            <option>...</option>
+          </select>
+        </label>
+      </fieldset>
+      <fieldset>
+        <legend>Telefon</legend>
+        <label>
+          Telefonnummer hinzufügen
+          <input type="tel" name="telephone" />
+        </label>
+        <label>
+          Bezeichnung
+          <select name="seltel" required>
+            <option selected>Assistent</option>
+            <option>Geschäftlich</option>
+            <option>Privat</option>
+          </select>
+        </label>
+      </fieldset>
+    </form>
+
   </main>
 
   <footer>Footer</footer>

@@ -122,6 +122,15 @@ footer {
   outline: var(--layout-border);
 }
 
+/* Von der Breite beschränkte und zentrierte Elemente des Hauptbereichs */
+
+main form,
+main table {
+  max-width: 570px;
+  margin: auto;
+}
+
+
 /* Kartenansicht */
 
 main section.grid {
