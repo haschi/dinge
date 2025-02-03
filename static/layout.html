@@ -61,7 +61,8 @@
       <menu>
         <li><a href="#details">Detailansicht</a></li>
         <li><a href="#forms">Formular</a></li>
-        <li>Navigation</li>
+        <li><a href="#typography">Typography</a></li>
+        <li><a href="#navigation">Navigation</a></li>
         <li>Scannen</li>
         <li>Leere Seite</li>
         <li>Dialoge</li>
@@ -389,6 +390,353 @@
       </fieldset>
     </form>
 
+    <section id="typography" class="details">
+      <h2>Typography</h2>
+      <p>Alle HTML Überschriften von <code>&lt;h1&gt;</code> bis <code>&lt;h6&gt;</code> sind verfügbar.</p>
+
+      <h3>Überschriften</h3>
+      <table>
+        <thead>
+          <tr>
+            <th>Überschrift</th>
+            <th>Beispiel</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><code>&lt;h1&gt;</code></td>
+            <td>
+              <h1>h1. Überschrift</h1>
+            </td>
+          </tr>
+          <tr>
+            <td><code>&lt;h2&gt;</code></td>
+            <td>
+              <h2>h2. Überschrift</h2>
+            </td>
+          </tr>
+          <tr>
+            <td><code>&lt;h3&gt;</code></td>
+            <td>
+              <h3>h3. Überschrift</h3>
+            </td>
+          </tr>
+          <tr>
+            <td><code>&lt;h4&gt;</code></td>
+            <td>
+              <h4>h4. Überschrift</h4>
+            </td>
+          </tr>
+          <tr>
+            <td><code>&lt;h5&gt;</code></td>
+            <td>
+              <h5>h5. Überschrift</h5>
+            </td>
+          </tr>
+          <tr>
+            <td><code>&lt;h6&gt;</code></td>
+            <td>
+              <h6>h6. Überschrift</h6>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+
+      <h3>Inlinetextelemente</h3>
+
+      <table>
+        <thead>
+          <tr>
+            <th>Element</th>
+            <th>Beispiel</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><code>&lt;strong&gt;</code></td>
+            <td><strong>Stark hervorgehoben</strong></td>
+          </tr>
+          <tr>
+            <td><code>&lt;em&gt;</code></td>
+            <td><em>Besonders Hervorhebung.</em></td>
+          </tr>
+          <tr>
+            <td><code>&lt;u&gt;</code></td>
+            <td><u>Unterstrichen</u></td>
+          </tr>
+          <tr>
+            <td><code>&lt;del&gt;</code></td>
+            <td><del>Gelöscht</del></td>
+          </tr>
+          <tr>
+            <td><code>&lt;ins&gt;</code></td>
+            <td><ins>Eingefügt</ins></td>
+          </tr>
+          <tr>
+            <td><code>&lt;s&gt;</code></td>
+            <td><s>Durchgestrichen</s></td>
+          </tr>
+          <tr>
+            <td><code>&lt;small&gt;</code></td>
+            <td><small>Klein</small></td>
+          </tr>
+          <tr>
+            <td><code>&lt;sub&gt;</code></td>
+            <td>Text<sub>tiefergestellt</sub></td>
+          </tr>
+          <tr>
+            <td><code>&lt;sup&gt;</code></td>
+            <td>Text<sup>höhergestellt</sup></td>
+          </tr>
+          <tr>
+            <td><code>&lt;abbr&gt;</code></td>
+            <td><abbr title="Abbreviation" data-tootltip="Abbreviation">Abkürzung</abbr></td>
+          </tr>
+          <tr>
+            <td><code>&lt;kbd&gt;</code></td>
+            <td><kbd>Kbd</kbd></td>
+          </tr>
+          <tr>
+            <td><code>&lt;mark&gt;</code></td>
+            <td><mark>Markiert</mark></td>
+          </tr>
+          <tr>
+            <td><code>&lt;q&gt;</code></td>
+            <td><q>Inlinezitat</q></td>
+          </tr>
+          <tr>
+            <td><code>&lt;dfn&gt;</code></td>
+            <td><dfn>Definitionselement</dfn></td>
+          </tr>
+          <tr>
+            <td><code>&lt;time&gt;</code></td>
+            <td>Datum- und Zeitelement: <time>20250203T16:18</time></td>
+          </tr>
+          <tr>
+            <td><code>&lt;code&gt;</code></td>
+            <td>Inlinecode: <code>&lt;html&gt;</code></td>
+          </tr>
+          <tr>
+            <td><code>&lt;var&gt;</code></td>
+            <td>CSS Variable <var>--background-color</var></td>
+          </tr>
+          <tr>
+            <td><code>&lt;samp&gt;</code></td>
+            <td>TBD</td>
+          </tr>
+          <tr>
+            <td><code>&lt;i&gt;</code></td>
+            <td><i>Idiomatischer Ausdruck</i></td>
+          </tr>
+          <tr>
+            <td><code>&lt;b&gt;</code></td>
+            <td><b>Aufmerksamkeitselement</b></td>
+          </tr>
+        </tbody>
+      </table>
+
+      <h3>Fließtext</h3>
+      <p>Um gewöhnliche Fließtext darzustellen gibt es das <code>article</code> Element. Darin enthalten sind
+        üblicherweise
+        Abschnitte (<code>section</code>), Überschriften (<code>&lt;h1&gt;</code> bis <code>&lt;h6&gt;</code>) und
+        Paragrphen
+        (<code>&lt;p&gt;</code>).
+      </p>
+
+      <article>
+        <h1>Artikel</h1>
+        <p>Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et
+          dolore
+          magna aliquyam erat, sed diam voluptua. At</p>
+      </article>
+    </section>
+
+    <section id="navigation" class="details">
+      <h2>Navigation</h2>
+
+      <h3>Buttons</h3>
+
+      <p>Primäre Steuerelemente werden von einem <code>em</code> Element umschlossen.</p>
+
+      <p>Sekundäre Steuerlemente werden nicht besonders ausgezeichnet. Das führt jedoch zu einer Ungereimtheit mit
+        Verknüpfungen, die als Schaltfläche dargestellt werden sollen.</p>
+
+      <p>Steuerelemente und Verknüpfungen mit destruktivem Character werden von einem <code>strong</code> Element
+        umschlossen. Allerdings sollten Verküpfungen keine Destruktiven Aktionen durchführen. Das gehört sich einfach
+        nicht.</p>
+
+      <table>
+        <caption>
+          Primäre Aktionen und Navigation
+        </caption>
+        <thead>
+          <tr>
+            <th>Markup</th>
+            <th>Beispiel</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><code>&lt;em&gt;&lt;button&gt;Primäre Aktion&lt;/button&gt;&lt;/em&gt;</code></td>
+            <td><em><button>Primäre Aktion</button></em></td>
+          </tr>
+          <tr>
+            <td>
+              <code>&lt;em&gt;&lt;input type="submit" value="Formular senden"/&gt;&lt;/em&gt;</code>
+            </td>
+            <td><em><input type="submit" value="Formular senden" /></em></td>
+          </tr>
+          <tr>
+            <td>
+              <code>&lt;em&gt;&lt;input type="button" value="Primäre Aktion"/&gt;&lt;/em&gt;</code>
+            </td>
+            <td><em><input type="button" value="Primäre Aktion" /></em></td>
+          </tr>
+          <tr>
+            <td><code>&lt;em&gt;&lt;a href="#"&gt;Primärer Navigationslink&lt;/a&gt;&lt;/em&gt;</code></td>
+            <td><em><a href="#">Primärer Navigationslink</a></em></td>
+          </tr>
+        </tbody>
+      </table>
+
+      <table>
+        <caption>
+          Sekundäre Aktionen und Navigation
+        </caption>
+        <thead>
+          <tr>
+            <th>Markup</th>
+            <th>Beispiel</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><code>&lt;button&gt;Sekundäre Aktion&lt;/button&gt;</code></td>
+            <td><button>Sekundäre Aktion</button></td>
+          </tr>
+          <tr>
+            <td>
+              <code>&lt;input type="submit" value="Formular senden"/&gt;</code>
+            </td>
+            <td><input type="submit" value="Formular senden" /></td>
+          </tr>
+          <tr>
+            <td>
+              <code>&lt;input type="button" value="Sekundäre Aktion"/&gt;</code>
+            </td>
+            <td><input type="button" value="Sekundäre Aktion" /></td>
+          </tr>
+          <tr>
+            <td>Für Links nicht anwendbar</td>
+            <td>N/A</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <table>
+        <caption>
+          Destruktive Aktionen und Navigation
+        </caption>
+        <thead>
+          <tr>
+            <th>Markup</th>
+            <th>Beispiel</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><code>&lt;strong&gt;&lt;button&gt;Destruktive Aktion&lt;/button&gt;&lt;/strong&gt;</code></td>
+            <td><strong><button>Destruktive Aktion</button></strong></td>
+          </tr>
+          <tr>
+            <td>
+              <code>&lt;strong&gt;&lt;input type="submit" value="Formular senden"/&gt;&lt;/strong&gt;</code>
+            </td>
+            <td><strong><input type="submit" value="Formular senden" /></strong></td>
+          </tr>
+          <tr>
+            <td>
+              <code>&lt;strong&gt;&lt;input type="button" value="Destruktive Aktion"/&gt;&lt;/strong&gt;</code>
+            </td>
+            <td><strong><input type="button" value="Destruktive Aktion" /></strong></td>
+          </tr>
+          <tr>
+            <td><code>&lt;strong&gt;&lt;a href="#"&gt;Destruktiver Navigationslink&lt;/a&gt;&lt;/strong&gt;</code></td>
+            <td><strong><a href="#">Destruktiver Navigationslink</a></strong></td>
+          </tr>
+        </tbody>
+      </table>
+
+      <h3>Menüs</h3>
+
+      <p>Menüs können an unterschiedlichen Stellen verwendet werden. Im Header als Anwendungsmenü, in der Seitenleiste
+        zur Navigation oder im Inhaltsbereich.</p>
+
+      <h4>Menüs in der Kopfzeile (header)</h4>
+
+      <p>Menüs in der Kopfzeile dienen Navigation, können aber auch Elemente enthalten, mit denen die aktuelle Ansicht
+        konfiguriert wird und zum Beispiel zwischen Listen- und Rasteransicht oder die Sortierung umgeschaltet.</p>
+
+      <header>
+        <div>Linkes Headerelement</div>
+        <menu>
+          <li>Item 1</li>
+          <menu>
+            Submenu
+            <li>Subitem 1</li>
+            <li>Subitem 2</li>
+          </menu>
+        </menu>
+      </header>
+
+      <h4>Menüs in der Kopfzeile in der Seitenleiste</h4>
+
+      <aside>
+        <header>
+          <menu>
+            <li>Item 1</li>
+            <li>Item 2</li>
+          </menu>
+        </header>
+      </aside>
+
+      <h4>Menüs in der Seitenleiste</h4>
+
+      <aside>
+        <menu>
+          <li>Item 1</li>
+          <li>Item 2</li>
+        </menu>
+      </aside>
+
+      <h4>Menüs in einem Formular</h4>
+
+      <p>Bei Menüs im Inhaltsbereich muss Unterschieden werden zwischen Auswahlelementen (<code>select</code>) und
+        Menüs. Mit Menüs werden Funktionen der aktuellen Sicht gesteuert.</p>
+      <form>
+        <h1>Adresse</h1>
+        <menu>
+          <li>Person</li>
+          <li>Gesellschaft</li>
+        </menu>
+
+        <label>
+          Voller Name
+          <input type="text" name="name" />
+        </label>
+        <label>
+          Straße
+          <input type="text" name="street" />
+        </label>
+        <label>
+          Hausnummer
+          <input type="text" name="number" />
+        </label>
+        <nav>
+          <em><input type="submit" value="Speichern" /></em>
+        </nav>
+      </form>
+    </section>
   </main>
 
   <footer>Footer</footer>
