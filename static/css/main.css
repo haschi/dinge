@@ -8,26 +8,99 @@
   --background-color: white;
 }
 
-/* Klassenlose HTML Struktur */
+
+
+/* Reset */
+*,
+*:before,
+*:after {
+  box-sizing: inherit;
+  margin: 0;
+  padding: 0;
+}
+
+:root {
+  box-sizing: border-box;
+  min-height: 100%;
+}
+
+body {
+  min-height: 100vh;
+  font-size: 100%;
+  line-height: 1.5;
+}
+
+img,
+video,
+canvas,
+audio,
+iframe,
+embed,
+object {
+  display: block;
+  max-width: 100%;
+}
+
+input,
+button,
+textarea,
+select {
+  font-family: inherit;
+  font-size: inherit;
+}
+
+/* Typography */
+
+body {
+  font-family: Arial, Helvetica, sans-serif;
+}
+
+/* Vertikale Abstände */
+article,
+section,
+table,
+form {
+  margin-bottom: 1rem;
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  margin-bottom: 0.5rem;
+}
+
+p,
+pre {
+  margin-bottom: 0.5rem;
+}
+
+p {
+  text-wrap: pretty;
+}
+
+/* Klassenlose HTML Struktur - globales Layout */
 /*
 <body>
   <header></header>
   <aside></aside>
-  <nav>War Klasse main-nav</nav>
+  <nav></nav>
   <main></main>
   <footer></footer
 </body>
 */
 
 body {
-  margin: 0;
   display: grid;
   grid-template-areas:
     "sidebar header"
     "sidebar content"
     "footer footer";
 
-  grid-template-rows: minmax(auto, 2rem) auto;
+  /* Sidebar nimmt sich soviel Platz, wie sie benötigt; Der Inhaltsbereich wächst mit der Fenstergröße.*/
+  grid-template-columns: auto 1fr;
 
   header {
     grid-area: header;
@@ -39,6 +112,7 @@ body {
 
   aside {
     grid-area: sidebar;
+
   }
 
   footer {
@@ -48,6 +122,8 @@ body {
 
 
 header {
+  margin: 0 0.25rem;
+
   display: flex;
   flex-flow: row nowrap;
   justify-content: space-between;
@@ -55,6 +131,14 @@ header {
 
   form {
     display: flex;
+  }
+
+  >*:not(:first-child) {
+    margin-left: 0.5rem;
+  }
+
+  >*:not(:last-child) {
+    margin-right: 0.5rem;
   }
 }
 
@@ -83,11 +167,9 @@ header nav {
   menu {
     position: relative;
     display: flex;
-    flex-direction: row;
     list-style-type: none;
 
     li {
-      padding: 0 1rem;
 
       a {
         text-decoration: none;
@@ -124,9 +206,13 @@ footer {
 
 /* Von der Breite beschränkte und zentrierte Elemente des Hauptbereichs */
 
-main form,
-main table {
+main form {
   max-width: 570px;
+  margin: auto;
+}
+
+main table {
+  /* max-width: 570px; */
   margin: auto;
 }
 
@@ -256,16 +342,24 @@ details[open] summary::after {
 /* Effekte */
 /* Bei Karten mit Fokus oder Hover das enthaltene Bild heranzoomen und einen Schatten erzeugen */
 main article.grid {
+  padding: 1rem;
+
   section {
     --image-scale: 1.001;
     overflow: hidden;
     transform-origin: center;
+    background-color: var(--background-color);
+    margin: 0;
 
     img {
       max-width: 100%;
       transform-origin: center;
       transform: scale(var(--img-scale));
       transition: transform 0.4s ease-in-out;
+    }
+
+    div {
+      padding: 0.5rem;
     }
 
     /* Links mit Fokus durch einen Rahmen hervorheben */
@@ -285,6 +379,7 @@ main article.grid {
 main article.grid {
   display: flex;
   flex-wrap: wrap;
+  gap: 1rem;
 
   section {
     /* Karten müssen eine feste Breite besitzen */
@@ -311,13 +406,23 @@ main article.grid {
 main {
   table {
     width: 100%;
-    border-collapse: collapse;
+    min-width: 100%;
+    border-collapse: separate;
+    border-spacing: 0;
+    margin-bottom: 1rem;
+
+    caption {
+      text-align: left;
+      margin-bottom: 0.5rem;
+      font-weight: bold;
+    }
 
     th,
     td {
       border: var(--layout-border);
       text-align: left;
-      white-space: nowrap;
+      overflow-wrap: break-word;
+      white-space: normal;
     }
   }
 
