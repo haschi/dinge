@@ -59,7 +59,8 @@ body {
 article,
 section,
 table,
-form {
+form,
+div {
   margin-bottom: 1rem;
 }
 
@@ -120,6 +121,31 @@ body {
   }
 }
 
+/* Das könnte später mal main sein. */
+/* Rekursives full-width ist nicht implementiert. */
+.content-grid {
+  --padding-inline: 2rem;
+  --content-max-midth: 70ch;
+  --breakout-max-width: 85ch;
+
+  --breakout-size: calc((var(--breakout-max-width) - var(--content-max-midth)) / 2);
+
+  display: grid;
+  grid-template-columns:
+    [full-width-start] minmax(var(--padding-inline), 1fr) [breakout-start] minmax(0, var(--breakout-size)) [content-start] min(100% - (var(--padding-inline) * 2), var(--content-max-midth)) [content-end] minmax(0, var(--breakout-size)) [breakout-end] minmax(var(--padding-inline), 1fr) [full-width-end];
+}
+
+.content-grid>* {
+  grid-column: content;
+}
+
+.content-grid>.breakout {
+  grid-column: breakout;
+}
+
+.content-grid>.full-width {
+  grid-column: full-width;
+}
 
 header {
   margin: 0 0.25rem;
@@ -206,22 +232,18 @@ footer {
 
 /* Von der Breite beschränkte und zentrierte Elemente des Hauptbereichs */
 
-main form {
+main>form {
   max-width: 570px;
   margin: auto;
 }
 
-main table {
+main>table {
   /* max-width: 570px; */
   margin: auto;
 }
 
 
 /* Kartenansicht */
-
-main section.grid {
-  min-width: 100%;
-}
 
 /* Detailansicht */
 /* Da muss ein anderer Selektor hin. Darf sich aber nicht mit Karten und Listenansicht überschneiden */
@@ -341,10 +363,10 @@ details[open] summary::after {
 
 /* Effekte */
 /* Bei Karten mit Fokus oder Hover das enthaltene Bild heranzoomen und einen Schatten erzeugen */
-main article.grid {
+main>ul {
   padding: 1rem;
 
-  section {
+  >li {
     --image-scale: 1.001;
     overflow: hidden;
     transform-origin: center;
@@ -369,19 +391,19 @@ main article.grid {
   }
 
   /* Aktive Karten hervorheben */
-  section:has(:hover, :focus) {
+  >li:has(:hover, :focus) {
     --img-scale: 1.1;
     box-shadow: rgba(0, 0, 0, 0.16) 0px 10px 36px 0px, rgba(0, 0, 0, 0.06) 0px 0px 0px 1px;
   }
 }
 
 /* Layout für Karten in einem Raster. Die Rasterfläche muss ein article Element sein; jede Karte ist ein section Element innerhalb des article Elements.*/
-main article.grid {
+main>ul {
   display: flex;
   flex-wrap: wrap;
   gap: 1rem;
 
-  section {
+  >li {
     /* Karten müssen eine feste Breite besitzen */
     width: 300px;
     position: relative;
@@ -403,30 +425,30 @@ main article.grid {
 }
 
 /* Listenansicht: Listenansichten sind table Elemente in main */
-main {
-  table {
-    width: 100%;
-    min-width: 100%;
-    border-collapse: separate;
-    border-spacing: 0;
-    margin-bottom: 1rem;
+main table {
 
-    caption {
-      text-align: left;
-      margin-bottom: 0.5rem;
-      font-weight: bold;
-    }
+  width: 100%;
+  min-width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+  margin-bottom: 1rem;
 
-    th,
-    td {
-      border: var(--layout-border);
-      text-align: left;
-      overflow-wrap: break-word;
-      white-space: normal;
-    }
+  caption {
+    text-align: left;
+    margin-bottom: 0.5rem;
+    font-weight: bold;
   }
 
-  table td:has(img) {
+  th,
+  td {
+    border: var(--layout-border);
+    text-align: left;
+    overflow-wrap: break-word;
+    white-space: normal;
+  }
+
+
+  td:has(img) {
     width: 50px;
     overflow: hidden;
     display: inline-block;
