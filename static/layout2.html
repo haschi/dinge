@@ -1,0 +1,784 @@
+<!doctype html>
+<html lang="de" color-mode="user">
+
+<head>
+  <meta charset="utf-8">
+  <link rel="stylesheet" href="/static/css/app.css">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Layout</title>
+  <style>
+    .example {
+      resize: both;
+      overflow: auto;
+      min-width: 25vw;
+      min-height: 400px;
+      padding: 1rem;
+      margin-inline: auto;
+    }
+  </style>
+</head>
+
+<body>
+  <header>
+    <div>Left</div>
+    <form class="fill">
+      <input type="search" id="search" name="q" placeholder="Center" class="fill">
+      <button type="submit">Suchen</button>
+    </form>
+    <nav>
+      <menu>
+        <!-- <li>One</li>
+        <li>
+          <span>Two</span>
+          <menu>
+            <li>Sub-1</li>
+            <li>Sub-2</li>
+            <li>Sub-3</li>
+            <li>Sub-4</li>
+            <li>Sub-5</li>
+          </menu>
+        </li> -->
+        <li>Three</li>
+        <li>
+          <button popovertarget="application-menu">Klickme</button>
+          <dialog id="application-menu" popover class="application-menu">
+            <div class="profile grid-flow">
+              <span class="profile-name">
+                <strong>User Name</strong>
+              </span>
+              <span class="profile-email">email@address.com</span>
+            </div>
+            <button id="manage">Manage Account</button>
+            <button id="signout">Sign out</button>
+          </dialog>
+        </li>
+      </menu>
+    </nav>
+  </header>
+
+  <aside>
+    <header>
+      <div>
+        <button>+</button>
+        <button>-</button>
+      </div>
+      <span>Dinge</span>
+      <nav>
+        <menu>
+          <li>
+            <button popovertarget="main-menu">...</button>
+            <dialog id="main-menu" popover class="application-menu" style="transform: translateX(-25%);">
+              <div class="profile grid-flow">
+                <span><strong>Item 1</strong></span>
+                <span>Item 2</span>
+                <span>Item 3</span>
+                <a href="#">Ein Link zu mir selbst</a>
+              </div>
+            </dialog>
+          </li>
+        </menu>
+      </nav>
+    </header>
+    <nav>
+      <menu>
+        <li><a href="#karten" class="active">Karten</a></li>
+        <li><a href="#listen">Listen</a></li>
+      </menu>
+      <menu>
+        <li><a href="#details">Detailansicht</a></li>
+        <li><a href="#forms">Formular</a></li>
+        <li><a href="#typography">Typography</a></li>
+        <li><a href="#navigation">Navigation</a></li>
+      </menu>
+      <menu>
+        <li><a href="#">Scannen</a></li>
+        <li><a href="#">Leere Seite</a></li>
+        <li><a href="#">Dialoge</a></li>
+      </menu>
+    </nav>
+  </aside>
+
+  <main class="content-grid">
+    <section id="karten" class="details">
+      <h2>Karten</h2>
+      <p>Eine mit Karten gefüllte Rasteransicht im Inhaltsbereich wird mit einem
+        <code>&lt;ul&gt;</code> Element eingeleitet als direktes Kind des <code>&lt;main&gt;</code> Elements. Jede Karte
+        ist ein <code>&lt;li&gt;</code> Element innerhalb dieses Elternelements.
+      </p>
+      <p>Karten können einen Link enthalten. Die anklickbare Fläche des Links erstreckt sich über die gesamte Karte. Das
+        Linkelement kann einen Text enthalten, muss es aber nicht.</p>
+      <details>
+        <summary>HTML Beispiel</summary>
+        <figure>
+          <figcaption>HTML Beispiel für Kartenansicht</figcaption>
+          <pre>&lt;main&gt;
+  &lt;ul&gt;
+    &lt;li&gt;
+      &lt;img src="/static/placeholder.svg"/&gt;
+      &lt;h2&gt;Eine Karte&lt;/h2&gt;
+      &lt;p&gt;Vorlage für eine Ansicht, die Karten in einer
+         Rasteransicht darstellt.&lt;/p&gt;
+    &lt;/li&gt;
+  &lt;/ul&gt;
+&lt;/main&gt;</pre>
+        </figure>
+      </details>
+    </section>
+
+    <div class="breakout example">
+      <main>
+        <!-- Irgendwie muss ich die Klasse full-width für main>ul loswerden -->
+        <ul class="full-width">
+          <li>
+            <img src="https://picsum.photos/id/0/300/200" alt="" />
+            <div>
+              <h2>Übersicht Karten</h2>
+              <p>Vorlage für eine Übersicht, die Elemente als Karten präsentiert.</p>
+              <a href="#karten"></a>
+            </div>
+          </li>
+          <li>
+            <img src="https://picsum.photos/id/1/300/200" alt="" />
+            <div>
+              <h2>Übersicht Listen</h2>
+              <p>Vorlage für eine Übersicht, die Elemente als Liste darstellt.</p>
+              <a href="#listen"></a>
+            </div>
+          </li>
+          <li>
+            <img src="https://picsum.photos/id/2/300/200" alt="" />
+            <div>
+              <h2>Detailansicht</h2>
+              <p>Vorlage für die Detailansicht von Daten eines einzelnen Elements.</p>
+              <a href="#"></a>
+            </div>
+          </li>
+          <li>
+            <img src="https://picsum.photos/id/3/300/200" alt="" />
+            <div>
+              <h2>Formular</h2>
+              <p>Vorlage für die Bearbeitung von Daten in einem Formular.</p>
+              <a href="#"></a>
+            </div>
+          </li>
+          <li>
+            <img src="https://picsum.photos/id/4/300/200" alt="" />
+            <div>
+              <h2>Navigation</h2>
+              <p>Vorlagen für Navigationselemente</p>
+              <a href="#"></a>
+            </div>
+          </li>
+          <li>
+            <img src="https://picsum.photos/id/5/300/200" alt="" />
+            <div>
+              <h2>Scannen</h2>
+              <p>Vorlage für eine Seite auf der ein Bild mit der Kamera aufgenommen werden kann.</p>
+              <a href="#"></a>
+            </div>
+          </li>
+          <li>
+            <img src="https://picsum.photos/id/6/300/200" alt="" />
+            <div>
+              <h2>Leere Seite</h2>
+              <p>Vorlage für eine leere Seite, falls keine Elemente für die Anzeige vorhanden sind.</p>
+              <a href="#"></a>
+            </div>
+          </li>
+          <li>
+            <img src="https://picsum.photos/id/7/300/200" alt="" />
+            <div>
+              <h2>Dialog</h2>
+              <p>Beispiel für Dialoge</p>
+              <a href="#"></a>
+            </div>
+          </li>
+        </ul>
+      </main>
+    </div>
+
+    <section id="listen" class="details">
+      <h2>Listen</h2>
+      <p>Ähnlich der Kartenansicht liefert die Listenansicht eine Übersicht gleichartiger Elemente. Jedes Element
+        erstreckt sich über die gesamte Breite des Inhaltsbereichs und alle Elemente werden untereinander angezeigt.</p>
+      <p>Elemente in der Listenansicht sind Tabellenzeilen (<code>&lt;tr&gt;</code>) in einer Tabelle
+        (<code>&lt;table&gt;</code>). Der Haupttext kommt in die erste Spalte oder in die zweite Spalte, wenn zu dem
+        Element ein Bild angezeigt werden soll. Das Bild kommt dann in die erste Spalte und die Überschrift des
+        Haupttextes erstreckt sich dann über die ersten beiden Spalten.</p>
+      <p>Alle weiteren Daten und Steuerelemente erscheinen ab der zweiten bzw. dritten Spalte</p>
+
+      <details>
+        <summary>HTML Beispiel</summary>
+        <figure>
+          <figcaption>HTML Beispiel für Listenansicht</figcaption>
+          <pre>&lt;table&gt;
+  &lt;caption&gt;
+    Optionale Überschrift der Tabelle
+  &lt;/caption&gt;
+  &lt;colgroup&gt;
+    &lt;col style="width: 50px;"&gt;
+    &lt;col style="width: 100%;"&gt;
+    &lt;col /&gt;
+    &lt;col /&gt;
+  &lt;/colgroup&gt;
+  &lt;thead&gt;
+    &lt;th colspan="2"&gt;Name&lt;/th&gt;
+    &lt;th&gt;Anzahl&lt;/th&gt;
+    &lt;th&gt;Geändert&lt;/th&gt;
+  &lt;/thead&gt;
+  &lt;tbody&gt;
+    &lt;tr&gt;
+      &lt;td&gt;&lt;img src="https://picsum.photos/id/0/300/200" alt="" /&gt;&lt;/td&gt;
+      &lt;td&gt;Tomaten&lt;/td&gt;
+      &lt;td&gt;8&lt;/td&gt;
+      &lt;td&gt;&lt;time&gt;2025-02-01T15:25&lt;/time&gt;&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td&gt;&lt;img src="https://picsum.photos/id/1/300/200" alt="" /&gt;&lt;/td&gt;
+      &lt;td&gt;Gurken&lt;/td&gt;
+      &lt;td&gt;2&lt;/td&gt;
+      &lt;td&gt;&lt;time&gt;2025-02-01T16:38&lt;/time&gt;&lt;/td&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td&gt;&lt;img src="https://picsum.photos/id/3/300/200" alt="" /&gt;&lt;/td&gt;
+      &lt;td&gt;Paprika&lt;/td&gt;
+      &lt;td&gt;4&lt;/td&gt;
+      &lt;td&gt;&lt;time&gt;2025-02-01T16:39&lt;/time&gt;&lt;/td&gt;
+    &lt;/tr&gt;
+  &lt;/tbody&gt;
+&lt;/table&gt;</pre>
+        </figure>
+      </details>
+    </section>
+
+    <div class="breakout example">
+
+      <table>
+        <caption>
+          Beispiel einer Listenansicht
+        </caption>
+        <colgroup>
+          <col style="width: 50px;">
+          <col style="width: 100%;">
+          <col />
+          <col />
+        </colgroup>
+        <thead>
+          <th colspan="2">Name ⯅</th>
+          <th>Anzahl ⯆</th>
+          <th>Geändert</th>
+        </thead>
+        <tbody>
+          <tr>
+            <td><img src="https://picsum.photos/id/0/300/200" alt="" /></td>
+            <td>Tomaten</td>
+            <td>8</td>
+            <td><time>2025-02-01T15:25</time></td>
+          </tr>
+          <tr>
+            <td><img src="https://picsum.photos/id/1/300/200" alt="" /></td>
+            <td>Gurken</td>
+            <td>2</td>
+            <td><time>2025-02-01T16:38</time></td>
+          </tr>
+          <tr>
+            <td><img src="https://picsum.photos/id/3/300/200" alt="" /></td>
+            <td>Paprika</td>
+            <td>4</td>
+            <td><time>2025-02-01T16:39</time></td>
+          </tr>
+        </tbody>
+      </table>
+
+      <table>
+        <caption>
+          Beispiel mit Verweisen im Tabellenkopf
+        </caption>
+        <colgroup>
+          <col style="width: 50px">
+          <col style="width: 100%">
+          <col />
+          <col />
+        </colgroup>
+        <thead>
+          <th colspan="2"><a href="#">Name ⯅</a></th>
+          <th class="right"><a href="#">Anzahl ⯆</a></th>
+          <th><a href="#">Geändert</a></th>
+        </thead>
+        <tbody>
+          <tr>
+            <td><img src="https://picsum.photos/id/0/300/200" alt="" /></td>
+            <td>Tomaten</td>
+            <td class="right">8</td>
+            <td><time>2025-02-01T15:25</time></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <section id="details" class="details">
+      <h2>Detailansicht</h2>
+      <p>Die Detailansicht dient der Darstellung von Daten eines einzelnen Elements. Die Daten werden in
+        Beschreibungslisten <code>&lt;dl&gt;</code> gruppiert. Gruppen werden visuell voneinander getrennt
+        dargestellt.</p>
+      <p>Definitionsterme (<code>&lt;dt&gt;</code>) geben den anzuzeigenden Daten einen Namen und können eine
+        detaillierte Beschreibung erhalten, wenn dem Term ein <code>&lt;span&gt;</code> Element hinzugefügt wird. Die
+        detaillierte Beschreibung wird zurückhaltend in einer
+        eigenen Zeile dargestellt.
+      </p>
+      <p>Die eigentlichen Daten des darzustellenden Elements werden von einem Definitionsdetail
+        Element(<code>&lt;dd&gt;</code>) umschlossen.</p>
+      <p>Zusammengehörende Paare von Definitionstermen und Definitionsdetails müssen von einem Inhaltsteilungselement
+        (<code>&lt;div&gt;</code>) umschlossen.</p>
+
+      <details>
+        <summary>HTML Beispiel</summary>
+        <figure>
+          <figcaption>HTML Beispiel für eine Detailansicht</figcaption>
+          <pre>&lt;dl&gt;
+  &lt;div&gt;
+    &lt;dt&gt;Name
+      &lt;span&gt;Der spezielle Name des Dings&lt;/span&gt;
+    &lt;/dt&gt;
+    &lt;dd&gt;Paprika&lt;/dd&gt;
+  &lt;/div&gt;
+  &lt;div&gt;
+    &lt;dt&gt;Anzahl&lt;/dt&gt;
+    &lt;dd&gt;8&lt;/dd&gt;
+  &lt;/div&gt;
+  &lt;div&gt;
+    &lt;dt&gt;Änderung&lt;/dt&gt;
+    &lt;dd&gt;&lt;time&gt;2025-02-01T17:06&lt;/time&gt;&lt;/dd&gt;
+  &lt;/div&gt;
+&lt;/dl&gt;</pre>
+        </figure>
+      </details>
+
+    </section>
+
+    <div class="breakout example">
+      <h4>Paprika</h4>
+      <dl>
+        <div>
+          <dt>Name
+            <span>Der spezielle Name des Dings</span>
+          </dt>
+          <dd>Paprika</dd>
+        </div>
+        <div>
+          <dt>Anzahl</dt>
+          <dd>8</dd>
+        </div>
+        <div>
+          <dt>Änderung</dt>
+          <dd><time>2025-02-01T17:06</time></dd>
+        </div>
+      </dl>
+    </div>
+
+    <section id="forms" class="details">
+      <h2>Formulare</h2>
+      <p>Formulare werden mit einem <code>form</code> Element umschlossen. Das <code>label</code> umschließt das
+        dazugehörige <code>input</code> Element. Damit kann auf das Attribute <code>for</code> für das Label und
+        <code>id</code> für das Eingabeelemente verzichtet werden.
+      </p>
+      <p>Das <code>form</code> Element ist direktes Kind des <code>main</code> Elements. Es zentriert das Formular im
+        Inhaltsbereich und beschränkt die Breite.</p>
+      <p>Eingabefelder werden durch <code>fieldset</code> Elemente gruppiert.</p>
+      <aside>
+        Ich möchte, dass Formulare aussehen wie in Gnome Anwendungen. Solange das Eingabeelement nicht den Fokus hält,
+        erscheint der Inhalt des Eingabefeldes ohne Chrome.
+      </aside>
+    </section>
+
+    <form>
+      <fieldset>
+        <label>
+          Voller Name
+          <input type="text" name="name">
+        </label>
+      </fieldset>
+      <fieldset>
+        <label>
+          E-Mail hinzufügen
+          <input type="email" name="email" />
+        </label>
+        <label>
+          Bezeichnung
+          <select name="select" required>
+            <option value="" selected="">Select...</option>
+            <option>...</option>
+          </select>
+        </label>
+      </fieldset>
+      <fieldset>
+        <legend>Telefon</legend>
+        <label>
+          Telefonnummer hinzufügen
+          <input type="tel" name="telephone" />
+        </label>
+        <label>
+          Bezeichnung
+          <select name="seltel" required>
+            <option selected>Assistent</option>
+            <option>Geschäftlich</option>
+            <option>Privat</option>
+          </select>
+        </label>
+      </fieldset>
+    </form>
+
+    <section id="typography" class="details">
+      <h2>Typography</h2>
+      <p>Ein vollständig Beispiel befindet sich in <a href="view/typography.html">view/typography.html</a></p>
+      <p>Alle HTML Überschriften von <code>&lt;h1&gt;</code> bis <code>&lt;h6&gt;</code> sind verfügbar.</p>
+
+      <h3>Überschriften</h3>
+      <table>
+        <thead>
+          <tr>
+            <th>Überschrift</th>
+            <th>Beispiel</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><code>&lt;h1&gt;</code></td>
+            <td>
+              <h1>h1. Überschrift</h1>
+            </td>
+          </tr>
+          <tr>
+            <td><code>&lt;h2&gt;</code></td>
+            <td>
+              <h2>h2. Überschrift</h2>
+            </td>
+          </tr>
+          <tr>
+            <td><code>&lt;h3&gt;</code></td>
+            <td>
+              <h3>h3. Überschrift</h3>
+            </td>
+          </tr>
+          <tr>
+            <td><code>&lt;h4&gt;</code></td>
+            <td>
+              <h4>h4. Überschrift</h4>
+            </td>
+          </tr>
+          <tr>
+            <td><code>&lt;h5&gt;</code></td>
+            <td>
+              <h5>h5. Überschrift</h5>
+            </td>
+          </tr>
+          <tr>
+            <td><code>&lt;h6&gt;</code></td>
+            <td>
+              <h6>h6. Überschrift</h6>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+
+      <h3>Inlinetextelemente</h3>
+
+      <table>
+        <thead>
+          <tr>
+            <th>Element</th>
+            <th>Beispiel</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><code>&lt;strong&gt;</code></td>
+            <td><strong>Stark hervorgehoben</strong></td>
+          </tr>
+          <tr>
+            <td><code>&lt;em&gt;</code></td>
+            <td><em>Besonders Hervorhebung.</em></td>
+          </tr>
+          <tr>
+            <td><code>&lt;u&gt;</code></td>
+            <td><u>Unterstrichen</u></td>
+          </tr>
+          <tr>
+            <td><code>&lt;del&gt;</code></td>
+            <td><del>Gelöscht</del></td>
+          </tr>
+          <tr>
+            <td><code>&lt;ins&gt;</code></td>
+            <td><ins>Eingefügt</ins></td>
+          </tr>
+          <tr>
+            <td><code>&lt;s&gt;</code></td>
+            <td><s>Durchgestrichen</s></td>
+          </tr>
+          <tr>
+            <td><code>&lt;small&gt;</code></td>
+            <td><small>Klein</small></td>
+          </tr>
+          <tr>
+            <td><code>&lt;sub&gt;</code></td>
+            <td>Text<sub>tiefergestellt</sub></td>
+          </tr>
+          <tr>
+            <td><code>&lt;sup&gt;</code></td>
+            <td>Text<sup>höhergestellt</sup></td>
+          </tr>
+          <tr>
+            <td><code>&lt;abbr&gt;</code></td>
+            <td><abbr title="Abbreviation" data-tootltip="Abbreviation">Abkürzung</abbr></td>
+          </tr>
+          <tr>
+            <td><code>&lt;kbd&gt;</code></td>
+            <td><kbd>Kbd</kbd></td>
+          </tr>
+          <tr>
+            <td><code>&lt;mark&gt;</code></td>
+            <td><mark>Markiert</mark></td>
+          </tr>
+          <tr>
+            <td><code>&lt;q&gt;</code></td>
+            <td><q>Inlinezitat</q></td>
+          </tr>
+          <tr>
+            <td><code>&lt;dfn&gt;</code></td>
+            <td><dfn>Definitionselement</dfn></td>
+          </tr>
+          <tr>
+            <td><code>&lt;time&gt;</code></td>
+            <td>Datum- und Zeitelement: <time>20250203T16:18</time></td>
+          </tr>
+          <tr>
+            <td><code>&lt;code&gt;</code></td>
+            <td>Inlinecode: <code>&lt;html&gt;</code></td>
+          </tr>
+          <tr>
+            <td><code>&lt;var&gt;</code></td>
+            <td>CSS Variable <var>--background-color</var></td>
+          </tr>
+          <tr>
+            <td><code>&lt;samp&gt;</code></td>
+            <td>TBD</td>
+          </tr>
+          <tr>
+            <td><code>&lt;i&gt;</code></td>
+            <td><i>Idiomatischer Ausdruck</i></td>
+          </tr>
+          <tr>
+            <td><code>&lt;b&gt;</code></td>
+            <td><b>Aufmerksamkeitselement</b></td>
+          </tr>
+        </tbody>
+      </table>
+
+      <h3>Fließtext</h3>
+      <p>Um gewöhnliche Fließtext darzustellen gibt es das <code>article</code> Element. Darin enthalten sind
+        üblicherweise
+        Abschnitte (<code>section</code>), Überschriften (<code>&lt;h1&gt;</code> bis <code>&lt;h6&gt;</code>) und
+        Paragrphen
+        (<code>&lt;p&gt;</code>).
+      </p>
+
+      <article>
+        <h1>Artikel</h1>
+        <p>Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et
+          dolore
+          magna aliquyam erat, sed diam voluptua. At</p>
+      </article>
+    </section>
+
+    <section id="navigation" class="details">
+      <h2>Navigation</h2>
+
+      <h3>Buttons</h3>
+
+      <p>Primäre Steuerelemente werden von einem <code>em</code> Element umschlossen.</p>
+
+      <p>Sekundäre Steuerlemente werden nicht besonders ausgezeichnet. Das führt jedoch zu einer Ungereimtheit mit
+        Verknüpfungen, die als Schaltfläche dargestellt werden sollen.</p>
+
+      <p>Steuerelemente und Verknüpfungen mit destruktivem Character werden von einem <code>strong</code> Element
+        umschlossen. Allerdings sollten Verküpfungen keine Destruktiven Aktionen durchführen. Das gehört sich einfach
+        nicht.</p>
+
+      <table>
+        <caption>
+          Primäre Aktionen und Navigation
+        </caption>
+        <thead>
+          <tr>
+            <th>Markup</th>
+            <th>Beispiel</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><code>&lt;em&gt;&lt;button&gt;Primäre Aktion&lt;/button&gt;&lt;/em&gt;</code></td>
+            <td><em><button>Primäre Aktion</button></em></td>
+          </tr>
+          <tr>
+            <td>
+              <code>&lt;em&gt;&lt;input type="submit" value="Formular senden"/&gt;&lt;/em&gt;</code>
+            </td>
+            <td><em><input type="submit" value="Formular senden" /></em></td>
+          </tr>
+          <tr>
+            <td>
+              <code>&lt;em&gt;&lt;input type="button" value="Primäre Aktion"/&gt;&lt;/em&gt;</code>
+            </td>
+            <td><em><input type="button" value="Primäre Aktion" /></em></td>
+          </tr>
+          <tr>
+            <td><code>&lt;em&gt;&lt;a href="#"&gt;Primärer Navigationslink&lt;/a&gt;&lt;/em&gt;</code></td>
+            <td><em><a href="#">Primärer Navigationslink</a></em></td>
+          </tr>
+        </tbody>
+      </table>
+
+      <table>
+        <caption>
+          Sekundäre Aktionen und Navigation
+        </caption>
+        <thead>
+          <tr>
+            <th>Markup</th>
+            <th>Beispiel</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><code>&lt;button&gt;Sekundäre Aktion&lt;/button&gt;</code></td>
+            <td><button>Sekundäre Aktion</button></td>
+          </tr>
+          <tr>
+            <td>
+              <code>&lt;input type="submit" value="Formular senden"/&gt;</code>
+            </td>
+            <td><input type="submit" value="Formular senden" /></td>
+          </tr>
+          <tr>
+            <td>
+              <code>&lt;input type="button" value="Sekundäre Aktion"/&gt;</code>
+            </td>
+            <td><input type="button" value="Sekundäre Aktion" /></td>
+          </tr>
+          <tr>
+            <td>Für Links nicht anwendbar</td>
+            <td>N/A</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <table>
+        <caption>
+          Destruktive Aktionen und Navigation
+        </caption>
+        <thead>
+          <tr>
+            <th>Markup</th>
+            <th>Beispiel</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><code>&lt;strong&gt;&lt;button&gt;Destruktive Aktion&lt;/button&gt;&lt;/strong&gt;</code></td>
+            <td><strong><button>Destruktive Aktion</button></strong></td>
+          </tr>
+          <tr>
+            <td>
+              <code>&lt;strong&gt;&lt;input type="submit" value="Formular senden"/&gt;&lt;/strong&gt;</code>
+            </td>
+            <td><strong><input type="submit" value="Formular senden" /></strong></td>
+          </tr>
+          <tr>
+            <td>
+              <code>&lt;strong&gt;&lt;input type="button" value="Destruktive Aktion"/&gt;&lt;/strong&gt;</code>
+            </td>
+            <td><strong><input type="button" value="Destruktive Aktion" /></strong></td>
+          </tr>
+          <tr>
+            <td><code>&lt;strong&gt;&lt;a href="#"&gt;Destruktiver Navigationslink&lt;/a&gt;&lt;/strong&gt;</code></td>
+            <td><strong><a href="#">Destruktiver Navigationslink</a></strong></td>
+          </tr>
+        </tbody>
+      </table>
+
+      <h3>Menüs</h3>
+
+      <p>Menüs können an unterschiedlichen Stellen verwendet werden. Im Header als Anwendungsmenü, in der Seitenleiste
+        zur Navigation oder im Inhaltsbereich.</p>
+
+      <h4>Menüs in der Kopfzeile (header)</h4>
+
+      <p>Menüs in der Kopfzeile dienen Navigation, können aber auch Elemente enthalten, mit denen die aktuelle Ansicht
+        konfiguriert wird und zum Beispiel zwischen Listen- und Rasteransicht oder die Sortierung umgeschaltet.</p>
+
+      <header>
+        <div>Linkes Headerelement</div>
+        <menu>
+          <li>Item 1</li>
+          <menu>
+            Submenu
+            <li>Subitem 1</li>
+            <li>Subitem 2</li>
+          </menu>
+        </menu>
+      </header>
+
+      <h4>Menüs in der Kopfzeile in der Seitenleiste</h4>
+
+      <aside>
+        <header>
+          <menu>
+            <li>Item 1</li>
+            <li>Item 2</li>
+          </menu>
+        </header>
+      </aside>
+
+      <h4>Menüs in der Seitenleiste</h4>
+
+      <aside>
+        <menu>
+          <li>Item 1</li>
+          <li>Item 2</li>
+        </menu>
+      </aside>
+
+      <h4>Menüs in einem Formular</h4>
+
+      <p>Bei Menüs im Inhaltsbereich muss Unterschieden werden zwischen Auswahlelementen (<code>select</code>) und
+        Menüs. Mit Menüs werden Funktionen der aktuellen Sicht gesteuert.</p>
+      <form>
+        <h1>Adresse</h1>
+        <menu>
+          <li>Person</li>
+          <li>Gesellschaft</li>
+        </menu>
+
+        <label>
+          Voller Name
+          <input type="text" name="name" />
+        </label>
+        <label>
+          Straße
+          <input type="text" name="street" />
+        </label>
+        <label>
+          Hausnummer
+          <input type="text" name="number" />
+        </label>
+        <nav>
+          <em><input type="submit" value="Speichern" /></em>
+        </nav>
+      </form>
+    </section>
+  </main>
+
+  <footer>Footer</footer>
+</body>
+
+</html>
