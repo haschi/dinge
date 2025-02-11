@@ -59,7 +59,7 @@ body {
 
 html {
   font-size: var(--font-size);
-  line-height: 1.3rem;
+  line-height: 1.3;
 }
 
 img {
@@ -316,6 +316,7 @@ details figure {
   padding-bottom: 0.5rem;
 }
 
+form,
 .breakout {
   background-color: #2b2b2b;
   border-radius: 10px;
@@ -517,4 +518,108 @@ dl {
 
 time {
   font-variant-numeric: tabular-nums;
+}
+
+/* Formulare */
+
+fieldset {
+  padding: 0;
+  margin: 0;
+  /* 11pt = 14,6667px */
+  font-size: 11pt;
+
+  /* 14,6667px * 1.3 = 19,06671px */
+  line-height: 1.3;
+}
+
+label {
+  /* Zeichensatzgröße für kleine Labels */
+  --font-size-small: 10px;
+
+  /* Zeichensatzgröße für große Labels oder Eingaben */
+  --font-size-normal: 14px;
+
+  /* Regulärer Zeilenabstand - kleines Label und Eingabe */
+  --line-height-normal: 1.5;
+
+  /* Gesamthöhe des Eingabefeldes mit kleinem Label und Eingabe */
+  --content-height: calc((var(--font-size-small) + var(--font-size-normal)) * var(--line-height-normal));
+
+  /*
+    Beispiel:
+    Kleines Label             10px
+    Großes Label oder Eingabe 14px
+    Normaler Zeilenabstand    1.5
+    Gesamthöhe (10px + 14px) * 1.5 = 36
+  */
+
+  /* Als Zeilenabstand die gesamte Höhe verwenden */
+  line-height: var(--content-height);
+  font-size: var(--font-size-normal);
+
+  display: block;
+  border: 1px solid transparent;
+  padding: 10px;
+
+  /* Kein Focus, kein Wert => keine größe */
+  input[type=text] {
+    width: 100%;
+    background-color: inherit;
+    color: var(--color-text);
+    border: none;
+    outline: none;
+    display: block;
+    padding: 0;
+    margin: 0;
+    width: 0;
+    height: 0;
+  }
+
+  &:has(input:focus) {
+    border: 1px solid blue;
+  }
+
+  &:has(input:focus),
+  &:has(input:not(:placeholder-shown)) {
+    font-size: var(--font-size-small);
+    line-height: var(--line-height-normal);
+
+    input {
+      width: 100%;
+      /* muss exakt mit line-height übereinstimmen */
+      height: calc(var(--font-size-normal) * var(--line-height-normal));
+      font-size: var(--font-size-normal);
+      line-height: var(--line-height-normal);
+    }
+  }
+}
+
+label.gefaltet {
+
+  --line-hight: calc(var(--margin-between) + (((var(--font-size-small) + var(--font-size-normal)) * var(--line-hight-normal))));
+
+  line-height: var(--line-hight);
+
+  input[type=text] {
+    margin: 0;
+    width: 0;
+    height: 0;
+  }
+}
+
+label.erweitert {
+
+  font-size: var(--font-size-small);
+  color: #787878;
+
+  input[type=text] {
+    margin-top: var(--margin-between);
+    font-size: var(--font-size-normal);
+    width: 100%;
+  }
+}
+
+select {
+  background-color: inherit;
+  color: var(--color-text);
 }

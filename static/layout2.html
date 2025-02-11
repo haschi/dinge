@@ -385,17 +385,29 @@
       <p>Das <code>form</code> Element ist direktes Kind des <code>main</code> Elements. Es zentriert das Formular im
         Inhaltsbereich und beschränkt die Breite.</p>
       <p>Eingabefelder werden durch <code>fieldset</code> Elemente gruppiert.</p>
-      <aside>
-        Ich möchte, dass Formulare aussehen wie in Gnome Anwendungen. Solange das Eingabeelement nicht den Fokus hält,
-        erscheint der Inhalt des Eingabefeldes ohne Chrome.
-      </aside>
     </section>
 
     <form>
       <fieldset>
         <label>
+          Vorname
+          <input type="text" name="firstname" placeholder=" ">
+        </label>
+        <label>
+          Nachname
+          <input type="text" name="lastname" placeholder=" ">
+        </label>
+        <label>
           Voller Name
-          <input type="text" name="name">
+          <input type="text" name="name" placeholder=" ">
+        </label>
+        <label>
+          Straße
+          <input type="text" name="" street placeholder=" ">
+        </label>
+        <label>
+          Hausnummer
+          <input type="number" name="number">
         </label>
       </fieldset>
       <fieldset>
