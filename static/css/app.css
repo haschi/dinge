@@ -550,13 +550,20 @@ fieldset {
 input[type=text],
 input[type=search],
 input[type=number],
-input[type=date] {
+input[type=date],
+input[type=email] {
   background-color: inherit;
   color: var(--color-text);
 }
 
 input[type=number] {
   appearance: auto;
+}
+
+select {
+  border: var(--layout-border);
+  display: block;
+  float: right
 }
 
 label {
@@ -588,10 +595,11 @@ label {
   border: 1px solid transparent;
   padding: 10px;
 
-  /* Kein Focus, kein Wert => keine größe */
+  /* Kein Focus, kein Wert => unsichtbar (Größe = 0) */
   input[type=text],
   input[type=number],
-  input[type=date] {
+  input[type=date],
+  input[type=email] {
     width: 100%;
     border: none;
     outline: none;
@@ -606,8 +614,9 @@ label {
     border: 1px solid blue;
   }
 
-  &:has(input:focus),
-  &:has(input:not(:placeholder-shown)) {
+  /* Alternative zu :not([role=switch]) wäre alle input[type=text][type=number]... aufzuzählen, also eine Positivliste. **/
+  &:has(input:focus:not([role=switch])),
+  &:has(input:not(:placeholder-shown, [role=switch])) {
     font-size: var(--font-size-small);
     line-height: var(--line-height-normal);
 
@@ -618,6 +627,50 @@ label {
       font-size: var(--font-size-normal);
       line-height: var(--line-height-normal);
     }
+  }
+}
+
+label:has(select),
+label:has(input[role=switch]) {
+  border: var(--layout-border);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+
+  /* Als Zeilenabstand die gesamte Höhe verwenden */
+  /* line-height: var(--content-height);
+  font-size: var(--font-size-normal); */
+
+  select {
+    /* display: block; */
+  }
+
+  input[role=switch] {
+    appearance: none;
+    width: 50px;
+    height: 24px;
+    background-color: #ccc;
+    border-radius: 24px;
+    cursor: pointer;
+    transition: background-color 0.4s;
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+    padding: 3px;
+  }
+
+  input[role=switch]::before {
+    content: "";
+    width: 18px;
+    height: 18px;
+    background-color: white;
+    border-radius: 50%;
+    transition: margin-left 0.4s;
+  }
+
+  input[role=switch]:checked {
+    background-color: #4CAF50;
+    justify-content: flex-end;
   }
 }
 
