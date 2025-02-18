@@ -379,12 +379,24 @@
     <section id="forms" class="details">
       <h2>Formulare</h2>
       <p>Formulare werden mit einem <code>form</code> Element umschlossen. Das <code>label</code> umschließt das
-        dazugehörige <code>input</code> Element. Damit kann auf das Attribute <code>for</code> für das Label und
+        dazugehörige <code>input</code> Element. Damit kann auf das Attribut <code>for</code> für das Label und
         <code>id</code> für das Eingabeelemente verzichtet werden.
       </p>
       <p>Das <code>form</code> Element ist direktes Kind des <code>main</code> Elements. Es zentriert das Formular im
         Inhaltsbereich und beschränkt die Breite.</p>
-      <p>Eingabefelder werden durch <code>fieldset</code> Elemente gruppiert.</p>
+      <p>Eingabefelder <strong>müssen</strong> durch <code>fieldset</code> Elemente gruppiert werden. Fieldset Element
+        erzeugen die abgerundeten Ecken.</p>
+      <p>Die Akzentfarbe der Steuerelemente wird durch <code>input {accent-color: var(--color-accent}</code>
+        überschrieben. Mit der Übernahme der Kontrolle über die Akzentfarbe wird eine möglichst konsistente Ansicht
+        gewährleistet. Lediglich komplexe Steuerelemente, die von <code>input[type=date]</code> und ähnlichen
+        Eingabeelementen bereitgestellt werden, passen sich nicht an die gewählte Akzentfarbe an, sondern verwenden
+        (zumindest unter GNOME) die Akzentfarbe des Systemdesigns. Dafür können eigene Elemente mit der Akzentfarbe
+        kontrolliert werden.</p>
+      <p>Die Akzentfarbe des Systems kann nicht durch einfache Mittel Browserübergreifend ermittelt werden, so dass
+        eigene Elemente mit dieser Akzentfarbe gestyled werden können.</p>
+      <p>Nicht alle Steuerelemente kann die Akzentfarbe zugewiesen werden.</p>
+      <p>Das <abbr>KISS</abbr> Prinzip hat Vorrang. Das Stylesheet soll möglichst einfach gehalten sein und keine
+        Javascript Unterstützung benötigen.</p>
       <details>
         <summary>HTML Beispiel</summary>
         <figure>
@@ -406,86 +418,110 @@
 
 
     <form>
-      <h3>Reguläre Eingabefelder</h3>
+      <h3>Einfache Eingabeelemente</h3>
       <fieldset>
         <label>
-          input type=text
+          Text
           <input type="text" name="text" street placeholder=" ">
         </label>
         <label>
-          input type=number
-          <input type="number" name="number" placeholder />
-        </label>
-        <label>
-          input type=date
-          <input type="date" name="birthday" placeholder />
-        </label>
-        <label>
-          input type=datetime-local
-          <input type="datetime-local" name="datetime-local" placeholder />
-        </label>
-        <label>
-          input type=month
-          <input type="month" name="moneth" placeholder />
-        </label>
-        <label>
-          input type=week
-          <input type="week" name="week" placeholder />
-        </label>
-        <label>
-          input type=checkbox role=switch
-          <input type="checkbox" name="volljährig" role="switch" />
-        </label>
-        <label>
-          input type=range
-          <input type="range" name="range" />
-        </label>
-        <label>
-          input type=checkbox
-          <input type="checkbox" name="checkbox" placeholder />
-        </label>
-      </fieldset>
-
-      <h3>Enter your web site</h3>
-      <fieldset>
-        <label>
-          input type=url
+          URL
           <input type="url" name="url" placeholder />
         </label>
-      </fieldset>
-
-      <h3>Change your password</h3>
-      <fieldset>
         <label>
-          input type=email
+          E-Mail
           <input type="email" name="email" placeholder />
         </label>
         <label>
-          input type=password
+          Password
           <input type="password" name="password" placeholder />
+        </label>
+        <label>
+          Zahl
+          <input type="number" name="number" placeholder />
+        </label>
+        <label>
+          Telefon
+          <input type="tel" name="telephone" placeholder="" />
+        </label>
+        <label>
+          Bereich
+          <input type="range" name="range" />
+        </label>
+        <label>
+          Checkbox
+          <input type="checkbox" name="checkbox" placeholder />
+        </label>
+        <label>
+          Switch
+          <input type="checkbox" name="volljährig" role="switch" />
         </label>
       </fieldset>
 
-      <h3>Radio buttons</h3>
+      <h3>Eingabefelder mit Problemen der Akkzentfarbe</h3>
+      <fieldset>
+        <label>
+          <span>Datum <sup><a href="#fn1" role="doc-noteref">[1]</a></sup><sup><a href="#fn2"
+                role="doc-noteref">[2]</a></sup></span>
+          <input type="date" name="birthday" placeholder />
+        </label>
+        <label>
+          <span>
+            Datum/Uhrzeit <sup><a href="#fn1" role="doc-noteref">[1]</a></sup><sup><a href="#fn2"
+                role="doc-noteref">[2]</a></sup>
+          </span>
+          <input type="datetime-local" name="datetime-local" placeholder />
+        </label>
+        <label>
+          <span>Zeit <sup><a href="#fn1" role="doc-noteref">[1]</a></sup><sup><a href="#fn2"
+                role="doc-noteref">[2]</a></sup></span>
+          <input type="time" name="time" placeholder="">
+        </label>
+        <label>
+          <span>Monat <sup><a href="#fn3" role="doc-noteref">[3]</a></sup></span>
+          <input type="month" name="month" />
+        </label>
+        <label>
+          <span>Kalendarwoche <sup><a href="#fn3" role="doc-noteref">[3]</a></sup></span>
+          <input type="week" name="week" />
+        </label>
+      </fieldset>
+
+      <footer>
+        <h2>Fußnoten</h2>
+        <ol>
+          <li id="fn1" role="doc-footnote">
+            Das Steuerelement übernimmt nicht die Akzentfarbe, sondern verwendet die Akzentfarbe des
+            Systemdesigns.
+          </li>
+          <li id="fn2" role="doc-footnote">
+            Das Eingabefeld besitzt immer einen Platzhalter, wenn kein Wert eingeben ist und die Markierung der Eingabe
+            erfolgt mit der Akzentfarbe des Systemdesigns.
+          </li>
+          <li id="fn3" role="doc-footnote">Wird nicht von Firefox Desktop unterstützt.</li>
+        </ol>
+      </footer>
+
+      <h3>Optionsfelder</h3>
       <fieldset>
         <label>
           <input type="radio" name="radio1" checked />
-          Radio button 1
+          Option 1
         </label>
         <label>
           <input type="radio" name="radio1" />
-          Radio button 2
+          option 2
         </label>
         <label>
           <input type="radio" name="radio1">
-          Radio button 3
+          Option 3
         </label>
       </fieldset>
 
       <h3>Options</h3>
       <fieldset>
         <label>
-          select
+          Auswählen
           <select name="select" required>
             <option value="" selected="">Option 1</option>
             <option>Option 2</option>
@@ -493,7 +529,7 @@
           </select>
         </label>
         <label>
-          select option optgroup
+          Auswahl mit Gruppen
           <select name="selectopt">
             <optgroup label="Option group 1">
               <option>Option 1-1</option>
@@ -509,27 +545,21 @@
         </label>
       </fieldset>
 
-      <h3>Telephone</h3>
+      <h3>Eingabe mit Dialogfeldern</h3>
       <fieldset>
-        <label>
-          input type=tel
-          <input type="tel" name="telephone" placeholder="" />
-        </label>
-        <label>
-          Bezeichnung
-          <select name="seltel" required>
-            <option selected>Assistent</option>
-            <option>Geschäftlich</option>
-            <option>Privat</option>
-          </select>
-        </label>
+        <label>Schaltfläche<input type="button" value="Knopf"></label>
+        <label>Farbe<input type="color" name=""></label>
+        <label>Datei<input type="file" name=""></label>
       </fieldset>
-      <fieldset>
-        <label>
-          Fieldset ohne vorausgehende Überschrift
-          <input type="text" name="text2" placeholder />
-        </label>
-      </fieldset>
+
+      <h3>Submit Button</h3>
+
+      <div>
+        <input type="submit" value="Speichern">
+        <a role="button" href="#">Abbrechen</a>
+        <a role="button" href="#"><strong>Gefahr</strong></a>
+        <a role="button" href="#"><em>Primär</em> </a>
+      </div>
     </form>
 
     <section id="typography" class="details">
