@@ -7,6 +7,10 @@
   /* Desktop Umgebung gibt die Schriftgröße in der Einheit pt an */
   --font-size: 11pt;
 
+  /* Abstände der Blockelemente */
+  --space-small: 0.7rem;
+  --space-large: 1.1rem;
+
   /* Textfarbe für aktive Elemente, normale Schriftfarbe */
   --color-text: #f2f2f2;
 
@@ -44,7 +48,6 @@
 
   --border-radius: 3px;
   color-scheme: light dark;
-  ;
 }
 
 /* Reset / Defaults */
@@ -68,17 +71,21 @@ body {
 html {
   accent-color: var(--color-accent);
   font-size: var(--font-size);
-  line-height: 1.3;
+  line-height: 1.6;
 }
 
+/* Gehört das zum CSS Reset?*/
+:focus-visible {
+  outline: none;
+}
+
+::selection {
+  background-color: var(--color-accent);
+}
 
 input[type=date] {
   accent-color: var(--color-accent);
   color: var(--color-accent);
-}
-
-input::selection {
-  background-color: var(--color-accent);
 }
 
 img {
@@ -113,7 +120,7 @@ main {
   article,
   table,
   div {
-    margin-top: 1rem;
+    margin-top: var(--space-large);
   }
 }
 
@@ -123,16 +130,18 @@ h3,
 h4,
 h5,
 h6,
-details {
-  margin-top: 1rem;
+details,
+dl {
+  margin-block-start: var(--space-large);
 }
 
 p,
 pre,
 caption,
 figure,
-figcaption {
-  margin-top: 0.5rem;
+figcaption,
+fieldset {
+  margin-block-start: var(--space-small);
 }
 
 /* Anwendungslayout */
@@ -262,6 +271,9 @@ input[type=submit] {
   font-weight: 600;
 }
 
+
+
+
 a[role=button] {
   color: var(--color-text);
   text-decoration: none;
@@ -275,6 +287,8 @@ input[type=submit] {
   background-color: var(--color-accent);
 }
 
+
+
 button,
 ::file-selector-button {
   color: var(--color-text);
@@ -287,10 +301,6 @@ button,
 
   &:hover {
     background-color: var(--color-button-background);
-  }
-
-  &:focus {
-    background-color: var(--color-background-aktiv-focus);
   }
 }
 
@@ -322,11 +332,24 @@ aside {
         }
       }
 
+      >li:focus-within {
+        outline: 1px solid var(--color-accent);
+      }
+
       &:not(:last-child) {
         border-bottom: 1px solid var(--color-trennlinie-sidebar);
       }
     }
   }
+}
+
+details summary:focus {
+  border: 1px solid var(--color-accent);
+  border-radius: 10px;
+}
+
+details[open] summary:focus {
+  border-radius: 10px 10px 0 0;
 }
 
 details {
@@ -341,6 +364,8 @@ details {
     padding: 1rem;
     list-style-type: none;
     cursor: pointer;
+
+
   }
 
   summary::after {
@@ -442,12 +467,14 @@ main>ul {
 main table {
   border-collapse: separate;
   border-spacing: 0 0.5rem;
+  /* TODO: Eigentlich will ich nur margin-top. */
   margin-bottom: 1rem;
   margin-inline: 1rem;
 
   font-variant-numeric: tabular-nums;
 
   caption {
+    /* TODO: Das ist seltsam. Eigentlich will ich nur margin-top. */
     margin-bottom: 0.5rem;
   }
 
@@ -505,19 +532,51 @@ main table {
 }
 
 dl {
-  margin-top: 1rem;
-  background-color: #2b2b2b;
-  box-shadow: 0 0 1px 1px #222222;
-  display: grid;
-  grid-template-columns: auto 1fr;
-  row-gap: 1px;
-  border-radius: 10px;
-  overflow: hidden;
+
+  /* background-color: #2b2b2b; */
+  /* box-shadow: 0 0 1px 1px #222222; */
+  /* display: grid; */
+  /* grid-template-columns: auto 1fr; */
+  /* row-gap: 1px; */
+  /* border-radius: 10px; */
+  /* overflow: hidden; */
 
   /* Gruppierung von dt und dd in einer Zeile */
   &>div {
-    display: contents;
+    display: flex;
+    justify-content: space-between;
+    /* display: contents; */
     /* Behält die Grid-Struktur bei */
+  }
+
+  div {
+    background-color: #353535;
+    margin: 0;
+    overflow: hidden;
+  }
+
+  div:first-child {
+    border-radius: 10px 10px 0 0;
+  }
+
+  div:last-child {
+    border-radius: 0 0 10px 10px;
+  }
+
+  div:first-child:last-child {
+    border-radius: 10px;
+  }
+
+  div {
+    border: 1px solid transparent;
+  }
+
+  div:hover {
+    background: #3b3b3b;
+  }
+
+  div:focus {
+    border: 1px solid var(--color-accent);
   }
 
   dt,
@@ -550,10 +609,20 @@ dl {
     background-color: #353535;
   }
 
+
   /* Hover-Effekt für die gesamte Zeile */
   div:hover dt,
   div:hover dd {
     background: #3b3b3b;
+  }
+
+  dt:hover,
+  dt:has(+ dd:hover) {
+    background: #3b3b3b;
+
+    &+dd {
+      background: #3b3b3b;
+    }
   }
 }
 
@@ -578,6 +647,14 @@ form {
     font-size: 11pt;
     font-weight: 600;
   }
+
+  /* Ein Content Devision Element in einer Form ist ein Container mit Flexbox Layout. Er eignet sich insbesondere für die Anordnung verschiedener Aktionsschaltflächen. */
+  &>div {
+    display: flex;
+    flex-flow: row wrap;
+    column-gap: 10px;
+    justify-content: flex-start;
+  }
 }
 
 
@@ -593,7 +670,7 @@ fieldset {
   /* overflow: hidden; */
 
   padding: 0;
-  margin-top: 0.5rem;
+
 
   /* 11pt = 14,6667px */
   font-size: 11pt;
@@ -611,6 +688,14 @@ fieldset {
 
   label:first-child:last-child {
     border-radius: 10px;
+  }
+
+  label {
+    border: 1px solid transparent;
+  }
+
+  label:focus-within {
+    border: 1px solid var(--color-accent);
   }
 
   a {
@@ -644,6 +729,15 @@ input[type=number] {
   appearance: auto;
 }
 
+/* Die Durchsuchen... Schaltfläche nicht anzeigen */
+input[type=file]::file-selector-button {
+  display: none;
+}
+
+input[type=file] {
+  text-align: right;
+}
+
 select {
   /* border: var(--layout-border); */
   border: none;
@@ -655,17 +749,26 @@ input[type=time],
 input[type=month],
 input[type=week],
 input[type=date],
-input[type=datetime-local],
-input[type=color] {
+input[type=datetime-local] {
   background-color: inherit;
   color: var(--color-text);
   border: none;
+}
 
-  &:focus-visible {
-    border: none;
-    outline: none;
-    accent-color: var(--color-accent);
-  }
+
+input[type=color] {
+  /* background-color: inherit; */
+  /* color: var(--color-text); */
+  border: 1px solid transparent;
+  /* padding: 1px; */
+}
+
+
+
+
+/* Deaktivierte Eingabefelder nicht hervorheben */
+label:hover:not(:has([disabled])) {
+  background: #3b3b3b;
 }
 
 label {
@@ -696,7 +799,7 @@ label {
   font-size: var(--font-size-normal);
 
   display: block;
-  border: 1px solid transparent;
+
   padding: 10px;
 
   /* Kein Focus, kein Wert => unsichtbar (Größe = 0) */
@@ -715,15 +818,11 @@ label {
     height: 0;
   }
 
-  &:has(input:focus, select:focus) {
-    border: 1px solid var(--color-accent);
-  }
-
   /* Wenn das Eingabefeld den Fokus erhält, das Label verkleinern und das Eingabefeld anzeigen */
   /* Alternative zu :not([role=switch]) wäre alle input[type=text][type=number]... aufzuzählen, also eine Positivliste. **/
-  &:has(input:focus:not([type=checkbox], [type=radio], [type=range], [type=time], [type=month], [type=week], [type=date], [type=datetime-local], [type=color], [type=button])),
+  &:has(input:focus:not([type=checkbox], [type=radio], [type=range], [type=time], [type=month], [type=week], [type=date], [type=datetime-local], [type=color], [type=button], [type=file])),
   &:has(input:not(:placeholder-shown, [type=checkbox], [type=radio], [type=range], [type=time], [type=week], [type=month], [type=date],
-      [type=datetime-local], [type=color], [type=button])) {
+      [type=datetime-local], [type=color], [type=button], [type=file])) {
     font-size: var(--font-size-small);
     line-height: var(--line-height-normal);
 
@@ -736,17 +835,12 @@ label {
     }
   }
 
-  /* Deaktivierte Eingabefelder nicht hervorheben */
-  &:hover:not(:has(input[disabled], input[type=button], input[type=file])) {
-    background: #3b3b3b;
-  }
+
 }
 
 label:has(select),
 label:has(input[type=checkbox], input[type=time], input[type=range], input[type=month], input[type=week], [type=date],
-  [type=datetime-local], [type=color], [type=button]) {
-  /* border: var(--layout-border); */
-  border: none;
+  [type=datetime-local], [type=color], [type=button], [type=file]) {
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -754,10 +848,6 @@ label:has(input[type=checkbox], input[type=time], input[type=range], input[type=
   /* Als Zeilenabstand die gesamte Höhe verwenden */
   /* line-height: var(--content-height);
   font-size: var(--font-size-normal); */
-
-  select {
-    /* display: block; */
-  }
 
   --color-switch-background: #585858;
   --color-switch-foreground: #d2d2d2;
@@ -799,8 +889,16 @@ label:has(input[type=checkbox], input[type=time], input[type=range], input[type=
 select {
   background-color: inherit;
   color: var(--color-text);
+}
 
-  &:focus-visible {
-    outline: none;
+
+
+button,
+::file-selector-button,
+input[type=button],
+input[type=submit],
+a[role=button] {
+  &:focus {
+    outline: 1px solid var(--color-accent);
   }
 }

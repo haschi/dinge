@@ -328,9 +328,11 @@
       </p>
       <p>Die eigentlichen Daten des darzustellenden Elements werden von einem Definitionsdetail
         Element(<code>&lt;dd&gt;</code>) umschlossen.</p>
-      <p>Zusammengehörende Paare von Definitionstermen und Definitionsdetails müssen von einem Inhaltsteilungselement
+      <p>Zusammengehörende Paare von Definitionstermen und Definitionsdetails <strong>müssen</strong> von einem
+        Inhaltsteilungselement
         (<code>&lt;div&gt;</code>) umschlossen.</p>
-
+      <p>Wenn das umschließende Inhaltsteilungselement ein Attribut <code>tabstop=0</code> besitzt kann das Paar aus
+        Definitionsterm und Definitionsdetail den Fokus erhalten. Der Bereich wird mit der Akzentfarbe umrahmt.</p>
       <details>
         <summary>HTML Beispiel</summary>
         <figure>
@@ -359,17 +361,18 @@
     <div class="breakout example">
       <h4>Paprika</h4>
       <dl>
-        <div>
+        <div tabindex="0">
           <dt>Name
             <span>Der spezielle Name des Dings</span>
           </dt>
           <dd>Paprika</dd>
         </div>
-        <div>
+
+        <div tabindex="0">
           <dt>Anzahl</dt>
           <dd>8</dd>
         </div>
-        <div>
+        <div tabindex="0">
           <dt>Änderung</dt>
           <dd><time>2025-02-01T17:06</time></dd>
         </div>
@@ -510,7 +513,7 @@
         </label>
         <label>
           <input type="radio" name="radio1" />
-          option 2
+          Option 2
         </label>
         <label>
           <input type="radio" name="radio1">
@@ -547,7 +550,7 @@
 
       <h3>Eingabe mit Dialogfeldern</h3>
       <fieldset>
-        <label>Schaltfläche<input type="button" value="Knopf"></label>
+        <label tabindex="-1">Schaltfläche<input type="button" value="Knopf"></label>
         <label>Farbe<input type="color" name=""></label>
         <label>Datei<input type="file" name=""></label>
       </fieldset>
