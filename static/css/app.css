@@ -68,6 +68,10 @@ body {
   background-color: var(--color-bg);
 }
 
+a:visited {
+  color: inherit
+}
+
 html {
   accent-color: var(--color-accent);
   font-size: var(--font-size);
@@ -75,14 +79,18 @@ html {
 }
 
 /* Gehört das zum CSS Reset?*/
+:focus,
 :focus-visible {
-  outline: none;
+  /* outline: 1px solid red; */
+  /* TODO */
 }
 
 ::selection {
+  /* TODO: Vielleicht gibt es doch eine Möglichkeit die Akzentfarbe des Systems anzuzapfen. (Als Farbe den Wert Highlight benutzen.) */
   background-color: var(--color-accent);
 }
 
+/* TODO: Prüfen, ob das eine Wirkung hat.*/
 input[type=date] {
   accent-color: var(--color-accent);
   color: var(--color-accent);
@@ -236,7 +244,6 @@ header {
   flex-grow: 1;
 }
 
-
 header nav {
 
   border: var(--layout-border);
@@ -264,15 +271,11 @@ label input[type=button],
 [role=button],
 input[type=submit] {
   border: none;
-  outline: none;
   padding: 0.5rem 1rem;
   background-color: var(--color-button-background);
   border-radius: 6px;
   font-weight: 600;
 }
-
-
-
 
 a[role=button] {
   color: var(--color-text);
@@ -286,8 +289,6 @@ a[role=button] {
 input[type=submit] {
   background-color: var(--color-accent);
 }
-
-
 
 button,
 ::file-selector-button {
@@ -323,17 +324,14 @@ aside {
           display: inline-block;
           width: 100%;
           height: 100%;
+          border-radius: var(--border-radius);
 
+          &:focus-visible,
           &:hover,
           &.active {
             background-color: var(--color-background-sidebar-hightlight);
-            border-radius: var(--border-radius);
           }
         }
-      }
-
-      >li:focus-within {
-        outline: 1px solid var(--color-accent);
       }
 
       &:not(:last-child) {
@@ -343,12 +341,7 @@ aside {
   }
 }
 
-details summary:focus {
-  border: 1px solid var(--color-accent);
-  border-radius: 10px;
-}
-
-details[open] summary:focus {
+details[open] summary {
   border-radius: 10px 10px 0 0;
 }
 
@@ -357,22 +350,19 @@ details {
   box-shadow: 0 0 2px 2px #222222;
   background-color: #2b2b2b;
   border-radius: 10px;
-  overflow: hidden;
 
   summary {
     background-color: var(--color-details-background);
     padding: 1rem;
     list-style-type: none;
     cursor: pointer;
-
-
+    border-radius: 10px;
   }
 
   summary::after {
     display: block;
     float: right;
     content: "\276f";
-    line-height: 10pt;
     transform: rotate(270deg);
   }
 }
@@ -405,12 +395,13 @@ main>ul {
   gap: 1rem;
   padding: 1rem;
 
+  /* Karten sind Listitems in der Auflistung */
   >li {
     /* Karten müssen eine feste Breite besitzen.*/
     /* Todo: Breite der Karten als Variable */
-    width: 300px;
+    /* width: 300px; */
     position: relative;
-    outline: var(--layout-border);
+    /* outline: var(--layout-border); */
 
     a {
       text-decoration: none;
@@ -438,27 +429,40 @@ main>ul {
     transform-origin: center;
     background-color: var(--background-color);
     margin: 0;
-
+    border-radius: 10px;
+    width: 100%;
 
     img {
-      transform-origin: center;
-      transform: scale(var(--img-scale));
-      transition: transform 0.4s ease-in-out;
+      /* transform-origin: center; */
+      /* transform: scale(var(--img-scale)); */
+      /* transition: transform 0.4s ease-in-out; */
+      object-fit: contain;
+      width: 100%;
     }
 
     div {
       padding: 0.5rem;
     }
 
-    /* Links mit Fokus durch einen Rahmen hervorheben */
+    /* Wenn der Link in der Karte den Fokus hat, die ganze Karte hervorheben, nicht den Link. */
+    &:focus-within {
+      outline: auto;
+    }
+
+    /* Links mit Fokus werden nicht hervorgehoben. */
     a:focus {
-      outline: 1px dotted #28666e;
+      outline: none;
+      /* outline: 1px dotted #28666e; */
     }
   }
 
   /* Aktive Karten hervorheben */
   >li:has(:hover, :focus) {
     --img-scale: 1.1;
+    box-shadow: rgba(0, 0, 0, 0.16) 0px 10px 36px 0px, rgba(0, 0, 0, 0.06) 0px 0px 0px 1px;
+  }
+
+  >li {
     box-shadow: rgba(0, 0, 0, 0.16) 0px 10px 36px 0px, rgba(0, 0, 0, 0.06) 0px 0px 0px 1px;
   }
 }
@@ -553,6 +557,7 @@ dl {
     background-color: #353535;
     margin: 0;
     overflow: hidden;
+    border-radius: 0;
   }
 
   div:first-child {
@@ -567,16 +572,8 @@ dl {
     border-radius: 10px;
   }
 
-  div {
-    border: 1px solid transparent;
-  }
-
   div:hover {
     background: #3b3b3b;
-  }
-
-  div:focus {
-    border: 1px solid var(--color-accent);
   }
 
   dt,
@@ -585,44 +582,29 @@ dl {
     margin: 0;
   }
 
-  /* Container für Begriff + Zusatzinfo */
   dt {
     display: flex;
     flex-direction: column;
     justify-content: center;
-    background-color: #353535;
+    background-color: inherit;
   }
 
-  /* Kleinere Schrift für den zweiten Begriff */
   dt span {
     font-size: 0.85em;
     color: #787878;
     margin-top: 4px;
   }
 
-  /* Definition rechtsbündig */
   dd {
     display: flex;
     align-items: center;
     justify-content: flex-end;
     text-align: right;
-    background-color: #353535;
+    background-color: inherit;
   }
 
-
-  /* Hover-Effekt für die gesamte Zeile */
-  div:hover dt,
-  div:hover dd {
+  div:focus-visible {
     background: #3b3b3b;
-  }
-
-  dt:hover,
-  dt:has(+ dd:hover) {
-    background: #3b3b3b;
-
-    &+dd {
-      background: #3b3b3b;
-    }
   }
 }
 
@@ -661,7 +643,7 @@ form {
 fieldset {
   display: flex;
   flex-direction: column;
-  gap: 1px;
+  gap: 2px;
 
   /* background-color: #2b2b2b; */
   box-shadow: 0 0 1px 1px #222222;
@@ -694,8 +676,19 @@ fieldset {
     border: 1px solid transparent;
   }
 
+  /* Anstatt das Steuerelement hervorzuheben, wird das Label hervorgehoben, wenn das Steuerelement im Label den Fokus besitzt. */
   label:focus-within {
-    border: 1px solid var(--color-accent);
+    /* Übernimmt den voreingestellten Stil fokussierter Elemente für das Label */
+    outline: auto;
+
+    /* Verhindert die Überlagerung des Outline durch nachfolgende Elemente */
+    z-index: 99;
+
+    /* Schaltet die Hervorhebung fokussierter Steuerelemente aus */
+    input,
+    select {
+      outline: none;
+    }
   }
 
   a {
@@ -767,7 +760,8 @@ input[type=color] {
 
 
 /* Deaktivierte Eingabefelder nicht hervorheben */
-label:hover:not(:has([disabled])) {
+label:hover:not(:has([disabled])),
+label:has(:focus-visible) {
   background: #3b3b3b;
 }
 
@@ -810,7 +804,6 @@ label {
   input[type=password],
   input[type=url] {
     border: none;
-    outline: none;
     display: block;
     padding: 0;
     margin: 0;
@@ -889,16 +882,4 @@ label:has(input[type=checkbox], input[type=time], input[type=range], input[type=
 select {
   background-color: inherit;
   color: var(--color-text);
-}
-
-
-
-button,
-::file-selector-button,
-input[type=button],
-input[type=submit],
-a[role=button] {
-  &:focus {
-    outline: 1px solid var(--color-accent);
-  }
 }
