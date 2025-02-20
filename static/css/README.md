@@ -99,8 +99,12 @@ Style Sheets für die Anwendung
 - [X] Formular: Auswahl: Boxen um das Label ändern ihre Größe.
 - [ ] Abstände der Listenelemente in geordneten Listen (ol). Abstände sind derzeit zu klein.
 - [ ] margin-bottom in Tabellen eliminieren. Ich will nur margin-top wegen der Konsistenz.
-- [ ] Alle Buttons durchstylen.
+
+
+### Buttons
+
 - [ ] Klärung: Semantik und Markup von Buttons: Primär, Sekundär, Destruktiv: Innerhalb!
+- [ ] Alle Buttons durchstylen.
 
 ### Fokus
 
@@ -110,7 +114,7 @@ Style Sheets für die Anwendung
 - [X] Seitenleiste: Fokusierte Elemente hervorheben und umrahmen
 - [X] Eingabe-Element type=color: Wenn Fokus, hervorheben.
 - [X] Fokussierung der Zeilen von Definitionslisten.
-- [ ] Fokussierte Karten gestalten.
+- [X] Fokussierte Karten gestalten.
 - [X] input[type=file] darf nicht umrahmt werden, wenn es innerhalb eines label Elements erscheint, das umrahmt ist. Ebenso date, datetime-local, time, select, range, option, color, button.
 - [X] Reguläre Links dürfen nicht mit der gleichen Farbe umrahmt werden, wie die Textfarbe.
 - [X] Bei Eingabefelder, Detailansicht-Zeilen, die den Fokus haben und mit der Akzentfarbe umrahmt sind, sollen auch der Hintergrund hervorgehoben werden,
@@ -119,3 +123,8 @@ Style Sheets für die Anwendung
 ### Formular
 
 - [ ] textarea hinzufügen.
+
+### Detailansicht
+
+- [ ] Hintergrundfarbe der Zeilen ist zu hell.
+- [ ] Trennlinie zwischen den Zeilen, ähnlich Formular erforderlich.

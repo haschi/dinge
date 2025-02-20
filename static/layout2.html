@@ -10,11 +10,14 @@
     .example {
       resize: both;
       overflow: auto;
-      /* min-width: 25vw; */
-      /* min-height: 400px; */
-      min-height: 100%;
+      min-width: 800px;
+
+      min-height: 600px;
       padding: 1rem;
       margin-inline: auto;
+      grid-column: full-width;
+
+      border: var(--layout-border)
     }
   </style>
 </head>
@@ -126,7 +129,7 @@
       </details>
     </section>
 
-    <div class="breakout example">
+    <div class="example">
       <main>
         <!-- Irgendwie muss ich die Klasse full-width für main>ul loswerden -->
         <ul class="full-width">
@@ -259,7 +262,7 @@
       </details>
     </section>
 
-    <div class="breakout example">
+    <div class="example">
 
       <table>
         <caption>
@@ -366,7 +369,7 @@
 
     </section>
 
-    <div class="breakout example">
+    <div class="example">
       <h4>Paprika</h4>
       <dl>
         <div tabindex="0">

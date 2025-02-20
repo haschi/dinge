@@ -433,9 +433,9 @@ main>ul {
     width: 100%;
 
     img {
-      /* transform-origin: center; */
-      /* transform: scale(var(--img-scale)); */
-      /* transition: transform 0.4s ease-in-out; */
+      transform-origin: center;
+      transform: scale(var(--img-scale));
+      transition: transform 0.4s ease-in-out;
       object-fit: contain;
       width: 100%;
     }
@@ -452,18 +452,19 @@ main>ul {
     /* Links mit Fokus werden nicht hervorgehoben. */
     a:focus {
       outline: none;
-      /* outline: 1px dotted #28666e; */
     }
   }
 
   /* Aktive Karten hervorheben */
   >li:has(:hover, :focus) {
     --img-scale: 1.1;
-    box-shadow: rgba(0, 0, 0, 0.16) 0px 10px 36px 0px, rgba(0, 0, 0, 0.06) 0px 0px 0px 1px;
+    box-shadow: 0 8px 12px rgba(0, 0, 0, 0.7);
   }
 
   >li {
-    box-shadow: rgba(0, 0, 0, 0.16) 0px 10px 36px 0px, rgba(0, 0, 0, 0.06) 0px 0px 0px 1px;
+    background-color: #2a2a2a;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.5);
+    transition: box-shadow 0.3s ease;
   }
 }
 
