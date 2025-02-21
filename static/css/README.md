@@ -90,7 +90,7 @@ Style Sheets für die Anwendung
 - [ ] An Chromium anpassen
 - [ ] Popups (in der Kopfzeile) stylen.
 - [X] Abstände der Schaltflächen im Flow.
-- [ ] Definitionsliste (Detailansicht): Chevron anzeigen, wenn die jeweilige Zeile ein Navigationselement enthält, um den Wert zu bearbeiten oder weitere Details anzuzeigen.
+
 - [ ] Kopfzeile: Sucheingabe stylen
 - [ ] Eingabefelder: Mehrzeilig, wenn das Label hochgeklappt wird und einzeilige, bei denen der Wert rechtsbündig bearbeitet wird, unterscheiden. Nicht anhand des Typs, sondern HTML Struktur.
 - [X] Typographie: Zeilenabstände in Paragraphen vergrößern.
@@ -99,7 +99,8 @@ Style Sheets für die Anwendung
 - [X] Formular: Auswahl: Boxen um das Label ändern ihre Größe.
 - [ ] Abstände der Listenelemente in geordneten Listen (ol). Abstände sind derzeit zu klein.
 - [ ] margin-bottom in Tabellen eliminieren. Ich will nur margin-top wegen der Konsistenz.
-
+- [ ] Gemeinsame Werte in Variablen auslagern. z.B. Hintergrundfarben, Hervorhebungsfarben.
+- [ ] Abgeleitete Werte Berechnen statt Konstanten.
 
 ### Buttons
 
@@ -122,9 +123,16 @@ Style Sheets für die Anwendung
 
 ### Formular
 
-- [ ] textarea hinzufügen.
+- [X] textarea hinzufügen.
+- [ ] Validierungsfehler ausgeben.
+- [ ] Eingabefelder mit ungültigen Daten markieren. Pseudoklasse.
 
 ### Detailansicht
 
-- [ ] Hintergrundfarbe der Zeilen ist zu hell.
-- [ ] Trennlinie zwischen den Zeilen, ähnlich Formular erforderlich.
+- [X] Hintergrundfarbe der Zeilen ist zu hell.
+- [X] Trennlinie zwischen den Zeilen, ähnlich Formular erforderlich.
+- [X] Definitionsliste (Detailansicht): Chevron anzeigen, wenn die jeweilige Zeile ein Navigationselement enthält, um den Wert zu bearbeiten oder weitere Details anzuzeigen.
+
+### Akordion
+
+- [ ] Hover Effekt für Summary. (Ggf. erst nach Auslagern der Farbwerte in Variablen. Im Moment herscht Chaos.)

@@ -107,6 +107,7 @@ textarea,
 select {
   font-family: inherit;
   font-size: inherit;
+
 }
 
 /* Typografie */
@@ -138,8 +139,7 @@ h3,
 h4,
 h5,
 h6,
-details,
-dl {
+details {
   margin-block-start: var(--space-large);
 }
 
@@ -148,7 +148,8 @@ pre,
 caption,
 figure,
 figcaption,
-fieldset {
+fieldset,
+dl {
   margin-block-start: var(--space-small);
 }
 
@@ -538,6 +539,9 @@ main table {
 
 dl {
 
+  display: flex;
+  flex-direction: column;
+  row-gap: 1px;
   /* background-color: #2b2b2b; */
   /* box-shadow: 0 0 1px 1px #222222; */
   /* display: grid; */
@@ -555,7 +559,7 @@ dl {
   }
 
   div {
-    background-color: #353535;
+    background-color: #2b2b2b;
     margin: 0;
     overflow: hidden;
     border-radius: 0;
@@ -602,6 +606,21 @@ dl {
     justify-content: flex-end;
     text-align: right;
     background-color: inherit;
+
+    a {
+      text-decoration: none;
+      cursor: default;
+
+      &::after {
+        content: '\276f';
+        margin-left: 1rem;
+      }
+
+      &[target=_blank]::after {
+        content: '↗';
+        margin-left: 1rem;
+      }
+    }
   }
 
   div:focus-visible {
@@ -758,7 +777,26 @@ input[type=color] {
 }
 
 
+label:has(textarea) {
+  display: flex;
+  flex-direction: column;
+}
 
+textarea {
+  display: block;
+  padding: 0.5rem;
+  resize: vertical;
+  outline: none;
+  background-color: inherit;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.5);
+  transition: box-shadow 0.3s ease;
+  border-radius: 10px;
+  min-height: 7rem;
+
+  &:has(:hove, :focus) {
+    box-shadow: 0 8px 12px rgba(0, 0, 0, 0.7);
+  }
+}
 
 /* Deaktivierte Eingabefelder nicht hervorheben */
 label:hover:not(:has([disabled])),

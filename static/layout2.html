@@ -10,7 +10,7 @@
     .example {
       resize: both;
       overflow: auto;
-      min-width: 800px;
+      min-width: 320px;
 
       min-height: 600px;
       padding: 1rem;
@@ -63,8 +63,8 @@
   <aside>
     <header>
       <div>
-        <button>+</button>
-        <button>-</button>
+        <button>➕</button>
+        <button>➖</button>
       </div>
       <span>Dinge</span>
       <nav>
@@ -399,6 +399,19 @@
           <dd>Nachtschattengewächs</dd>
         </div>
       </dl>
+      <h4>Definition mit Link</h4>
+      <dl>
+        <div>
+          <dt>Interner Link</dt>
+          <dd><a href="#">Weitere Details</a></dd>
+        </div>
+        <div>
+          <dt>Externer Link</dt>
+          <dd><a href="#" target="_blank">Externer Link</a></dd>
+        </div>
+      </dl>
+      </h4>
+
     </div>
 
     <section id="forms" class="details">
@@ -577,6 +590,13 @@
         <label>Datei<input type="file" name=""></label>
       </fieldset>
 
+      <h3>Mehrzeilige Textfelder</h3>
+      <fieldset>
+        <label>
+          Viel Text eingeben
+          <textarea rows="5"></textarea>
+        </label>
+      </fieldset>
       <h3>Submit Button</h3>
 
       <div>
