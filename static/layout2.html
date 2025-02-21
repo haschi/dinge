@@ -213,11 +213,8 @@
       <p>Ähnlich der Kartenansicht liefert die Listenansicht eine Übersicht gleichartiger Elemente. Jedes Element
         erstreckt sich über die gesamte Breite des Inhaltsbereichs und alle Elemente werden untereinander angezeigt.</p>
       <p>Elemente in der Listenansicht sind Tabellenzeilen (<code>&lt;tr&gt;</code>) in einer Tabelle
-        (<code>&lt;table&gt;</code>). Der Haupttext kommt in die erste Spalte oder in die zweite Spalte, wenn zu dem
-        Element ein Bild angezeigt werden soll. Das Bild kommt dann in die erste Spalte und die Überschrift des
-        Haupttextes erstreckt sich dann über die ersten beiden Spalten.</p>
-      <p>Alle weiteren Daten und Steuerelemente erscheinen ab der zweiten bzw. dritten Spalte</p>
-
+        (<code>&lt;table&gt;</code>). Der Haupttext erscheint ggf. zusammen mit einem Bild in der ersten Spalte.</p>
+      <p>Alle weiteren Daten und Steuerelemente erscheinen ab der zweiten Spalte</p>
       <details>
         <summary>HTML Beispiel</summary>
         <figure>
@@ -262,69 +259,125 @@
       </details>
     </section>
 
-    <div class="example">
+    <table>
+      <caption>
+        Liste mit Bild
+      </caption>
+      <colgroup>
+        <col style="width: 100%;">
+        <col>
+        <col>
+      </colgroup>
+      <thead>
+        <tr>
+          <th>Name</th>
+          <th>Anzahl</th>
+          <th>Beschreibung</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>
+            <a href="#karten"></a>
+            <img src="https://picsum.photos/id/0/200/200" alt="" />
+            Karten
+          </td>
+          <td>1</td>
+          <td>Eins</td>
+        </tr>
+        <tr>
+          <td>
+            <a href="#listen"></a>
+            <img src="https://picsum.photos/id/1/200/200" alt="" />
+            Listen
+          </td>
+          <td>2</td>
+          <td>Zwei Wörter</td>
+        </tr>
+        <tr>
+          <td>
+            <a href="#details"></a>
+            <img src="https://picsum.photos/id/2/200/200" alt="" />
+            Details
+          </td>
+          <td>4</td>
+          <td>Mehr als zwei Wörter</td>
+        </tr>
 
-      <table>
-        <caption>
-          Beispiel einer Listenansicht
-        </caption>
-        <colgroup>
-          <col style="width: 50px;">
-          <col style="width: 100%;">
-          <col />
-          <col />
-        </colgroup>
-        <thead>
-          <th colspan="2">Name ⯅</th>
-          <th>Anzahl ⯆</th>
-          <th>Geändert</th>
-        </thead>
-        <tbody>
-          <tr>
-            <td><img src="https://picsum.photos/id/0/300/200" alt="" /></td>
-            <td>Tomaten</td>
-            <td>8</td>
-            <td><time>2025-02-01T15:25</time></td>
-          </tr>
-          <tr>
-            <td><img src="https://picsum.photos/id/1/300/200" alt="" /></td>
-            <td>Gurken</td>
-            <td>2</td>
-            <td><time>2025-02-01T16:38</time></td>
-          </tr>
-          <tr>
-            <td><img src="https://picsum.photos/id/3/300/200" alt="" /></td>
-            <td>Paprika</td>
-            <td>4</td>
-            <td><time>2025-02-01T16:39</time></td>
-          </tr>
-        </tbody>
-      </table>
+        <tr>
+          <td>
+            <a href="#typography"></a>
+            <img src="https://picsum.photos/id/3/200/200" alt="">
+            Typographie
+          </td>
+          <td>1</td>
+          <td><input type="datetime-local" value="2025-02-01T16:39" disabled /></td>
+        </tr>
+        <tr>
+          <td>
+            <a href="#navigation"></a>
+            <img src="https://picsum.photos/id/4/200/200" alt="">
+            Navigation
+          </td>
+          <td>1</td>
+          <td><time datetime="2025-02-01T16:39">2025-02-01T16:39</time></td>
+        </tr>
+        <tr>
+          <td><img src="https://picsum.photos/id/5/200/200" alt="">Langer Satz </td>
+          <td>5</td>
+          <td>Hier steht ein ganzer Satz.</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <div class="example">
 
       <table>
         <caption>
           Beispiel mit Verweisen im Tabellenkopf
         </caption>
         <colgroup>
-          <col style="width: 50px">
           <col style="width: 100%">
           <col />
           <col />
         </colgroup>
         <thead>
-          <th colspan="2"><a href="#">Name ⯅</a></th>
-          <th class="right"><a href="#">Anzahl ⯆</a></th>
+          <th><a href="#">Name ⯅</a></th>
+          <th><a href="#">Anzahl ⯆</a></th>
           <th><a href="#">Geändert</a></th>
         </thead>
         <tbody>
           <tr>
-            <td><img src="https://picsum.photos/id/0/300/200" alt="" /></td>
-            <td>Tomaten</td>
-            <td class="right">8</td>
+            <td><img src="https://picsum.photos/id/0/200/200" alt="" />Tomaten</td>
+            <td>8</td>
             <td><time>2025-02-01T15:25</time></td>
           </tr>
         </tbody>
       </table>
+
+      <table>
+        <caption>
+          Liste 3
+        </caption>
+        <colgroup>
+          <col style="width: 100%;">
+          <col />
+          <col />
+        </colgroup>
+        <thead>
+          <th>Name ⯅</th>
+          <th>Anzahl ⯆</th>
+          <th>Geändert</th>
+        </thead>
+        <tbody>
+          <tr>
+            <td><img src="https://picsum.photos/id/0/300/200" alt="" />Tomaten</td>
+            <td>8</td>
+            <td>Hier steht etwas völlig anderes</td>
+          </tr>
+        </tbody>
+      </table>
+
     </div>
 
     <section id="details" class="details">

@@ -97,10 +97,17 @@ Style Sheets für die Anwendung
 - [ ] Farbe für Gefahr. Berechnen aus der Akkzentfarbe. Gleiche Helligkeit, Sättigung, aber ein Rotton.
 - [ ] Formular: Berechnung der Zeilenhöhe anpassen an Änderungen in Typographie.
 - [X] Formular: Auswahl: Boxen um das Label ändern ihre Größe.
-- [ ] Abstände der Listenelemente in geordneten Listen (ol). Abstände sind derzeit zu klein.
-- [ ] margin-bottom in Tabellen eliminieren. Ich will nur margin-top wegen der Konsistenz.
+- [X] Abstände der Listenelemente in geordneten Listen (ol). Abstände sind derzeit zu klein.
 - [ ] Gemeinsame Werte in Variablen auslagern. z.B. Hintergrundfarben, Hervorhebungsfarben.
 - [ ] Abgeleitete Werte Berechnen statt Konstanten.
+
+## Tabellen
+
+- [X] margin-bottom in Tabellen eliminieren. Ich will nur margin-top wegen der Konsistenz.
+- [X] Gaps in Tabellenzeilen entfernen. Gaps zwischen den Zeilen bleiben.
+- [X] Größe von Bildern automatisch an Zeilenhöhe anpassen. Keine explizite Größenangabe. Der Browser soll das Bild automatisch skalieren.
+- [X] Text sekundärer Spalten dunkler.
+- [X] Tabellenzeile zur Navigation anklickbar.????
 
 ### Buttons
 
