@@ -143,3 +143,4 @@ Style Sheets für die Anwendung
 ### Akordion
 
 - [ ] Hover Effekt für Summary. (Ggf. erst nach Auslagern der Farbwerte in Variablen. Im Moment herscht Chaos.)
+- [ ] Abstände, so dass alle Inhalte vernünftig aussehen.
