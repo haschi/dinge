@@ -107,7 +107,6 @@ textarea,
 select {
   font-family: inherit;
   font-size: inherit;
-
 }
 
 /* Typografie */
@@ -118,9 +117,6 @@ caption {
   text-align: left;
 }
 
-ol>li {
-  margin-top: var(--space-small)
-}
 
 /* Horizontale Abstände */
 menu {
@@ -155,6 +151,10 @@ figcaption,
 fieldset,
 dl {
   margin-block-start: var(--space-small);
+}
+
+ol>li {
+  margin-top: var(--space-small)
 }
 
 /* Anwendungslayout */
@@ -283,30 +283,73 @@ input[type=submit] {
 }
 
 a[role=button] {
-  color: var(--color-text);
   text-decoration: none;
+}
+
+a[role=button]:has(em) {
+  color: var(--color-text);
+  background-color: var(--color-accent);
+
+  &:visited {
+    color: var(--color-text);
+  }
+}
+
+a:has(em) {
+  color: var(--color-accent);
+
+  &:visited {
+    color: var(--color-accent);
+  }
+
+  em {
+    font-style: normal;
+  }
+}
+
+/* Styles für Buttons . Das hier ist gültig!*/
+button,
+input[type=submit],
+input[type=reset],
+a[role=button] {
+  border: none;
+  padding: 0.5rem 1rem;
+  border-radius: 6px;
+  font-weight: 600;
+  color: var(--color-text);
+
+  background-color: var(--color-button-background);
 
   &:has(strong) {
     background-color: var(--color-danger);
   }
+
+  &:has(em) {
+    background-color: var(--color-accent);
+  }
+
+  em {
+    font-style: normal;
+  }
 }
 
+/* line-height: 509, 75 */
 input[type=submit] {
   background-color: var(--color-accent);
 }
 
 button,
 ::file-selector-button {
-  color: var(--color-text);
-  background-color: inherit;
+  /* color: var(--color-text);
+  background-color: inherit; */
   /* background-color: var(--color-button-background); */
-  border: none;
+  /* border: none;
   border-radius: var(--border-radius);
   padding: 0 0.2rem;
-  min-width: 1.5em;
+  min-width: 1.5em; */
 
   &:hover {
-    background-color: var(--color-button-background);
+    /* background-color: var(--color-button-background); */
   }
 }
 
@@ -488,12 +531,14 @@ main table {
   font-variant-numeric: tabular-nums;
 
   tr {
-    line-height: 3.2;
+
+    /* line-height: 3.2; */
+    /* height: 3.2rem; */
 
     /* Damit die Tabellenzeile anklickbar wird */
     position: relative;
 
-    td a {
+    td a:empty {
       position: absolute;
       top: 0;
       left: 0;
@@ -503,6 +548,7 @@ main table {
       color: inherit;
       display: block;
       z-index: 1;
+
       /* Der Link liegt über dem Tabelleninhalt */
 
       --table-cell-background: inherit;
@@ -511,6 +557,10 @@ main table {
 
   tr:hover {
     --table-cell-background: #272727;
+  }
+
+  td {
+    min-height: 3.2rem;
   }
 
   td,
@@ -528,7 +578,7 @@ main table {
   }
 
   th {
-
+    height: 2.4rem;
     font-weight: normal;
 
     a {
@@ -567,7 +617,7 @@ main table {
 
 
   td img {
-    height: 3em;
+    height: 2.5rem;
     width: auto;
     border-radius: 10px;
   }

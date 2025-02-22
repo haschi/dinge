@@ -218,7 +218,7 @@
         (<code>&lt;table&gt;</code>). Der Haupttext erscheint ggf. zusammen mit einem Bild in der ersten Spalte. Die
         erste Spalte wächst mit der Breite der Anzeige. Alle weiteren Daten und Steuerelemente erscheinen ab der zweiten
         Spalte</p>
-      <p>Wenn eine Zelle einen Link enthält, so erstreckt sich der Link über die gesamte Tabellenzeile.</p>
+      <p>Wenn eine Zelle einen Verweis ohne Text enthält, so erstreckt sich der Link über die gesamte Tabellenzeile.</p>
       <details>
         <summary>HTML Beispiel</summary>
         <figure>
@@ -826,7 +826,86 @@
     <section id="navigation" class="details">
       <h2>Navigation</h2>
 
-      <h3>Buttons</h3>
+      <h3>Verweise und Schaltflächen</h3>
+
+      <p>Verweise dienen der Navigation während Schaltflächen Aktionen ausführen. Benutze Verweise, die wie
+        Schaltflächen gestaltet sind, wenn die Navigation für den Anwenden den Charakter einer Aktion aufweist.</p>
+
+      <p>Verweise und Schaltflächen können eine von drei sematischen Bedeutungen besitzen</p>
+
+      <h4>Primäre Schaltflächen und Navigation</h4>
+
+      <p>Die Aktion oder der Verweis, der im Kontext der aktuellen Bearbeitung das Hauptziel darstellt.
+        Üblicherweise gibt es nur ein primäres Steuerelement, also entweder eine Navigation oder eine Aktion.</p>
+
+      <p>Primäre Verweise und Aktionen werden mit der Akzentfarbe hervorgehoben.</p>
+
+      <table>
+        <thead>
+          <tr>
+            <th>Beispiel</th>
+            <th>Markup</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><a href="#"><em>Primärer Link</em></a></td>
+            <td><code>&lt;a href="#"&gt;&lt;em&gt;Primärer Link&lt;/em&gt;&lt;/a&gt;</code></td>
+          </tr>
+          <tr>
+            <td><a href="#" role="button"><em>Primärer Link Button</em></a></td>
+            <td><code>&lt;em&gt;&lt;a href="#"&gt;Primärer Link Button&lt;/a&gt;&lt;/em&gt;</code></td>
+          </tr>
+          <tr>
+            <td><button><em>Primärer Button</em></button></td>
+            <td><code>&lt;button&gt;&lt;em&gt;Primärer Button&lt;/em&gt;&lt;/button&gt;</code></td>
+          </tr>
+          <tr>
+            <td><input type="submit" value="Submit Button"></td>
+            <td><code>&lt;input type="submit" value="Submit Button"&gt;</code></td>
+          </tr>
+        </tbody>
+      </table>
+
+      <h4>Sekundäre Schatlflächen und Navigation</h4>
+
+      <p>Die beinhaltet alle Aktionen oder Verweise, die weder das Hauptziel der aktuellen Bearbeitung darstellen, noch
+        destruktiver Art sind.</p>
+
+      <p>Sekundäre Aktionen und Verweise werden neutral dargestellt.</p>
+
+      <table>
+        <thead>
+          <tr>
+            <th>Beispiel</th>
+            <th>Markup</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><a href="#">Sekundärer Link</a></td>
+            <td></td>
+          </tr>
+          <tr>
+            <td><a href="#" role="button">Sekundärer Link Button</a></td>
+            <td></td>
+          </tr>
+          <tr>
+            <td><button>Sekundärer Button</button></td>
+            <td></td>
+          </tr>
+          <tr>
+            <td><input type="reset" value="Reset Button"></td>
+            <td></td>
+          </tr>
+        </tbody>
+      </table>
+
+      <h4>Destruktive Aktionen und Verweise</h4>
+
+      <p>Bei Aktionen, die zu Verlust oder zum Zerstören von Informationen führen, werden die Benutzerelemente mit einer
+        entsprechenden Warnfarbe dargestellt. Es sollte zudem keine Verweise mit destruktivem Verhalten geben, also
+        keine HTTP GET Anfrage, die Informationen Löschen.</p>
 
       <p>Primäre Steuerelemente werden von einem <code>em</code> Element umschlossen.</p>
 
@@ -837,6 +916,30 @@
         umschlossen. Allerdings sollten Verküpfungen keine Destruktiven Aktionen durchführen. Das gehört sich einfach
         nicht.</p>
 
+      <table>
+        <caption>
+          Verweise
+        </caption>
+
+        <thead>
+          <tr>
+            <th>Beispiel</th>
+            <th>Markup</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>
+              <a href="#">Primärer Link</a>
+            </td>
+            <td>
+              <code>
+              &lt;a href="#"&gt;Primärer Link&lt;/a&gt;
+            </code>
+            </td>
+          </tr>
+        </tbody>
+      </table>
       <table>
         <caption>
           Primäre Aktionen und Navigation

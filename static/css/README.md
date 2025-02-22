@@ -108,11 +108,13 @@ Style Sheets für die Anwendung
 - [X] Größe von Bildern automatisch an Zeilenhöhe anpassen. Keine explizite Größenangabe. Der Browser soll das Bild automatisch skalieren.
 - [X] Text sekundärer Spalten dunkler.
 - [X] Tabellenzeile zur Navigation anklickbar.????
+- [ ] Tabellenzeilen nur anklickbar, wenn Text des Verweises leer ist.
 
-### Buttons
+### Buttons und Links
 
 - [ ] Klärung: Semantik und Markup von Buttons: Primär, Sekundär, Destruktiv: Innerhalb!
-- [ ] Alle Buttons durchstylen.
+- [ ] Alle Buttons durchstylen
+- [ ] Alle Links durchstylen
 
 ### Fokus
 
@@ -140,7 +142,7 @@ Style Sheets für die Anwendung
 - [X] Trennlinie zwischen den Zeilen, ähnlich Formular erforderlich.
 - [X] Definitionsliste (Detailansicht): Chevron anzeigen, wenn die jeweilige Zeile ein Navigationselement enthält, um den Wert zu bearbeiten oder weitere Details anzuzeigen.
 
-### Akordion
+### Akkordeon
 
 - [ ] Hover Effekt für Summary. (Ggf. erst nach Auslagern der Farbwerte in Variablen. Im Moment herscht Chaos.)
-- [ ] Abstände, so dass alle Inhalte vernünftig aussehen.
+- [X] Abstände, so dass alle Inhalte vernünftig aussehen.
