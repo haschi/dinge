@@ -13,10 +13,16 @@
 
   /* Textfarbe für aktive Elemente, normale Schriftfarbe */
   --color-text: #f2f2f2;
-
+  --color-text-low: hsl(from var(--color-text) h s calc(l - 20));
+  --color-text-high: hsl(from var(--color-text) h s calc(l + 20));
   /* Akkzentfarbe des Browser. Wenn die Akzentfarbe des Browsers verwendet wird, müssen die Steuerelemente des Browsers nicht angepasst werden. Das betrifft zum Beispiel das select Element. Komplexere Steuerelemente, die einen eigenen Dialog öffnen, berücksichtigen dies aber nicht. */
   --color-accent: #3584e4;
+  --color-accent-low: hsl(213, 50%, 50%);
+  --color-accent-high: hsl(213, 55%, 45%);
+
   --color-danger: #f00;
+  --color-danger-low: hsl(0, 50%, 50%);
+  --color-danger-high: hsl(0, 55%, 45%);
 
   /* Textfarbe für inaktive Elemente */
   --color2: #8e8e8e;
@@ -31,8 +37,10 @@
 
   --color-rahmen-hell: #3f3f3f;
   --color-rahmen-dunkel: #161616;
+
   --color-button-background: #434343;
-  /*393939*/
+  --color-button-background-low: hsl(from var(--color-button-background) h s calc(l - 10));
+
   --color-button-text: #fff;
   --color-button-background1: #3e3e3e;
   --color-details-background: #353535;
@@ -162,8 +170,7 @@ ol>li {
 body {
   height: 100vh;
   display: grid;
-  grid-template-areas:
-    "sidebar header"
+  grid-template-areas: "sidebar header"
     "sidebar content"
     "footer footer";
 
@@ -204,8 +211,7 @@ main {
   --breakout-size: calc((var(--breakout-width) - var(--content-width)) / 2);
 
   display: grid;
-  grid-template-columns:
-    [full-width-start] minmax(var(--padding-inline), 1fr) [breakout-start] minmax(0, var(--breakout-size)) [content-start] min(100% - (var(--padding-inline) * 2), var(--content-width)) [content-end] minmax(0, var(--breakout-size)) [breakout-end] minmax(var(--padding-inline), 1fr) [full-width-end];
+  grid-template-columns: [full-width-start] minmax(var(--padding-inline), 1fr) [breakout-start] minmax(0, var(--breakout-size)) [content-start] min(100% - (var(--padding-inline) * 2), var(--content-width)) [content-end] minmax(0, var(--breakout-size)) [breakout-end] minmax(var(--padding-inline), 1fr) [full-width-end];
 
   >* {
     grid-column: content;
@@ -270,73 +276,130 @@ header nav {
 
 /* Styling */
 
-label button,
-label ::file-selector-button,
-label input[type=button],
-[role=button],
-input[type=submit] {
+/* Allgemeine Gestaltung der Schatlfächen */
+button,
+input[type=button],
+input[type=submit],
+input[type=reset],
+a[role=button] {
   border: none;
-  padding: 0.5rem 1rem;
-  background-color: var(--color-button-background);
   border-radius: 6px;
+  padding: 0.5rem 1rem;
   font-weight: 600;
+  cursor: default;
+  line-height: 1.1;
+
+  color: var(--_button-fg);
+  background-color: var(--_button-bg);
+
+  b,
+  strong {
+    font-weight: 600;
+  }
+
+  em {
+    font-style: normal;
+  }
+
+  &:hover {
+    color: var(--_button-highlight-fg);
+    background-color: var(--_button_highlight-bg);
+  }
+}
+
+/* Vorrangige Steuerelemente */
+button:has(em),
+a[role=button]:has(em),
+input[type=submit] {
+  --_button-fg: var(--color-text-low);
+  --_button-highlight-fg: var(--color-text-high);
+  --_button-bg: var(--color-accent-low);
+  --_button_highlight-bg: var(--color-accent-high);
+}
+
+/* Destruktive Steuerelemente */
+button:has(strong),
+a[role=button]:has(strong) {
+  --_button-fg: var(--color-text-low);
+  --_button-highlight-fg: var(--color-text-high);
+  --_button-bg: var(--color-danger-low);
+  --_button_highlight-bg: var(--color-danger-high);
+}
+
+/* Nachrangige Steuerelemente */
+button:has(b),
+a[role=button]:has(b),
+input[type=reset] {
+  --_button-fg: var(--color-text-low);
+  --_button-highlight-fg: var(--color-text-high);
+  --_button-bg: var(--color-button-background-low);
+  --_button_highlight-bg: var(--color-button-background);
+
+}
+
+/* Kontextfreie Steuerelemente */
+button,
+a[role=button] {
+  --_button-fg: var(--color-text-low);
+  --_button-highlight-fg: var(--color-text-high);
+  --_button-bg: inherit;
+  --_button_highlight-bg: var(--color-button-background);
+}
+
+a,
+a:visited {
+  color: var(--color-text-low)
+}
+
+a:hover {
+  color: var(--color-text-high);
 }
 
 a[role=button] {
   text-decoration: none;
 }
 
-a[role=button]:has(em) {
-  color: var(--color-text);
-  background-color: var(--color-accent);
+a:has(em):not([role=button]) {
+  color: var(--color-accent-low);
 
   &:visited {
-    color: var(--color-text);
+    color: var(--color-accent-low);
   }
-}
 
-a:has(em) {
-  color: var(--color-accent);
-
-  &:visited {
-    color: var(--color-accent);
+  &:hover {
+    color: var(--color-accent-high);
   }
 
   em {
     font-style: normal;
   }
 }
+
+a:has(b) {
+  color: var(--color-text-low);
+
+  &:visited {
+    color: var(--color-text-low);
+  }
+
+  &:hover {
+    color: var(--color-text-high)
+  }
+}
+
+label button,
+label ::file-selector-button,
+label input[type=button],
+[role=button],
+input[type=submit] {
+  /* background-color: var(--color-button-background); */
+}
+
 
 /* Styles für Buttons . Das hier ist gültig!*/
-button,
-input[type=submit],
-input[type=reset],
-a[role=button] {
-  border: none;
-  padding: 0.5rem 1rem;
-  border-radius: 6px;
-  font-weight: 600;
-  color: var(--color-text);
-
-  background-color: var(--color-button-background);
-
-  &:has(strong) {
-    background-color: var(--color-danger);
-  }
-
-  &:has(em) {
-    background-color: var(--color-accent);
-  }
-
-  em {
-    font-style: normal;
-  }
-}
 
 /* line-height: 509, 75 */
-input[type=submit] {
-  background-color: var(--color-accent);
-}
+
 
 button,
 ::file-selector-button {

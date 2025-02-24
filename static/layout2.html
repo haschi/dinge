@@ -622,9 +622,8 @@
 
       <div>
         <input type="submit" value="Speichern">
-        <a role="button" href="#">Abbrechen</a>
+        <a role="button" href="#"><b>Abbrechen</b></a>
         <a role="button" href="#"><strong>Gefahr</strong></a>
-        <a role="button" href="#"><em>Primär</em> </a>
       </div>
     </form>
 
@@ -829,50 +828,20 @@
       <h3>Verweise und Schaltflächen</h3>
 
       <p>Verweise dienen der Navigation während Schaltflächen Aktionen ausführen. Benutze Verweise, die wie
-        Schaltflächen gestaltet sind, wenn die Navigation für den Anwenden den Charakter einer Aktion aufweist.</p>
+        Schaltflächen gestaltet sind, wenn die Navigation für den Anwenden den Charakter einer Aktion aufweist.
+        Verweise, die wie Schaltflächen gestaltet sind, kannst Du mit dem Attribut <code>[role=button]</code>
+        hinzufügen.</p>
 
-      <p>Verweise und Schaltflächen können eine von drei sematischen Bedeutungen besitzen</p>
+      <p>Verweise und Schaltflächen können eine von drei sematischen Bedeutungen besitzen: Vorrangig, nachrangig,
+        destruktiv und untergeordnet.</p>
 
-      <h4>Primäre Schaltflächen und Navigation</h4>
+      <h4>Vorrangige Schaltflächen und Navigation</h4>
 
-      <p>Die Aktion oder der Verweis, der im Kontext der aktuellen Bearbeitung das Hauptziel darstellt.
-        Üblicherweise gibt es nur ein primäres Steuerelement, also entweder eine Navigation oder eine Aktion.</p>
+      <p>Eine Aktion oder ein Verweis, die im aktuellen Bearbeitungskontext das Hauptziel darstellen. Üblicherweise gibt
+        es nur ein vorrangiges Steuerelement für jeden Kontext.</p>
 
-      <p>Primäre Verweise und Aktionen werden mit der Akzentfarbe hervorgehoben.</p>
-
-      <table>
-        <thead>
-          <tr>
-            <th>Beispiel</th>
-            <th>Markup</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr>
-            <td><a href="#"><em>Primärer Link</em></a></td>
-            <td><code>&lt;a href="#"&gt;&lt;em&gt;Primärer Link&lt;/em&gt;&lt;/a&gt;</code></td>
-          </tr>
-          <tr>
-            <td><a href="#" role="button"><em>Primärer Link Button</em></a></td>
-            <td><code>&lt;em&gt;&lt;a href="#"&gt;Primärer Link Button&lt;/a&gt;&lt;/em&gt;</code></td>
-          </tr>
-          <tr>
-            <td><button><em>Primärer Button</em></button></td>
-            <td><code>&lt;button&gt;&lt;em&gt;Primärer Button&lt;/em&gt;&lt;/button&gt;</code></td>
-          </tr>
-          <tr>
-            <td><input type="submit" value="Submit Button"></td>
-            <td><code>&lt;input type="submit" value="Submit Button"&gt;</code></td>
-          </tr>
-        </tbody>
-      </table>
-
-      <h4>Sekundäre Schatlflächen und Navigation</h4>
-
-      <p>Die beinhaltet alle Aktionen oder Verweise, die weder das Hauptziel der aktuellen Bearbeitung darstellen, noch
-        destruktiver Art sind.</p>
-
-      <p>Sekundäre Aktionen und Verweise werden neutral dargestellt.</p>
+      <p>Vorrangige Verweise und Aktionen werden durch ein <code>&lt;em&gt;</em></code> Element ausgezeichnet und mit
+        der Akzentfarbe hervorgehoben.</p>
 
       <table>
         <thead>
@@ -883,24 +852,95 @@
         </thead>
         <tbody>
           <tr>
-            <td><a href="#">Sekundärer Link</a></td>
-            <td></td>
+            <td><a href="#"><em>Verweis</em></a></td>
+            <td><code>&lt;a href="#"&gt;&lt;em&gt;Verweis&lt;/em&gt;&lt;/a&gt;</code></td>
           </tr>
           <tr>
-            <td><a href="#" role="button">Sekundärer Link Button</a></td>
-            <td></td>
+            <td><a href="#" role="button"><em>Verweis Schaltfläche</em></a></td>
+            <td><code>&lt;a href="#" role="button"&gt;&lt;em&gt;Verweis Schaltfläche&lt;/em&gt;&lt;/a&gt;</code></td>
           </tr>
           <tr>
-            <td><button>Sekundärer Button</button></td>
-            <td></td>
+            <td><button><em>Schaltfläche</em></button></td>
+            <td><code>&lt;button&gt;&lt;em&gt;Schaltfläche&lt;/em&gt;&lt;/button&gt;</code></td>
           </tr>
           <tr>
-            <td><input type="reset" value="Reset Button"></td>
-            <td></td>
+            <td><input type="submit" value='Schaltfläche "Senden"'></td>
+            <td><code>&lt;input type="submit" value='Schaltfläche "Senden"'&gt;</code></td>
           </tr>
         </tbody>
       </table>
 
+      <h4>Nachrangige Aktionen und Navigation</h4>
+
+      <p>Dies beinhaltet alle Aktionen oder Verweise, die weder das Hauptziel der aktuellen Bearbeitung darstellen, noch
+        von destruktiver Natur sind.</p>
+
+      <p>Nachrrangige Aktionen und Verweise werden mit einem <code>&lt;b&gt;</code> Element ausgezeichnet und neutral
+        dargestellt. Ausnahme bilden <code>&lt;input type=reset&gt;</code> Elemente, die nicht mit einem
+        <code>&lt;b&gt;</code> Element ausgezeichnet werden können aber trotzdem als immer als nachrangige Schatflächen
+        angezeigt werden.
+      </p>
+
+      <table>
+        <thead>
+          <tr>
+            <th>Beispiel</th>
+            <th>Markup</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><a href="#"><b>Verweis</b></a></td>
+            <td><code>&lt;a href="#"&gt;&lt;b&gt;Verweis&lt;/b&gt;&lt;/a&gt;</code></td>
+          </tr>
+          <tr>
+            <td><a href="#" role="button"><b>Verweis Schaltfläche</b></a></td>
+            <td><code>&lt;a href="#" role="button"&gt;&lt;b&gt;Verweis Schaltfläche&lt;/b&gt;&lt;/a&gt;</code></td>
+          </tr>
+          <tr>
+            <td><button><b>Schaltfläche</b></button></td>
+            <td><code>&lt;button&gt;&lt;b&gt;Schaltfläche&lt;/b&gt;&lt;/button&gt;</code></td>
+          </tr>
+          <tr>
+            <td><input type="reset" value='Schaltfläche "Zurücksetzen"'></td>
+            <td><code>&lt;input type="reset" value='Schaltfläche "Zurücksetzen"'&gt;</code></td>
+          </tr>
+        </tbody>
+      </table>
+
+      <h4>Kontextfreie Navigation und neutrale Aktionen </h4>
+
+      <p>Kontextfreie Navigation ist eine Navigation, die außerhalb des aktuellen Bearbeitungskontextes liegt. Ein
+        Beispiel dafür ist die Navigation des Hauptmenüs.</p>
+      <p>Neutrale Aktionen verändern nicht den Bearbeitungskontext. Sie können aber die Sicht auf den
+        Bearbeitungskontext ändern. Ein Beispiel wäre die Sortierung einer Liste</p>
+
+      <p>Elemente dieser Art werden ohne zusätzliches Markup erstellt. D.h. alle Navigationselemente und Steuerelemente
+        werden als kontextfreie Navigation bzw. neutrale Aktionen angezeigt, solange kein zusätzliches Markup
+        hinzugefügt wird.</p>
+
+      <table>
+        <thead>
+          <tr>
+            <th>Beispiel</th>
+            <th>Markup</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><a href="#">Kontextfremder Verweis</a></td>
+            <td><code>&lt;a href="#"&gt;Kontextfremder Verweis&lt;/a&gt;</code></td>
+          </tr>
+          <tr>
+            <td><a href="#" role="button">Verweis Schaltfläche</a></td>
+            <td><code>&lt;a href="#" role="button"&gt;Verweis Schaltfläche&lt;/a&gt;</code></td>
+          </tr>
+          <tr>
+            <td><button>Schaltfläche</button></td>
+            <td><code>&lt;button&gt;Schaltfläche&lt;/button&gt;</code></td>
+          </tr>
+        </tbody>
+      </table>
       <h4>Destruktive Aktionen und Verweise</h4>
 
       <p>Bei Aktionen, die zu Verlust oder zum Zerstören von Informationen führen, werden die Benutzerelemente mit einer
@@ -912,15 +952,12 @@
       <p>Sekundäre Steuerlemente werden nicht besonders ausgezeichnet. Das führt jedoch zu einer Ungereimtheit mit
         Verknüpfungen, die als Schaltfläche dargestellt werden sollen.</p>
 
-      <p>Steuerelemente und Verknüpfungen mit destruktivem Character werden von einem <code>strong</code> Element
+      <p>Steuerelemente und Verknüpfungen mit destruktivem Charakter werden von einem <code>&lt;strong&gt;</code>
+        Element
         umschlossen. Allerdings sollten Verküpfungen keine Destruktiven Aktionen durchführen. Das gehört sich einfach
         nicht.</p>
 
       <table>
-        <caption>
-          Verweise
-        </caption>
-
         <thead>
           <tr>
             <th>Beispiel</th>
@@ -929,115 +966,12 @@
         </thead>
         <tbody>
           <tr>
-            <td>
-              <a href="#">Primärer Link</a>
-            </td>
-            <td>
-              <code>
-              &lt;a href="#"&gt;Primärer Link&lt;/a&gt;
-            </code>
-            </td>
-          </tr>
-        </tbody>
-      </table>
-      <table>
-        <caption>
-          Primäre Aktionen und Navigation
-        </caption>
-        <thead>
-          <tr>
-            <th>Markup</th>
-            <th>Beispiel</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr>
-            <td><code>&lt;em&gt;&lt;button&gt;Primäre Aktion&lt;/button&gt;&lt;/em&gt;</code></td>
-            <td><em><button>Primäre Aktion</button></em></td>
+            <td><a href="#" role="button"><strong>Verweis</strong></a></td>
+            <td><code>&lt;a href="#" role="button"&gt;&lt;strong&gt;Verweis&lt;/strong&gt;&lt;/a&gt;</code></td>
           </tr>
           <tr>
-            <td>
-              <code>&lt;em&gt;&lt;input type="submit" value="Formular senden"/&gt;&lt;/em&gt;</code>
-            </td>
-            <td><em><input type="submit" value="Formular senden" /></em></td>
-          </tr>
-          <tr>
-            <td>
-              <code>&lt;em&gt;&lt;input type="button" value="Primäre Aktion"/&gt;&lt;/em&gt;</code>
-            </td>
-            <td><em><input type="button" value="Primäre Aktion" /></em></td>
-          </tr>
-          <tr>
-            <td><code>&lt;em&gt;&lt;a href="#"&gt;Primärer Navigationslink&lt;/a&gt;&lt;/em&gt;</code></td>
-            <td><em><a href="#">Primärer Navigationslink</a></em></td>
-          </tr>
-        </tbody>
-      </table>
-
-      <table>
-        <caption>
-          Sekundäre Aktionen und Navigation
-        </caption>
-        <thead>
-          <tr>
-            <th>Markup</th>
-            <th>Beispiel</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr>
-            <td><code>&lt;button&gt;Sekundäre Aktion&lt;/button&gt;</code></td>
-            <td><button>Sekundäre Aktion</button></td>
-          </tr>
-          <tr>
-            <td>
-              <code>&lt;input type="submit" value="Formular senden"/&gt;</code>
-            </td>
-            <td><input type="submit" value="Formular senden" /></td>
-          </tr>
-          <tr>
-            <td>
-              <code>&lt;input type="button" value="Sekundäre Aktion"/&gt;</code>
-            </td>
-            <td><input type="button" value="Sekundäre Aktion" /></td>
-          </tr>
-          <tr>
-            <td>Für Links nicht anwendbar</td>
-            <td>N/A</td>
-          </tr>
-        </tbody>
-      </table>
-
-      <table>
-        <caption>
-          Destruktive Aktionen und Navigation
-        </caption>
-        <thead>
-          <tr>
-            <th>Markup</th>
-            <th>Beispiel</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr>
-            <td><code>&lt;strong&gt;&lt;button&gt;Destruktive Aktion&lt;/button&gt;&lt;/strong&gt;</code></td>
-            <td><strong><button>Destruktive Aktion</button></strong></td>
-          </tr>
-          <tr>
-            <td>
-              <code>&lt;strong&gt;&lt;input type="submit" value="Formular senden"/&gt;&lt;/strong&gt;</code>
-            </td>
-            <td><strong><input type="submit" value="Formular senden" /></strong></td>
-          </tr>
-          <tr>
-            <td>
-              <code>&lt;strong&gt;&lt;input type="button" value="Destruktive Aktion"/&gt;&lt;/strong&gt;</code>
-            </td>
-            <td><strong><input type="button" value="Destruktive Aktion" /></strong></td>
-          </tr>
-          <tr>
-            <td><code>&lt;strong&gt;&lt;a href="#"&gt;Destruktiver Navigationslink&lt;/a&gt;&lt;/strong&gt;</code></td>
-            <td><strong><a href="#">Destruktiver Navigationslink</a></strong></td>
+            <td><button><strong>Schaltfläche</strong></button></td>
+            <td><code>&lt;button&gt;&lt;strong&gt;Schaltfläche&lt;/strong&gt;&lt;/button&gt;</code></td>
           </tr>
         </tbody>
       </table>

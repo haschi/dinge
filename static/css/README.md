@@ -112,9 +112,11 @@ Style Sheets für die Anwendung
 
 ### Buttons und Links
 
-- [ ] Klärung: Semantik und Markup von Buttons: Primär, Sekundär, Destruktiv: Innerhalb!
-- [ ] Alle Buttons durchstylen
-- [ ] Alle Links durchstylen
+- [X] Klärung: Semantik und Markup von Buttons: Vorrangig, nachrangig, destruktiv und kontextfrei
+- [X] Primäre Schaltflächen und Verweise
+- [X] Sekundäre Schaltflächen und Verweise
+- [X] Kontextfreie Schaltflächen
+- [X] Destruktive Schaltflächen
 
 ### Fokus
 
