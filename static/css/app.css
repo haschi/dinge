@@ -230,48 +230,9 @@ main {
 
 /* Alles zum Thema header */
 
-body>header,
-aside>header {
-  display: flex;
-  flex-flow: row nowrap;
-  justify-content: space-between;
-  align-items: baseline;
-  column-gap: 1rem;
-}
-
-header {
-  padding: 0.25rem 0.5rem;
-  line-height: 1.6;
-
-  form,
-  search {
-    display: flex;
-    flex-flow: row nowrap;
-    column-gap: 0.5rem;
-  }
-}
 
 .fill {
   flex-grow: 1;
-}
-
-header nav {
-
-  border: var(--layout-border);
-  display: inline-block;
-
-  ul,
-  menu {
-    display: flex;
-    column-gap: 1rem;
-    list-style-type: none;
-
-    li {
-      a {
-        text-decoration: none;
-      }
-    }
-  }
 }
 
 /* Styling */
@@ -281,7 +242,7 @@ button,
 input[type=button],
 input[type=submit],
 input[type=reset],
-a[role=button] {
+[role=button] {
   border: none;
   border-radius: 6px;
   padding: 0.5rem 1rem;
@@ -343,6 +304,14 @@ a[role=button] {
   --_button-fg: var(--color-text-low);
   --_button-highlight-fg: var(--color-text-high);
   --_button-bg: inherit;
+  --_button_highlight-bg: var(--color-button-background);
+}
+
+/* Active mutually exclusive button */
+span[role=button] {
+  --_button-fg: var(--color-text-high);
+  --_button-highlight-fg: var(--color-text-high);
+  --_button-bg: var(--color-button-background);
   --_button_highlight-bg: var(--color-button-background);
 }
 
@@ -869,103 +838,107 @@ fieldset {
   }
 }
 
-input[type=text],
-input[type=search],
-input[type=number],
-input[type=date],
-input[type=datetime-local],
-input[type=time],
-input[type=week],
-input[type=email],
-input[type=tel],
-input[type=month],
-input[type=password],
-input[type=url],
-input[type=color] {
-  background-color: inherit;
-  color: var(--color-text);
-  accent-color: var(--color-accent);
-}
+fieldset {
 
-input[type=number] {
-  appearance: auto;
-}
+  input[type=text],
+  input[type=search],
+  input[type=number],
+  input[type=date],
+  input[type=datetime-local],
+  input[type=time],
+  input[type=week],
+  input[type=email],
+  input[type=tel],
+  input[type=month],
+  input[type=password],
+  input[type=url],
+  input[type=color] {
+    background-color: inherit;
+    color: var(--color-text);
+    accent-color: var(--color-accent);
+  }
 
-/* Die Durchsuchen... Schaltfläche nicht anzeigen */
-input[type=file]::file-selector-button {
-  display: none;
-}
+  input[type=number] {
+    appearance: auto;
+  }
 
-input[type=file] {
-  text-align: right;
-}
+  /* Die Durchsuchen... Schaltfläche nicht anzeigen */
+  input[type=file]::file-selector-button {
+    display: none;
+  }
 
-select {
-  /* border: var(--layout-border); */
-  border: none;
-  display: block;
-  float: right
-}
+  input[type=file] {
+    text-align: right;
+  }
 
-input[type=time],
-input[type=month],
-input[type=week],
-input[type=date],
-input[type=datetime-local] {
-  background-color: inherit;
-  color: inherit;
-  border: none;
-}
+  select {
+    /* border: var(--layout-border); */
+    border: none;
+    display: block;
+    float: right
+  }
 
-
-input[type=color] {
-  border: 1px solid transparent;
-}
+  input[type=time],
+  input[type=month],
+  input[type=week],
+  input[type=date],
+  input[type=datetime-local] {
+    background-color: inherit;
+    color: inherit;
+    border: none;
+  }
 
 
-label:has(textarea) {
-  display: flex;
-  flex-direction: column;
-}
+  input[type=color] {
+    border: 1px solid transparent;
+  }
 
-textarea {
-  display: block;
-  padding: 0.5rem;
-  resize: vertical;
-  outline: none;
-  background-color: inherit;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.5);
-  transition: box-shadow 0.3s ease;
-  border-radius: 10px;
-  min-height: 7rem;
 
-  &:has(:hove, :focus) {
-    box-shadow: 0 8px 12px rgba(0, 0, 0, 0.7);
+  label:has(textarea) {
+    display: flex;
+    flex-direction: column;
+  }
+
+  textarea {
+    display: block;
+    padding: 0.5rem;
+    resize: vertical;
+    outline: none;
+    background-color: inherit;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.5);
+    transition: box-shadow 0.3s ease;
+    border-radius: 10px;
+    min-height: 7rem;
+
+    &:has(:hove, :focus) {
+      box-shadow: 0 8px 12px rgba(0, 0, 0, 0.7);
+    }
+  }
+
+  /* Deaktivierte Eingabefelder nicht hervorheben */
+  label:hover:not(:has([disabled])),
+  label:has(:focus-visible) {
+    background: #3b3b3b;
   }
 }
 
-/* Deaktivierte Eingabefelder nicht hervorheben */
-label:hover:not(:has([disabled])),
-label:has(:focus-visible) {
-  background: #3b3b3b;
-}
+fieldset {
+  label {
+    /* Zeichensatzgröße für kleine Labels */
+    --font-size-small: 10px;
 
-label {
-  /* Zeichensatzgröße für kleine Labels */
-  --font-size-small: 10px;
+    /* Zeichensatzgröße für große Labels oder Eingaben */
+    --font-size-normal: 14px;
 
-  /* Zeichensatzgröße für große Labels oder Eingaben */
-  --font-size-normal: 14px;
+    /* Regulärer Zeilenabstand - kleines Label und Eingabe */
+    --line-height-normal: 1.5;
 
-  /* Regulärer Zeilenabstand - kleines Label und Eingabe */
-  --line-height-normal: 1.5;
+    /* Gesamthöhe des Eingabefeldes mit kleinem Label und Eingabe */
+    --content-height: calc((var(--font-size-small) + var(--font-size-normal)) * var(--line-height-normal));
 
-  /* Gesamthöhe des Eingabefeldes mit kleinem Label und Eingabe */
-  --content-height: calc((var(--font-size-small) + var(--font-size-normal)) * var(--line-height-normal));
-
-  background-color: #2b2b2b;
-  box-shadow: 0 0 1px 1px #222222;
-  /*
+    background-color: #2b2b2b;
+    box-shadow: 0 0 1px 1px #222222;
+    /*
     Beispiel:
     Kleines Label             10px
     Großes Label oder Eingabe 14px
@@ -973,98 +946,202 @@ label {
     Gesamthöhe (10px + 14px) * 1.5 = 36
   */
 
-  /* Als Zeilenabstand die gesamte Höhe verwenden */
-  line-height: var(--content-height);
-  font-size: var(--font-size-normal);
+    /* Als Zeilenabstand die gesamte Höhe verwenden */
+    line-height: var(--content-height);
+    font-size: var(--font-size-normal);
 
-  display: block;
-
-  padding: 10px;
-
-  /* Kein Focus, kein Wert => unsichtbar (Größe = 0) */
-  input[type=text],
-  input[type=number],
-  input[type=email],
-  input[type=tel],
-  input[type=password],
-  input[type=url] {
-    border: none;
     display: block;
-    padding: 0;
-    margin: 0;
-    width: 0;
-    height: 0;
-  }
 
-  /* Wenn das Eingabefeld den Fokus erhält, das Label verkleinern und das Eingabefeld anzeigen */
-  /* Alternative zu :not([role=switch]) wäre alle input[type=text][type=number]... aufzuzählen, also eine Positivliste. **/
-  &:has(input:focus:not([type=checkbox], [type=radio], [type=range], [type=time], [type=month], [type=week], [type=date], [type=datetime-local], [type=color], [type=button], [type=file])),
-  &:has(input:not(:placeholder-shown, [type=checkbox], [type=radio], [type=range], [type=time], [type=week], [type=month], [type=date],
-      [type=datetime-local], [type=color], [type=button], [type=file])) {
-    font-size: var(--font-size-small);
-    line-height: var(--line-height-normal);
+    padding: 10px;
 
-    input {
-      width: 100%;
-      /* Muss exakt mit line-height übereinstimmen */
-      height: calc(var(--font-size-normal) * var(--line-height-normal));
-      font-size: var(--font-size-normal);
+    /* Kein Focus, kein Wert => unsichtbar (Größe = 0) */
+    input[type=text],
+    input[type=number],
+    input[type=email],
+    input[type=tel],
+    input[type=password],
+    input[type=url] {
+      border: none;
+      display: block;
+      padding: 0;
+      margin: 0;
+      width: 0;
+      height: 0;
+    }
+
+    /* Wenn das Eingabefeld den Fokus erhält, das Label verkleinern und das Eingabefeld anzeigen */
+    /* Alternative zu :not([role=switch]) wäre alle input[type=text][type=number]... aufzuzählen, also eine Positivliste. **/
+    &:has(input:focus:not([type=checkbox], [type=radio], [type=range], [type=time], [type=month], [type=week], [type=date], [type=datetime-local], [type=color], [type=button], [type=file])),
+    &:has(input:not(:placeholder-shown, [type=checkbox], [type=radio], [type=range], [type=time], [type=week], [type=month], [type=date],
+        [type=datetime-local], [type=color], [type=button], [type=file])) {
+      font-size: var(--font-size-small);
       line-height: var(--line-height-normal);
+
+      input {
+        width: 100%;
+        /* Muss exakt mit line-height übereinstimmen */
+        height: calc(var(--font-size-normal) * var(--line-height-normal));
+        font-size: var(--font-size-normal);
+        line-height: var(--line-height-normal);
+      }
     }
   }
 
+  label:has(select),
+  label:has(input[type=checkbox], input[type=time], input[type=range], input[type=month], input[type=week], [type=date],
+    [type=datetime-local], [type=color], [type=button], [type=file]) {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
 
-}
-
-label:has(select),
-label:has(input[type=checkbox], input[type=time], input[type=range], input[type=month], input[type=week], [type=date],
-  [type=datetime-local], [type=color], [type=button], [type=file]) {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-
-  /* Als Zeilenabstand die gesamte Höhe verwenden */
-  /* line-height: var(--content-height);
+    /* Als Zeilenabstand die gesamte Höhe verwenden */
+    /* line-height: var(--content-height);
   font-size: var(--font-size-normal); */
 
-  --color-switch-background: #585858;
-  --color-switch-foreground: #d2d2d2;
+    --color-switch-background: #585858;
+    --color-switch-foreground: #d2d2d2;
 
-  input[type=range] {
-    flex-grow: 1;
-    margin-left: 1rem;
+    input[type=range] {
+      flex-grow: 1;
+      margin-left: 1rem;
+    }
+
+    input[role=switch] {
+      appearance: none;
+      width: 50px;
+      height: 24px;
+      background-color: var(--color-switch-background);
+      border-radius: 24px;
+      cursor: pointer;
+      transition: background-color 0.4s;
+      display: flex;
+      align-items: center;
+      justify-content: flex-start;
+      padding: 3px;
+    }
+
+    input[role=switch]::before {
+      content: "";
+      width: 18px;
+      height: 18px;
+      background-color: var(--color-switch-foreground);
+      border-radius: 50%;
+      transition: margin-left 0.4s;
+    }
+
+    input[role=switch]:checked {
+      background-color: var(--color-accent);
+      justify-content: flex-end;
+    }
   }
 
-  input[role=switch] {
-    appearance: none;
-    width: 50px;
-    height: 24px;
-    background-color: var(--color-switch-background);
-    border-radius: 24px;
-    cursor: pointer;
-    transition: background-color 0.4s;
-    display: flex;
-    align-items: center;
-    justify-content: flex-start;
-    padding: 3px;
-  }
-
-  input[role=switch]::before {
-    content: "";
-    width: 18px;
-    height: 18px;
-    background-color: var(--color-switch-foreground);
-    border-radius: 50%;
-    transition: margin-left 0.4s;
-  }
-
-  input[role=switch]:checked {
-    background-color: var(--color-accent);
-    justify-content: flex-end;
+  select {
+    background-color: inherit;
+    color: var(--color-text);
   }
 }
 
-select {
-  background-color: inherit;
-  color: var(--color-text);
+header {
+  container-type: inline-size;
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: center;
+  column-gap: 1rem;
+  row-gap: 0.5rem;
+  padding: 0.25rem 0.25rem;
+
+  div {
+    margin: 0;
+    padding: 0;
+  }
+
+  text-wrap: nowrap;
+
+  span {}
+
+  [role=button],
+  input[type=button],
+  input[type=submit],
+  input[type=reset],
+  input,
+  button {
+    padding: 0.3rem;
+    border-radius: 4px;
+  }
+
+  label,
+  div {
+    display: flex;
+    flex-direction: row;
+    column-gap: 0.1rem;
+  }
+
+  input {
+    border: none;
+    background-color: inherit;
+    outline: none;
+  }
+
+  label {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    column-gap: 0.5rem;
+    line-height: 1.0;
+    border-radius: 4px;
+    background-color: var(--color-bg1);
+
+    &:focus-within {
+      outline: auto;
+    }
+  }
+
+  search:focus-within {
+    flex-grow: 1;
+  }
+}
+
+
+header {
+
+  form,
+  search {
+    display: contents;
+  }
+}
+
+header nav {
+
+  border: var(--layout-border);
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+
+  ul,
+  menu {
+    display: flex;
+    column-gap: 1rem;
+    list-style-type: none;
+
+    li {
+      a {
+        text-decoration: none;
+      }
+    }
+  }
+}
+
+/* Die Klasse middle bewirkt, dass dieses Element in die erste Zeile des Headers rutscht, wenn der Container zu klein wird, um alle Elemente nebeneinander darzustellen. */
+.middle {
+  order: 0;
+}
+
+@container (max-width: 300px) {
+  .middle {
+    order: -1;
+    width: 100%;
+    text-align: center;
+  }
 }

@@ -117,6 +117,7 @@ Style Sheets für die Anwendung
 - [X] Sekundäre Schaltflächen und Verweise
 - [X] Kontextfreie Schaltflächen
 - [X] Destruktive Schaltflächen
+- [ ] Disabled implementieren
 
 ### Fokus
 
