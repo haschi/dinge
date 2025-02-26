@@ -24,6 +24,7 @@
       }
     }
   </style>
+
 </head>
 
 <body>
@@ -67,8 +68,8 @@
   <aside>
     <header>
       <div>
-        <button>➕</button>
-        <button>➖</button>
+        <button>+</button>
+        <button>-</button>
       </div>
       <span>Dinge</span>
       <nav>
@@ -135,7 +136,9 @@
       </details>
     </section>
 
-    <div class="example">
+    <div id="karten-example-size"></div>
+
+    <div class="example" data-resize="#karten-example-size">
       <main>
         <!-- Irgendwie muss ich die Klasse full-width für main>ul loswerden -->
         <ul class="full-width">
@@ -320,7 +323,8 @@
       </tbody>
     </table>
 
-    <div class="example">
+    <div id="listen-example-size"></div>
+    <div class="example" data-resize="#listen-example-size">
       <table>
         <caption>
           Beispiel mit Verweisen im Tabellenkopf
@@ -397,7 +401,8 @@
 
     </section>
 
-    <div class="example">
+    <div id="details-example-size"></div>
+    <div class="example" data-resize="#details-example-size">
       <h4>Paprika</h4>
       <dl>
         <div tabindex="0">
@@ -1012,14 +1017,17 @@
 
       <h4>Menüs in der Kopfzeile (header)</h4>
 
-      <p>Menüs in der Kopfzeile dienen Navigation, können aber auch Elemente enthalten, mit denen die aktuelle Ansicht
-        konfiguriert wird und zum Beispiel zwischen Listen- und Rasteransicht oder die Sortierung umgeschaltet.</p>
+      <p>Kopfzeilen besitzen typischerweise ein bis drei Elemente, die linksbündig, zentriert und rechtbündig ausgegeben
+        werden. Siehe Beispiel unten.</p>
 
-      <div class="example">
+      <p>Die Elemente der Kopfzeile sind üblicherweise Text, Schaltflächen, Navigationselemente und (kleine) Formulare.
+      </p>
+
+      <div id="header-example-size"></div>
+      <div class="example" data-resize="#header-example-size">
         <header>
           <a href="#" role="button">&#10094;</a>
           <nav>
-
             <menu>
               <li><a href="#">Link</a></li>
               <li>Item 2</li>
@@ -1029,7 +1037,7 @@
 
         <header>
           <button><b>Abbrechen</b></button>
-          <span class="middle">Ding bearbeiten</span>
+          <span>Ding bearbeiten</span>
           <button type="submit"><em>Speichern</em></button>
         </header>
 
@@ -1037,7 +1045,7 @@
           <search>
             <form>
               <label class="fill">&#x1F50E;&#xFE0E;
-                <input type="search" name="q" placeholder="Dinge durchsuchen..." accesskey="/" />
+                <input type="search" name="q" accesskey="/" />
               </label>
               <button type="submit"><b>Suchen</b></button>
             </form>
@@ -1059,7 +1067,7 @@
         </header>
 
         <header>
-          <form action=""><label><input type="date" name=""></label></form>
+          <form action=""><input type="date" name=""></form>
           Kalendar
           <div>
             <span role="button" href="#">&#9776;</span>
@@ -1070,6 +1078,13 @@
         <header>
           <span>Left</span>
           <span class="middle">Center</span>
+          <span>Right</span>
+        </header>
+        <header>
+          <span>Center</span>
+        </header>
+        <header>
+          <span>Left</span>
           <span>Right</span>
         </header>
       </div>
@@ -1125,6 +1140,33 @@
   </main>
 
   <footer>Footer</footer>
+  <script>
+    const resizables = document.getElementsByClassName("example");
+    const observer = new ResizeObserver((entries) => {
+      for (const entry of entries) {
+        const target = entry.target;
+        const selector = target.dataset.resize;
+        if (selector) {
+          output = document.querySelector(selector)
+
+          if (entry.contentBoxSize) {
+            const boxSize = entry.contentBoxSize[0]
+            output.innerText = `${Math.round(boxSize.inlineSize)} x ${Math.round(boxSize.blockSize)}`
+          }
+        }
+      }
+    })
+
+    for (const element of resizables) {
+      observer.observe(element);
+    }
+
+
+
+    window.addEventListener("error", (e) => {
+      console.error(e.message);
+    });
+  </script>
 </body>
 
 </html>

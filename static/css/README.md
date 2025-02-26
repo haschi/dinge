@@ -118,6 +118,7 @@ Style Sheets für die Anwendung
 - [X] Kontextfreie Schaltflächen
 - [X] Destruktive Schaltflächen
 - [ ] Disabled implementieren
+- [ ] Wechselseitig ausschließende Buttongroups ggf. als RadiobuttonGroups implementieren. (Aber wie sieht das dann mit dem Get Request aus?)
 
 ### Fokus
 

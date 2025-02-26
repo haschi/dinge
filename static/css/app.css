@@ -1042,24 +1042,37 @@ fieldset {
 }
 
 header {
-  container-type: inline-size;
   display: flex;
   flex-direction: row;
-  flex-wrap: wrap;
+  flex-wrap: nowrap;
   justify-content: space-between;
   align-items: center;
   column-gap: 1rem;
   row-gap: 0.5rem;
-  padding: 0.25rem 0.25rem;
+  overflow: hidden;
+  padding-block: 0.25rem;
+  padding-inline: 0.5rem;
+  text-wrap: nowrap;
+
+  /* Wenn nur ein Nachfolger existiert, zentriere diesen. */
+  &:has(>*:first-child:last-child) {
+    justify-content: center;
+  }
+
+  /* Elemente, die weder vergrößert noch verkleinert werden */
+  div,
+  input,
+  button,
+  [role=button] {
+    flex: 0 0 auto;
+  }
 
   div {
     margin: 0;
     padding: 0;
   }
 
-  text-wrap: nowrap;
 
-  span {}
 
   [role=button],
   input[type=button],
@@ -1069,6 +1082,7 @@ header {
   button {
     padding: 0.3rem;
     border-radius: 4px;
+    overflow: auto;
   }
 
   label,
@@ -1076,6 +1090,7 @@ header {
     display: flex;
     flex-direction: row;
     column-gap: 0.1rem;
+
   }
 
   input {
@@ -1084,22 +1099,37 @@ header {
     outline: none;
   }
 
+  span {
+    flex: 1 1 auto;
+    min-width: 0;
+    text-overflow: ellipsis;
+    overflow: hidden;
+    white-space: nowrap;
+    display: inline-block;
+  }
+
   label {
-    display: flex;
-    flex-direction: row;
+    flex: 1 1 auto;
+    min-width: 0;
     align-items: center;
     column-gap: 0.5rem;
     line-height: 1.0;
     border-radius: 4px;
     background-color: var(--color-bg1);
+    padding-inline: 0.5rem;
 
     &:focus-within {
       outline: auto;
     }
+
+    input {
+      flex: 1 1 auto;
+      min-width: 0;
+    }
   }
 
   search:focus-within {
-    flex-grow: 1;
+    /* flex-grow: 1; */
   }
 }
 
@@ -1130,18 +1160,5 @@ header nav {
         text-decoration: none;
       }
     }
-  }
-}
-
-/* Die Klasse middle bewirkt, dass dieses Element in die erste Zeile des Headers rutscht, wenn der Container zu klein wird, um alle Elemente nebeneinander darzustellen. */
-.middle {
-  order: 0;
-}
-
-@container (max-width: 300px) {
-  .middle {
-    order: -1;
-    width: 100%;
-    text-align: center;
   }
 }
