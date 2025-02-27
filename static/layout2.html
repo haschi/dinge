@@ -29,40 +29,7 @@
 
 <body>
   <header>
-    <div>Left</div>
-    <form class="fill">
-      <input type="search" id="search" name="q" placeholder="Center" class="fill">
-      <button type="submit">Suchen</button>
-    </form>
-    <nav>
-      <menu>
-        <!-- <li>One</li>
-        <li>
-          <span>Two</span>
-          <menu>
-            <li>Sub-1</li>
-            <li>Sub-2</li>
-            <li>Sub-3</li>
-            <li>Sub-4</li>
-            <li>Sub-5</li>
-          </menu>
-        </li> -->
-        <li>Three</li>
-        <li>
-          <button popovertarget="application-menu">Klickme</button>
-          <dialog id="application-menu" popover class="application-menu">
-            <div class="profile grid-flow">
-              <span class="profile-name">
-                <strong>User Name</strong>
-              </span>
-              <span class="profile-email">email@address.com</span>
-            </div>
-            <button id="manage">Manage Account</button>
-            <button id="signout">Sign out</button>
-          </dialog>
-        </li>
-      </menu>
-    </nav>
+    <span>Application Layout Demo</span>
   </header>
 
   <aside>
@@ -71,7 +38,7 @@
         <button>+</button>
         <button>-</button>
       </div>
-      <span>Dinge</span>
+      <span>Sidebar</span>
       <nav>
         <menu>
           <li>
@@ -381,7 +348,7 @@
         <figure>
           <figcaption>HTML Beispiel für eine Detailansicht</figcaption>
           <pre>&lt;dl&gt;
-  &lt;div&gt;
+  &lt;div tabstop="0"&gt;
     &lt;dt&gt;Name
       &lt;span&gt;Der spezielle Name des Dings&lt;/span&gt;
     &lt;/dt&gt;
@@ -422,7 +389,9 @@
         </div>
         <div tabindex="0">
           <dt>Änderung</dt>
-          <dd><time>2025-02-01T17:06</time></dd>
+          <dd>
+            <input type="datetime-local" value="2025-02-01T17:06" disabled />
+          </dd>
         </div>
       </dl>
       <h4>Weitere Details</h4>
@@ -915,6 +884,14 @@
             <td><input type="reset" value='Schaltfläche "Zurücksetzen"'></td>
             <td><code>&lt;input type="reset" value='Schaltfläche "Zurücksetzen"'&gt;</code></td>
           </tr>
+          <tr>
+            <td>
+              <input type="button" value="Input Button" />
+            </td>
+            <td>
+              <code>&lt;input type="button" value="Input Button" /&gt;</code>
+            </td>
+          </tr>
         </tbody>
       </table>
 
@@ -1059,7 +1036,7 @@
 
         <header>
           <form>
-            <label class="fill">
+            <label>
               Eingabe
               <input type="text" />
             </label>
@@ -1074,17 +1051,16 @@
             <a role="button" href="#">&#9783;</a>
           </div>
         </header>
-
-        <header>
-          <span>Left</span>
-          <span class="middle">Center</span>
-          <span>Right</span>
-        </header>
         <header>
           <span>Center</span>
         </header>
         <header>
           <span>Left</span>
+          <span>Right</span>
+        </header>
+        <header>
+          <span>Left</span>
+          <span class="middle">Center</span>
           <span>Right</span>
         </header>
       </div>

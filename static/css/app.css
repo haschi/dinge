@@ -1,7 +1,6 @@
 :root {
   --layout-border: thin dotted darkgrey;
 
-  /* Sollte bei mir Cantarell sein */
   --font-family: system-ui, sans-serif;
 
   /* Desktop Umgebung gibt die Schriftgröße in der Einheit pt an */
@@ -15,6 +14,7 @@
   --color-text: #f2f2f2;
   --color-text-low: hsl(from var(--color-text) h s calc(l - 20));
   --color-text-high: hsl(from var(--color-text) h s calc(l + 20));
+
   /* Akkzentfarbe des Browser. Wenn die Akzentfarbe des Browsers verwendet wird, müssen die Steuerelemente des Browsers nicht angepasst werden. Das betrifft zum Beispiel das select Element. Komplexere Steuerelemente, die einen eigenen Dialog öffnen, berücksichtigen dies aber nicht. */
   --color-accent: #3584e4;
   --color-accent-low: hsl(213, 50%, 50%);
@@ -38,12 +38,19 @@
   --color-rahmen-hell: #3f3f3f;
   --color-rahmen-dunkel: #161616;
 
-  --color-button-background: #434343;
-  --color-button-background-low: hsl(from var(--color-button-background) h s calc(l - 10));
 
   --color-button-text: #fff;
   --color-button-background1: #3e3e3e;
   --color-details-background: #353535;
+
+  --color-background0: #272727;
+  --color-background1: #2b2b2b;
+  --color-background2: #3b3b3b;
+  --color-background3: #4b4b4b;
+
+
+  --color-button-background: var(--color-background3);
+  --color-button-background-low: var(--color-background2);
 
   /* Hintegrundfarbe für Navigationselemente der Seiteleiste, die aktiv sind oder hover */
   --color-background-aktiv-focus: #444444;
@@ -76,32 +83,24 @@ body {
   background-color: var(--color-bg);
 }
 
-a:visited {
-  color: inherit
-}
-
 html {
   accent-color: var(--color-accent);
   font-size: var(--font-size);
   line-height: 1.6;
 }
 
-/* Gehört das zum CSS Reset?*/
-:focus,
-:focus-visible {
-  /* outline: 1px solid red; */
-  /* TODO */
+a,
+a:visited {
+  color: var(--color-text-low)
+}
+
+a:hover {
+  color: var(--color-text-high);
 }
 
 ::selection {
   /* TODO: Vielleicht gibt es doch eine Möglichkeit die Akzentfarbe des Systems anzuzapfen. (Als Farbe den Wert Highlight benutzen.) */
   background-color: var(--color-accent);
-}
-
-/* TODO: Prüfen, ob das eine Wirkung hat.*/
-input[type=date] {
-  accent-color: var(--color-accent);
-  color: var(--color-accent);
 }
 
 img {
@@ -132,15 +131,9 @@ menu {
 }
 
 /* Vertikale Abstände */
-main {
-
-  article,
-  table,
-  div {
-    margin-top: var(--space-large);
-  }
-}
-
+article,
+table,
+div,
 h1,
 h2,
 h3,
@@ -148,7 +141,7 @@ h4,
 h5,
 h6,
 details {
-  margin-block-start: var(--space-large);
+  margin-top: var(--space-large);
 }
 
 p,
@@ -157,12 +150,9 @@ caption,
 figure,
 figcaption,
 fieldset,
-dl {
-  margin-block-start: var(--space-small);
-}
-
+dl,
 ol>li {
-  margin-top: var(--space-small)
+  margin-block-start: var(--space-small);
 }
 
 /* Anwendungslayout */
@@ -230,11 +220,6 @@ main {
 
 /* Alles zum Thema header */
 
-
-.fill {
-  flex-grow: 1;
-}
-
 /* Styling */
 
 /* Allgemeine Gestaltung der Schatlfächen */
@@ -268,12 +253,19 @@ input[type=reset],
   }
 }
 
+button,
+a[role=button],
+input[type=button],
+input[type=submit],
+input[type=reset] {
+  --_button-fg: var(--color-text-low);
+  --_button-highlight-fg: var(--color-text-high);
+}
+
 /* Vorrangige Steuerelemente */
 button:has(em),
 a[role=button]:has(em),
 input[type=submit] {
-  --_button-fg: var(--color-text-low);
-  --_button-highlight-fg: var(--color-text-high);
   --_button-bg: var(--color-accent-low);
   --_button_highlight-bg: var(--color-accent-high);
 }
@@ -281,8 +273,6 @@ input[type=submit] {
 /* Destruktive Steuerelemente */
 button:has(strong),
 a[role=button]:has(strong) {
-  --_button-fg: var(--color-text-low);
-  --_button-highlight-fg: var(--color-text-high);
   --_button-bg: var(--color-danger-low);
   --_button_highlight-bg: var(--color-danger-high);
 }
@@ -290,19 +280,15 @@ a[role=button]:has(strong) {
 /* Nachrangige Steuerelemente */
 button:has(b),
 a[role=button]:has(b),
-input[type=reset] {
-  --_button-fg: var(--color-text-low);
-  --_button-highlight-fg: var(--color-text-high);
+input[type=reset],
+input[type=button] {
   --_button-bg: var(--color-button-background-low);
   --_button_highlight-bg: var(--color-button-background);
-
 }
 
 /* Kontextfreie Steuerelemente */
 button,
 a[role=button] {
-  --_button-fg: var(--color-text-low);
-  --_button-highlight-fg: var(--color-text-high);
   --_button-bg: inherit;
   --_button_highlight-bg: var(--color-button-background);
 }
@@ -315,14 +301,7 @@ span[role=button] {
   --_button_highlight-bg: var(--color-button-background);
 }
 
-a,
-a:visited {
-  color: var(--color-text-low)
-}
 
-a:hover {
-  color: var(--color-text-high);
-}
 
 a[role=button] {
   text-decoration: none;
@@ -356,34 +335,10 @@ a:has(b) {
   }
 }
 
-label button,
-label ::file-selector-button,
-label input[type=button],
-[role=button],
-input[type=submit] {
-  /* background-color: var(--color-button-background); */
-}
-
-
 /* Styles für Buttons . Das hier ist gültig!*/
 
 /* line-height: 509, 75 */
 
-
-button,
-::file-selector-button {
-  /* color: var(--color-text);
-  background-color: inherit; */
-  /* background-color: var(--color-button-background); */
-  /* border: none;
-  border-radius: var(--border-radius);
-  padding: 0 0.2rem;
-  min-width: 1.5em; */
-
-  &:hover {
-    /* background-color: var(--color-button-background); */
-  }
-}
 
 aside {
   background-color: var(--color-background-sidebar);
@@ -434,21 +389,32 @@ details[open] {
 
   summary {
     border-radius: 10px 10px 0 0;
+    background-color: var(--color-background1);
+  }
+
+  summary:hover {
+    background-color: var(--color-background2);
   }
 }
 
 details {
 
   box-shadow: 0 0 2px 2px #222222;
-  background-color: #2b2b2b;
+  /* background-color: #2b2b2b; */
+  background-color: var(--color-background0);
   border-radius: 10px;
 
   summary {
-    background-color: var(--color-details-background);
+    /* background-color: var(--color-details-background); */
+    background-color: var(--color-background0);
     padding: 1rem;
     list-style-type: none;
     cursor: pointer;
     border-radius: 10px;
+  }
+
+  summary:hover {
+    background-color: var(--color-background1);
   }
 
   summary::after {
@@ -547,10 +513,12 @@ main>ul {
   >li:has(:hover, :focus) {
     --img-scale: 1.1;
     box-shadow: 0 8px 12px rgba(0, 0, 0, 0.7);
+    background-color: var(--color-background1);
   }
 
   >li {
-    background-color: #2a2a2a;
+    /* background-color: #2a2a2a; */
+    background-color: var(--color-background0);
     box-shadow: 0 4px 6px rgba(0, 0, 0, 0.5);
     transition: box-shadow 0.3s ease;
   }
@@ -588,7 +556,7 @@ main table {
   }
 
   tr:hover {
-    --table-cell-background: #272727;
+    --table-cell-background: var(--color-background0);
   }
 
   td {
@@ -621,8 +589,11 @@ main table {
   }
 
   th:hover:has(a) {
-    background-color: #404040;
-    color: #c5c5c5;
+    background-color: var(--color-background1);
+
+    a {
+      color: var(--color-text-high);
+    }
   }
 
   th:first-child,
@@ -677,7 +648,7 @@ dl {
   }
 
   div {
-    background-color: #2b2b2b;
+    background-color: var(--color-background0);
     margin: 0;
     overflow: hidden;
     border-radius: 0;
@@ -696,7 +667,7 @@ dl {
   }
 
   div:hover {
-    background: #3b3b3b;
+    background-color: var(--color-background1);
   }
 
   dt,
@@ -827,6 +798,8 @@ fieldset {
     select {
       outline: none;
     }
+
+    background-color: var(--color-background2);
   }
 
   a {
@@ -838,25 +811,26 @@ fieldset {
   }
 }
 
-fieldset {
+input[type=text],
+input[type=search],
+input[type=number],
+input[type=date],
+input[type=datetime-local],
+input[type=time],
+input[type=week],
+input[type=email],
+input[type=tel],
+input[type=month],
+input[type=password],
+input[type=url],
+input[type=color] {
+  background-color: inherit;
+  color: inherit;
+  accent-color: var(--color-accent);
+  border: none;
+}
 
-  input[type=text],
-  input[type=search],
-  input[type=number],
-  input[type=date],
-  input[type=datetime-local],
-  input[type=time],
-  input[type=week],
-  input[type=email],
-  input[type=tel],
-  input[type=month],
-  input[type=password],
-  input[type=url],
-  input[type=color] {
-    background-color: inherit;
-    color: var(--color-text);
-    accent-color: var(--color-accent);
-  }
+fieldset {
 
   input[type=number] {
     appearance: auto;
@@ -872,10 +846,7 @@ fieldset {
   }
 
   select {
-    /* border: var(--layout-border); */
     border: none;
-    display: block;
-    float: right
   }
 
   input[type=time],
@@ -885,14 +856,11 @@ fieldset {
   input[type=datetime-local] {
     background-color: inherit;
     color: inherit;
-    border: none;
   }
-
 
   input[type=color] {
     border: 1px solid transparent;
   }
-
 
   label:has(textarea) {
     display: flex;
@@ -900,26 +868,23 @@ fieldset {
   }
 
   textarea {
-    display: block;
     padding: 0.5rem;
     resize: vertical;
     outline: none;
     background-color: inherit;
     box-shadow: 0 4px 6px rgba(0, 0, 0, 0.5);
-    transition: box-shadow 0.3s ease;
     border-radius: 10px;
     min-height: 7rem;
 
-    &:has(:hove, :focus) {
+    &:has(:hover, :focus) {
       box-shadow: 0 8px 12px rgba(0, 0, 0, 0.7);
     }
   }
+}
 
-  /* Deaktivierte Eingabefelder nicht hervorheben */
-  label:hover:not(:has([disabled])),
-  label:has(:focus-visible) {
-    background: #3b3b3b;
-  }
+/* Deaktivierte Felder und Felder mit Fokus nicht hervorheben */
+label:hover:not([disabled]):not(:focus-within) {
+  background: var(--color-background1)
 }
 
 fieldset {
@@ -936,7 +901,7 @@ fieldset {
     /* Gesamthöhe des Eingabefeldes mit kleinem Label und Eingabe */
     --content-height: calc((var(--font-size-small) + var(--font-size-normal)) * var(--line-height-normal));
 
-    background-color: #2b2b2b;
+    background-color: var(--color-background0);
     box-shadow: 0 0 1px 1px #222222;
     /*
     Beispiel:
@@ -949,8 +914,6 @@ fieldset {
     /* Als Zeilenabstand die gesamte Höhe verwenden */
     line-height: var(--content-height);
     font-size: var(--font-size-normal);
-
-    display: block;
 
     padding: 10px;
 
@@ -994,10 +957,6 @@ fieldset {
     justify-content: space-between;
     align-items: center;
 
-    /* Als Zeilenabstand die gesamte Höhe verwenden */
-    /* line-height: var(--content-height);
-  font-size: var(--font-size-normal); */
-
     --color-switch-background: #585858;
     --color-switch-foreground: #d2d2d2;
 
@@ -1037,7 +996,6 @@ fieldset {
 
   select {
     background-color: inherit;
-    color: var(--color-text);
   }
 }
 
@@ -1093,19 +1051,10 @@ header {
 
   }
 
-  input {
-    border: none;
-    background-color: inherit;
-    outline: none;
-  }
-
   span {
-    flex: 1 1 auto;
-    min-width: 0;
     text-overflow: ellipsis;
     overflow: hidden;
     white-space: nowrap;
-    display: inline-block;
   }
 
   label {
@@ -1128,8 +1077,10 @@ header {
     }
   }
 
-  search:focus-within {
-    /* flex-grow: 1; */
+  input {
+    border: none;
+    background-color: inherit;
+    outline: none;
   }
 }
 

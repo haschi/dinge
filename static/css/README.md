@@ -99,7 +99,7 @@ Style Sheets für die Anwendung
 - [X] Formular: Auswahl: Boxen um das Label ändern ihre Größe.
 - [X] Abstände der Listenelemente in geordneten Listen (ol). Abstände sind derzeit zu klein.
 - [ ] Gemeinsame Werte in Variablen auslagern. z.B. Hintergrundfarben, Hervorhebungsfarben.
-- [ ] Abgeleitete Werte Berechnen statt Konstanten.
+- [ ] Abgeleitete Werte berechnen statt Konstanten.
 
 ## Tabellen
 
@@ -108,7 +108,7 @@ Style Sheets für die Anwendung
 - [X] Größe von Bildern automatisch an Zeilenhöhe anpassen. Keine explizite Größenangabe. Der Browser soll das Bild automatisch skalieren.
 - [X] Text sekundärer Spalten dunkler.
 - [X] Tabellenzeile zur Navigation anklickbar.????
-- [ ] Tabellenzeilen nur anklickbar, wenn Text des Verweises leer ist.
+- [X] Tabellenzeilen nur anklickbar, wenn Text des Verweises leer ist.
 
 ### Buttons und Links
 
@@ -139,6 +139,7 @@ Style Sheets für die Anwendung
 - [X] textarea hinzufügen.
 - [ ] Validierungsfehler ausgeben.
 - [ ] Eingabefelder mit ungültigen Daten markieren. Pseudoklasse.
+- [ ] Akzentfarbe für Steuerelemente in der Kopfzeile richtig stellen (weiß).
 
 ### Detailansicht
 
@@ -148,5 +149,5 @@ Style Sheets für die Anwendung
 
 ### Akkordeon
 
-- [ ] Hover Effekt für Summary. (Ggf. erst nach Auslagern der Farbwerte in Variablen. Im Moment herscht Chaos.)
+- [X] Hover Effekt für Summary. (Ggf. erst nach Auslagern der Farbwerte in Variablen. Im Moment herscht Chaos.)
 - [X] Abstände, so dass alle Inhalte vernünftig aussehen.
