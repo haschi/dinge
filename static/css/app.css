@@ -158,7 +158,9 @@ ol>li {
 /* Anwendungslayout */
 
 body {
-  min-height: 100vh;
+  height: 100vh;
+  width: 100vw;
+  ;
   display: grid;
   grid-template-areas:
     "sidebar header"
@@ -167,34 +169,49 @@ body {
 
   /* Die Sidebar nimmt sich soviel Platz, wie sie benötigt; Der Inhaltsbereich wächst mit der Fenstergröße.*/
   grid-template-columns: auto 1fr;
-  align-items: start;
+  grid-template-rows: auto 1fr auto;
+
+  overflow: hidden;
 
   &>header {
     grid-area: header;
   }
 
-  main {
-    grid-area: content;
-    overflow-y: auto;
-    min-height: 0;
-    height: auto;
-  }
 
-  aside {
-    grid-area: sidebar;
-    overflow-y: auto;
-    height: 100%;
-  }
-
-  footer {
-    grid-area: footer;
-  }
-
-  header,
-  footer {
-    outline: var(--layout-border)
-  }
 }
+
+header,
+footer {
+  outline: var(--layout-border);
+  height: auto;
+}
+
+body>header,
+body>footer {
+  outline: var(--layout-border);
+  /*NEU*/
+  /*Header und Footer können sich dem Inhalt anpassen*/
+  /* height: auto; */
+  /* min-height: 40px; */
+}
+
+main {
+  grid-area: content;
+  overflow-y: auto;
+  min-height: 0;
+  /* height: auto; */
+}
+
+aside {
+  grid-area: sidebar;
+  /* overflow-y: auto; */
+  /* height: 100%; */
+}
+
+footer {
+  grid-area: footer;
+}
+
 
 /* Content Layout */
 
