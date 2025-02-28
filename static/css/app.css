@@ -465,7 +465,8 @@ details figure {
 main>ul {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-  grid-auto-rows: minmax(300px, auto);
+  /* grid-auto-rows: minmax(300px, auto); */
+  grid-auto-rows: 1fr;
   justify-items: center;
   justify-content: center;
   gap: 1rem;
@@ -476,6 +477,8 @@ main>ul {
     /* Karten müssen eine feste Breite besitzen.*/
     /* Todo: Breite der Karten als Variable */
     /* width: 300px; */
+    /* max-height: max-content; */
+    height: max-content;
     position: relative;
     /* outline: var(--layout-border); */
 
