@@ -158,14 +158,16 @@ ol>li {
 /* Anwendungslayout */
 
 body {
-  height: 100vh;
+  min-height: 100vh;
   display: grid;
-  grid-template-areas: "sidebar header"
+  grid-template-areas:
+    "sidebar header"
     "sidebar content"
     "footer footer";
 
   /* Die Sidebar nimmt sich soviel Platz, wie sie benötigt; Der Inhaltsbereich wächst mit der Fenstergröße.*/
   grid-template-columns: auto 1fr;
+  align-items: start;
 
   &>header {
     grid-area: header;
@@ -174,11 +176,14 @@ body {
   main {
     grid-area: content;
     overflow-y: auto;
+    min-height: 0;
+    height: auto;
   }
 
   aside {
     grid-area: sidebar;
     overflow-y: auto;
+    height: 100%;
   }
 
   footer {
