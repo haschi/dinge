@@ -148,13 +148,13 @@ details {
 h1,
 h2,
 h3 {
-  text-align: center;
+  text-align: left;
 }
 
 h4,
 h5,
 h6 {
-  text-align: left;
+  text-align: center;
 }
 
 
@@ -168,9 +168,7 @@ h5 {
   font-size: larger;
 }
 
-h2,
 h3,
-h5,
 h6 {
   font-size: 1em;
 }
@@ -218,23 +216,16 @@ footer {
 body>header,
 body>footer {
   outline: var(--layout-border);
-  /*NEU*/
-  /*Header und Footer können sich dem Inhalt anpassen*/
-  /* height: auto; */
-  /* min-height: 40px; */
 }
 
 main {
   grid-area: content;
   overflow-y: auto;
   min-height: 0;
-  /* height: auto; */
 }
 
 aside {
   grid-area: sidebar;
-  /* overflow-y: auto; */
-  /* height: 100%; */
 }
 
 footer {
@@ -354,8 +345,6 @@ span[role=button] {
   --_button_highlight-bg: var(--color-button-background);
 }
 
-
-
 a[role=button] {
   text-decoration: none;
 }
@@ -390,9 +379,6 @@ a:has(b) {
 
 /* Styles für Buttons . Das hier ist gültig!*/
 
-/* line-height: 509, 75 */
-
-
 aside {
   background-color: var(--color-background-sidebar);
   border-right: 1px solid var(--color-border-sidebar-right);
@@ -404,7 +390,12 @@ aside {
     line-height: 2.8;
     padding: 0 0.5rem;
 
-    h5 {
+    h1,
+    h2,
+    h3,
+    h4,
+    h5,
+    h6 {
       margin: 0 0.5rem;
     }
 
@@ -626,6 +617,16 @@ main table {
 
   td {
     min-height: 3.2rem;
+
+    h1,
+    h2,
+    h3,
+    h4,
+    h5,
+    h6 {
+      /* Das wird nur in layout2.html verwendet. Überschriften finden sonst keine Verwendung in Tabellenzellen.*/
+      margin-block: 0;
+    }
   }
 
   td,

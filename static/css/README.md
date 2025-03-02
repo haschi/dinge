@@ -86,8 +86,7 @@ Style Sheets für die Anwendung
 
 ## Micro Aufgabenliste
 
-- [X] Eingabe-Element type=file: Gutes Markup finden, dann CSS.
-- [ ] An Chromium anpassen
+- [X] An Chromium anpassen
 - [ ] Popups (in der Kopfzeile) stylen.
 - [X] Abstände der Schaltflächen im Flow.
 
@@ -100,6 +99,10 @@ Style Sheets für die Anwendung
 - [X] Abstände der Listenelemente in geordneten Listen (ol). Abstände sind derzeit zu klein.
 - [ ] Gemeinsame Werte in Variablen auslagern. z.B. Hintergrundfarben, Hervorhebungsfarben.
 - [ ] Abgeleitete Werte berechnen statt Konstanten.
+
+### Layout
+
+- [ ] Innerer Abstand von main. main scrolled nicht, aber der Inhalt von main.
 
 ### Tabellen
 
@@ -168,4 +171,4 @@ Style Sheets für die Anwendung
 
 ### Typographie
 
-- [ ] Überschriften gerade ziehen
+- [X] Überschriften gerade ziehen
