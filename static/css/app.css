@@ -1,5 +1,5 @@
 :root {
-  --layout-border: thin dotted darkgrey;
+  /* --layout-border: thin dotted darkgrey; */
 
   --font-family: system-ui, sans-serif;
 
@@ -385,10 +385,15 @@ aside {
   font-weight: 500;
 
   /* padding: 0.4rem; */
+  min-height: 0;
+  overflow-y: auto;
 
   &>nav {
     line-height: 2.8;
     padding: 0 0.5rem;
+    overflow: scroll;
+    min-height: 0;
+    overflow-y: auto;
 
     h1,
     h2,

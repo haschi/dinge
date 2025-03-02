@@ -8,6 +8,7 @@
   <title>Layout</title>
   <style>
     .example {
+      --layout-border: thin dotted darkgrey;
       resize: both;
       overflow: auto;
       min-width: 320px;
@@ -15,7 +16,7 @@
       min-height: 600px;
       max-height: 800px;
       padding: 1rem;
-      margin-inline: auto;
+      margin: 1rem auto 0;
       grid-column: full-width;
 
       border: var(--layout-border);
@@ -462,7 +463,6 @@
       </details>
     </section>
 
-
     <form>
       <h3>Einfache Eingabeelemente</h3>
       <fieldset>
@@ -839,7 +839,7 @@
       <p>Verweise und Schaltflächen können eine von drei sematischen Bedeutungen besitzen: Vorrangig, nachrangig,
         destruktiv und untergeordnet.</p>
 
-      <h4>Vorrangige Schaltflächen und Navigation</h4>
+      <h3>Vorrangige Schaltflächen und Navigation</h3>
 
       <p>Eine Aktion oder ein Verweis, die im aktuellen Bearbeitungskontext das Hauptziel darstellen. Üblicherweise gibt
         es nur ein vorrangiges Steuerelement für jeden Kontext.</p>
@@ -874,7 +874,7 @@
         </tbody>
       </table>
 
-      <h4>Nachrangige Aktionen und Navigation</h4>
+      <h3>Nachrangige Aktionen und Navigation</h3>
 
       <p>Dies beinhaltet alle Aktionen oder Verweise, die weder das Hauptziel der aktuellen Bearbeitung darstellen, noch
         von destruktiver Natur sind.</p>
@@ -920,7 +920,7 @@
         </tbody>
       </table>
 
-      <h4>Kontextfreie Navigation und neutrale Aktionen </h4>
+      <h3>Kontextfreie Navigation und neutrale Aktionen </h3>
 
       <p>Kontextfreie Navigation ist eine Navigation, die außerhalb des aktuellen Bearbeitungskontextes liegt. Ein
         Beispiel dafür ist die Navigation des Hauptmenüs.</p>
@@ -954,7 +954,7 @@
         </tbody>
       </table>
 
-      <h4>Wechselseitiger Ausschluß</h4>
+      <h3>Wechselseitiger Ausschluß</h3>
 
       <table>
         <thead>
@@ -975,9 +975,7 @@
         </tbody>
       </table>
 
-
-
-      <h4>Destruktive Aktionen und Verweise</h4>
+      <h3>Destruktive Aktionen und Verweise</h3>
 
       <p>Bei Aktionen, die zu Verlust oder zum Zerstören von Informationen führen, werden die Benutzerelemente mit einer
         entsprechenden Warnfarbe dargestellt. Es sollte zudem keine Verweise mit destruktivem Verhalten geben, also
@@ -1011,132 +1009,136 @@
           </tr>
         </tbody>
       </table>
+    </section>
 
-      <h3 id="menues">Menüs</h3>
+    <section id="menues" class="details">
+      <h2>Menüs</h2>
 
       <p>Menüs können an unterschiedlichen Stellen verwendet werden. Im Header als Anwendungsmenü, in der Seitenleiste
         zur Navigation oder im Inhaltsbereich.</p>
 
-      <h4>Menüs in der Kopfzeile (header)</h4>
+      <h3>Menüs in der Kopfzeile (header)</h3>
 
       <p>Kopfzeilen besitzen typischerweise ein bis drei Elemente, die linksbündig, zentriert und rechtbündig ausgegeben
         werden. Siehe Beispiel unten.</p>
 
       <p>Die Elemente der Kopfzeile sind üblicherweise Text, Schaltflächen, Navigationselemente und (kleine) Formulare.
       </p>
+    </section>
 
-      <div id="header-example-size"></div>
-      <div class="example" data-resize="#header-example-size">
-        <header>
-          <a href="#" role="button">&#10094;</a>
-          <nav>
-            <menu>
-              <li><a href="#">Link</a></li>
-              <li>Item 2</li>
-            </menu>
-          </nav>
-        </header>
 
-        <header>
-          <button><b>Abbrechen</b></button>
-          <span>Ding bearbeiten</span>
-          <button type="submit"><em>Speichern</em></button>
-        </header>
-
-        <header>
-          <search>
-            <form>
-              <label class="fill">&#x1F50E;&#xFE0E;
-                <input type="search" name="q" accesskey="/" />
-              </label>
-              <button type="submit"><b>Suchen</b></button>
-            </form>
-          </search>
-
-          <div>
-            <span role="button" href="#">&#9776;</span>
-            <a role="button" href="#">&#9783;</a>
-          </div>
-        </header>
-
-        <header>
-          <form>
-            <label>
-              Eingabe
-              <input type="text" />
-            </label>
-          </form>
-        </header>
-
-        <header>
-          <form action=""><input type="date" name=""></form>
-          Kalendar
-          <div>
-            <span role="button" href="#">&#9776;</span>
-            <a role="button" href="#">&#9783;</a>
-          </div>
-        </header>
-        <header>
-          <span>Center</span>
-        </header>
-        <header>
-          <span>Left</span>
-          <span>Right</span>
-        </header>
-        <header>
-          <span>Left</span>
-          <span class="middle">Center</span>
-          <span>Right</span>
-        </header>
-      </div>
-
-      <h4>Menüs in der Kopfzeile in der Seitenleiste</h4>
-
-      <aside>
-        <header>
+    <div id="header-example-size"></div>
+    <div class="example" data-resize="#header-example-size">
+      <header>
+        <a href="#" role="button">&#10094;</a>
+        <nav>
           <menu>
-            <li>Item 1</li>
+            <li><a href="#">Link</a></li>
             <li>Item 2</li>
           </menu>
-        </header>
-      </aside>
+        </nav>
+      </header>
 
-      <h4>Menüs in der Seitenleiste</h4>
+      <header>
+        <button><b>Abbrechen</b></button>
+        <span>Ding bearbeiten</span>
+        <button type="submit"><em>Speichern</em></button>
+      </header>
 
-      <aside>
+      <header>
+        <search>
+          <form>
+            <label class="fill">&#x1F50E;&#xFE0E;
+              <input type="search" name="q" accesskey="/" />
+            </label>
+            <button type="submit"><b>Suchen</b></button>
+          </form>
+        </search>
+
+        <div>
+          <span role="button" href="#">&#9776;</span>
+          <a role="button" href="#">&#9783;</a>
+        </div>
+      </header>
+
+      <header>
+        <form>
+          <label>
+            Eingabe
+            <input type="text" />
+          </label>
+        </form>
+      </header>
+
+      <header>
+        <form action=""><input type="date" name=""></form>
+        Kalendar
+        <div>
+          <span role="button" href="#">&#9776;</span>
+          <a role="button" href="#">&#9783;</a>
+        </div>
+      </header>
+      <header>
+        <span>Center</span>
+      </header>
+      <header>
+        <span>Left</span>
+        <span>Right</span>
+      </header>
+      <header>
+        <span>Left</span>
+        <span class="middle">Center</span>
+        <span>Right</span>
+      </header>
+    </div>
+
+    <h3>Menüs in der Kopfzeile in der Seitenleiste</h3>
+
+    <aside>
+      <header>
         <menu>
           <li>Item 1</li>
           <li>Item 2</li>
         </menu>
-      </aside>
+      </header>
+    </aside>
 
-      <h4>Menüs in einem Formular</h4>
+    <h3>Menüs in der Seitenleiste</h3>
 
-      <p>Bei Menüs im Inhaltsbereich muss Unterschieden werden zwischen Auswahlelementen (<code>select</code>) und
-        Menüs. Mit Menüs werden Funktionen der aktuellen Sicht gesteuert.</p>
-      <form>
-        <h1>Adresse</h1>
-        <menu>
-          <li>Person</li>
-          <li>Gesellschaft</li>
-        </menu>
+    <aside>
+      <menu>
+        <li>Item 1</li>
+        <li>Item 2</li>
+      </menu>
+    </aside>
 
-        <label>
-          Voller Name
-          <input type="text" name="name" />
-        </label>
-        <label>
-          Straße
-          <input type="text" name="street" />
-        </label>
-        <label>
-          Hausnummer
-          <input type="text" name="number" />
-        </label>
-        <nav>
-          <em><input type="submit" value="Speichern" /></em>
-        </nav>
-      </form>
+    <h4>Menüs in einem Formular</h4>
+
+    <p>Bei Menüs im Inhaltsbereich muss Unterschieden werden zwischen Auswahlelementen (<code>select</code>) und
+      Menüs. Mit Menüs werden Funktionen der aktuellen Sicht gesteuert.</p>
+    <form>
+      <h1>Adresse</h1>
+      <menu>
+        <li>Person</li>
+        <li>Gesellschaft</li>
+      </menu>
+
+      <label>
+        Voller Name
+        <input type="text" name="name" />
+      </label>
+      <label>
+        Straße
+        <input type="text" name="street" />
+      </label>
+      <label>
+        Hausnummer
+        <input type="text" name="number" />
+      </label>
+      <nav>
+        <em><input type="submit" value="Speichern" /></em>
+      </nav>
+    </form>
     </section>
   </main>
 

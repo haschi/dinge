@@ -103,6 +103,7 @@ Style Sheets für die Anwendung
 ### Layout
 
 - [ ] Innerer Abstand von main. main scrolled nicht, aber der Inhalt von main.
+- [X] Seitenleiste kann überlaufen und scrolled nicht.
 
 ### Tabellen
 
