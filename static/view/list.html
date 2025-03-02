@@ -1,0 +1,88 @@
+<!doctype html>
+<html lang="de" color-mode="user">
+
+<head>
+  <meta charset="utf-8">
+  <link rel="stylesheet" href="/static/css/app.css">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Inventar Karten</title>
+</head>
+
+<body>
+  <header>
+    <search>
+      <form>
+        <label class="fill">🔎︎
+          <input type="search" name="q" accesskey="/">
+        </label>
+        <button type="submit"><b>Suchen</b></button>
+      </form>
+    </search>
+    <div>
+      <span role="button" href="#">☰</span>
+      <a role="button" href="cards.html">☷</a>
+    </div>
+  </header>
+  <aside>
+    <header>
+      <a href="../layout2.html" role="button" title="Zurück zur Layout-Übersicht">&#10094;</a>
+      <span>Dinge</span>
+    </header>
+    <nav>
+      <menu>
+        <li><a href="cards.html">Inventar Karten</a></li>
+        <li><a href="list.html" class="active">Inventar Liste</a></li>
+      </menu>
+    </nav>
+  </aside>
+
+  <main>
+    <table class="full-width">
+      <thead>
+        <tr>
+          <th><a href="#">Name ⯅</a></th>
+          <th><a href="#">Anzahl</a></th>
+          <th><a href="#">Geändert</a></th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>
+            <img src="https://picsum.photos/id/0/200/200" alt="">
+            Karten
+            <a href="cards.html"></a>
+          </td>
+          <td>8</td>
+          <td>
+            <input type="datetime-local" disabled value="2025-03-02T02:18:01">
+          </td>
+        </tr>
+        <tr>
+          <td>
+            <img src="https://picsum.photos/id/1/200/200" alt="">
+            Liste
+          </td>
+          <td>8</td>
+          <td>
+            <input type="datetime-local" disabled value="2025-03-02T02:52:02">
+          </td>
+        </tr>
+        <tr>
+          <td>
+            <img src="https://picsum.photos/id/1/200/200" alt="">
+            Details
+            <a href="details.html"></a>
+          </td>
+          <td>8</td>
+          <td>
+            <input type="datetime-local" disabled value="2025-03-02T02:53:03">
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </main>
+
+  <footer>Footer</footer>
+</body>
+
+</html>
