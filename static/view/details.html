@@ -1,0 +1,85 @@
+<!doctype html>
+<html lang="de" color-mode="user">
+
+<head>
+  <meta charset="utf-8">
+  <link rel="stylesheet" href="/static/css/app.css">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Inventar Karten</title>
+  <style>
+
+  </style>
+</head>
+
+<body>
+  <header>
+    <span></span>
+    <span>Details von Paprika</span>
+    <a href="form.html" role="button" title="Bearbeiten">✎</a>
+  </header>
+  <aside>
+    <header>
+      <a href="../layout2.html" role="button" title="Zurück zur Layout-Übersicht">&#10094;</a>
+      <span>Dinge</span>
+    </header>
+    <nav>
+      <menu>
+        <li><a href="cards.html">Inventar Karten</a></li>
+        <li><a href="list.html">Inventar Liste</a></li>
+        <li><a href="details.html" class="active">Details</a></li>
+        <li><a href="form.html">Formular</a></li>
+      </menu>
+    </nav>
+  </aside>
+
+  <main>
+    <figure>
+      <img src="https://picsum.photos/id/1/200/200" alt="Paprika">
+      <div>
+        <a href="form.html" role="button" title="Bild ändern" style="color: white; text-decoration: none;">Ändern</a>
+        <button type="button" role="button" title="Bild löschen"
+          style="color: white; border: none; background: none; padding: 0;">Löschen</button>
+      </div>
+    </figure>
+    <h2>Paprika</h2>
+    <dl>
+      <div>
+        <dt>Name
+          <span>Der spezielle Name des Dings</span>
+        </dt>
+        <dd>Paprika</dd>
+      </div>
+      <div>
+        <dt>Produktcode</dt>
+        <dd>12345678</dd>
+      </div>
+      </div>
+      <div>
+        <dt>Anzahl</dt>
+        <dd>8</dd>
+      </div>
+      <div>
+        <dt>Änderung</dt>
+        <dd>
+          <input type="datetime-local" value="2025-02-01T17:06" disabled />
+        </dd>
+      </div>
+    </dl>
+    <h4>Weitere Details</h4>
+    <dl>
+      <div tabindex="0">
+        <dt>Allgemeiner Name</dt>
+        <dd><a href="#">Nachtschattengewächs</a></dd>
+      </div>
+    </dl>
+    <div>
+      <a href="form.html" role="button"><b>✎&nbsp;&nbsp;Bearbeiten</b></a>
+      <a href="#" role="button"><b>Einlagern</b></a>
+      <a href="#" role="button"><b>Entnehmen</b></a>
+    </div>
+  </main>
+
+  <footer>Footer</footer>
+</body>
+
+</html>

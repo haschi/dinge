@@ -1,0 +1,68 @@
+<!doctype html>
+<html lang="de" color-mode="user">
+
+<head>
+  <meta charset="utf-8">
+  <link rel="stylesheet" href="/static/css/app.css">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Inventar Karten</title>
+</head>
+
+<body>
+  <header>
+    <a href="details.html" role="button"><b>Abbrechen</b></a>
+    <span>Paprika wird bearbeitet</span>
+    <button type="submit" form="detailsForm"><em>Speichern</em></button>
+  </header>
+  <aside>
+    <header>
+      <a href="../layout2.html" role="button" title="Zurück zur Layout-Übersicht">&#10094;</a>
+      <span>Dinge</span>
+    </header>
+    <nav>
+      <menu>
+        <li><a href="cards.html">Inventar Karten</a></li>
+        <li><a href="list.html">Inventar Liste</a></li>
+        <li><a href="details.html">Details</a></li>
+        <li><a href="form.html" class="active">Formular</a></li>
+      </menu>
+    </nav>
+  </aside>
+
+  <main>
+    <form id="detailsForm">
+      <h3>Eigenschaften</h3>
+      <fieldset>
+        <label>
+          Name
+          <input type="text" name="url" placeholder value="Paprika" />
+        </label>
+      </fieldset>
+
+      <h3>Weitere Eigenschaften</h3>
+      <dl>
+        <div>
+          <dt>Produktcode</dt>
+          <dd>12345678</dd>
+        </div>
+        <div>
+          <dt>Allgemeiner Name</dt>
+          <dd>Paprika</dd>
+        </div>
+        <div>
+          <dt>Anzahl</dt>
+          <dd>8</dd>
+        </div>
+        <div>
+          <dt>Änderung</dt>
+          <dd>2025-03-02T03:40:01</dd>
+        </div>
+      </dl>
+
+    </form>
+  </main>
+
+  <footer>Footer</footer>
+</body>
+
+</html>

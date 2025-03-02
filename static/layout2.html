@@ -74,17 +74,19 @@
         <li><a href="#">Leere Seite</a></li>
         <li><a href="#">Dialoge</a></li>
       </menu>
-      <h3>Prototypen</h3>
+      <h5>Prototypen</h5>
       <menu>
         <li><a href="view/cards.html">Inventar Karten</a></li>
         <li><a href="view/list.html">Inventar Liste</a></li>
+        <li><a href="view/details.html">Details</a></li>
+        <li><a href="view/form.html">Formular</a></li>
       </menu>
     </nav>
   </aside>
 
   <main class="content-grid">
     <section id="karten" class="details">
-      <h2>Karten</h2>
+      <h4>Karten</h4>
       <p>Eine mit Karten gefüllte Rasteransicht im Inhaltsbereich wird mit einem
         <code>&lt;ul&gt;</code> Element eingeleitet als direkter Nachfolger des <code>&lt;main&gt;</code> Elements. Jede
         Karte ist ein <code>&lt;li&gt;</code> Element innerhalb dieses Elternelements.
@@ -118,7 +120,7 @@
           <li>
             <img src="https://picsum.photos/id/0/300/200" alt="" />
             <div>
-              <h2>Übersicht Karten</h2>
+              <h4>Übersicht Karten</h4>
               <p>Karten können einen Link enthalten. Der Link gilt für die ganze Karte</p>
               <p><a href="#karten">Ein Link</a></p>
             </div>
@@ -126,7 +128,7 @@
           <li>
             <img src="https://picsum.photos/id/1/300/200" alt="" />
             <div>
-              <h2>Übersicht Listen</h2>
+              <h4>Übersicht Listen</h4>
               <p>Besuchte Links sollen genauso aussehen, wie Links, die noch nicht besucht wurden.</p>
               <a href="#listen">Besuchter Link</a>
             </div>
@@ -134,14 +136,14 @@
           <li>
             <img src="https://picsum.photos/id/1/300/200" alt="" />
             <div>
-              <h2>Karte ohne Link</h2>
+              <h4>Karte ohne Link</h4>
               <p>Eine Karte ohne Link. Sie kann keinen Fokus erhalten.</p>
             </div>
           </li>
           <li>
             <img src="https://picsum.photos/id/2/300/200" alt="" />
             <div>
-              <h2>Detailansicht</h2>
+              <h4>Detailansicht</h4>
               <p>Vorlage für die Detailansicht von Daten eines einzelnen Elements.</p>
               <a href="#"></a>
             </div>
@@ -149,7 +151,7 @@
           <li>
             <img src="https://picsum.photos/id/3/300/200" alt="" />
             <div>
-              <h2>Formular</h2>
+              <h4>Formular</h4>
               <p>Vorlage für die Bearbeitung von Daten in einem Formular.</p>
               <a href="#"></a>
             </div>
@@ -157,7 +159,7 @@
           <li>
             <img src="https://picsum.photos/id/4/300/200" alt="" />
             <div>
-              <h2>Navigation</h2>
+              <h4>Navigation</h4>
               <p>Vorlagen für Navigationselemente</p>
               <a href="#"></a>
             </div>
@@ -165,7 +167,7 @@
           <li>
             <img src="https://picsum.photos/id/5/300/200" alt="" />
             <div>
-              <h2>Scannen</h2>
+              <h4>Scannen</h4>
               <p>Vorlage für eine Seite auf der ein Bild mit der Kamera aufgenommen werden kann.</p>
               <a href="#"></a>
             </div>
@@ -173,7 +175,7 @@
           <li>
             <img src="https://picsum.photos/id/6/300/200" alt="" />
             <div>
-              <h2>Leere Seite</h2>
+              <h4>Leere Seite</h4>
               <p>Vorlage für eine leere Seite, falls keine Elemente für die Anzeige vorhanden sind.</p>
               <a href="#"></a>
             </div>
@@ -181,7 +183,7 @@
           <li>
             <img src="https://picsum.photos/id/7/300/200" alt="" />
             <div>
-              <h2>Dialog</h2>
+              <h4>Dialog</h4>
               <p>Beispiel für Dialoge</p>
               <a href="#"></a>
             </div>
@@ -648,51 +650,68 @@
     <section id="typography" class="details">
       <h2>Typography</h2>
       <p>Ein vollständig Beispiel befindet sich in <a href="view/typography.html">view/typography.html</a></p>
-      <p>Alle HTML Überschriften von <code>&lt;h1&gt;</code> bis <code>&lt;h6&gt;</code> sind verfügbar.</p>
+      <p>Alle HTML Überschriften von <code>&lt;h1&gt;</code> bis <code>&lt;h6&gt;</code> sind verfügbar. Die Überschrift
+        <code>&lt;h1&gt;</code> und <code>&lt;h4&gt;</code> werden groß angezeigt. Die Überschrift
+        <code>&lt;h1&gt;</code> bis<code>&lt;h3&gt;</code> werden zentriert.
+      </p>
 
       <h3>Überschriften</h3>
       <table>
         <thead>
           <tr>
             <th>Überschrift</th>
+            <th>Ausrichtung</th>
+            <th>Schriftgröße</th>
             <th>Beispiel</th>
           </tr>
         </thead>
         <tbody>
           <tr>
             <td><code>&lt;h1&gt;</code></td>
+            <td>center</td>
+            <td>larger</td>
             <td>
-              <h1>h1. Überschrift</h1>
+              <h1>Überschrift h1</h1>
             </td>
           </tr>
           <tr>
             <td><code>&lt;h2&gt;</code></td>
+            <td>center</td>
+            <td>normal</td>
             <td>
-              <h2>h2. Überschrift</h2>
+              <h2>Überschrift h2</h2>
             </td>
           </tr>
           <tr>
             <td><code>&lt;h3&gt;</code></td>
+            <td>center</td>
+            <td>normal</td>
             <td>
-              <h3>h3. Überschrift</h3>
+              <h3>Überschrift h3</h3>
             </td>
           </tr>
           <tr>
             <td><code>&lt;h4&gt;</code></td>
+            <td>left</td>
+            <td>larger</td>
             <td>
-              <h4>h4. Überschrift</h4>
+              <h4>Überschrift h4</h4>
             </td>
           </tr>
           <tr>
             <td><code>&lt;h5&gt;</code></td>
+            <td>left</td>
+            <td>normal</td>
             <td>
-              <h5>h5. Überschrift</h5>
+              <h5>Überschrift h5</h5>
             </td>
           </tr>
           <tr>
             <td><code>&lt;h6&gt;</code></td>
+            <td>left</td>
+            <td>normal</td>
             <td>
-              <h6>h6. Überschrift</h6>
+              <h6>Überschrift h6</h6>
             </td>
           </tr>
         </tbody>

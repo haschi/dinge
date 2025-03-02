@@ -144,6 +144,37 @@ details {
   margin-top: var(--space-large);
 }
 
+/* Typographie für Überschriften */
+h1,
+h2,
+h3 {
+  text-align: center;
+}
+
+h4,
+h5,
+h6 {
+  text-align: left;
+}
+
+
+h1,
+h4 {
+  font-size: large;
+}
+
+h2,
+h5 {
+  font-size: larger;
+}
+
+h2,
+h3,
+h5,
+h6 {
+  font-size: 1em;
+}
+
 p,
 pre,
 caption,
@@ -176,8 +207,6 @@ body {
   &>header {
     grid-area: header;
   }
-
-
 }
 
 header,
@@ -216,6 +245,7 @@ footer {
 /* Content Layout */
 
 main {
+
   --padding-inline: 2rem;
   --content-width: 70ch;
   --breakout-width: 95ch;
@@ -368,15 +398,24 @@ aside {
   border-right: 1px solid var(--color-border-sidebar-right);
   font-weight: 500;
 
+  /* padding: 0.4rem; */
+
   &>nav {
+    line-height: 2.8;
+    padding: 0 0.5rem;
+
+    h5 {
+      margin: 0 0.5rem;
+    }
+
     menu {
       list-style-type: none;
-      padding: 0.25rem;
 
       >li {
+        margin: 2px 0;
+
         a {
-          padding: 0.4rem;
-          margin-top: 0.1rem;
+          padding: 0 0.5rem;
           color: inherit;
           text-decoration: none;
           display: inline-block;
@@ -458,6 +497,12 @@ details figure {
   background-color: #2b2b2b;
   border-radius: 10px;
   box-shadow: 0 0 2px 2px #222222;
+}
+
+main>img {
+  margin-inline: auto;
+  margin-top: var(--space-large);
+  border-radius: 50%;
 }
 
 /* Cards */
@@ -645,6 +690,39 @@ main table {
     border-radius: 10px;
   }
 }
+
+/* Styling für das bearbeitbare Bild in einer <figure> */
+main figure:has(img) {
+  position: relative;
+  width: 200px;
+  /* oder welche Breite du möchtest */
+  height: 200px;
+  /* oder welche Höhe du möchtest */
+  margin: 1rem auto 0;
+  /* Um das Bild zu zentrieren */
+
+  &>img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    /* Damit das Bild den ganzen Platz ausfüllt */
+    border-radius: 50%;
+  }
+
+  &>div {
+    position: absolute;
+    bottom: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    gap: 0.5rem;
+    background-color: rgba(0, 0, 0, 0.5);
+    padding: 0.5rem;
+    border-radius: 10px;
+  }
+}
+
+
 
 dl {
 

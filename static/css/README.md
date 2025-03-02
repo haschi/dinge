@@ -101,7 +101,7 @@ Style Sheets für die Anwendung
 - [ ] Gemeinsame Werte in Variablen auslagern. z.B. Hintergrundfarben, Hervorhebungsfarben.
 - [ ] Abgeleitete Werte berechnen statt Konstanten.
 
-## Tabellen
+### Tabellen
 
 - [X] margin-bottom in Tabellen eliminieren. Ich will nur margin-top wegen der Konsistenz.
 - [X] Gaps in Tabellenzeilen entfernen. Gaps zwischen den Zeilen bleiben.
@@ -109,6 +109,13 @@ Style Sheets für die Anwendung
 - [X] Text sekundärer Spalten dunkler.
 - [X] Tabellenzeile zur Navigation anklickbar.????
 - [X] Tabellenzeilen nur anklickbar, wenn Text des Verweises leer ist.
+
+### Karten
+
+- [X] Schriftfarbe dim, ohne Hover, immer
+- [X] Schriftfarbe hell, mit Hover, nur wenn Verweis vorhanden ist.
+- [X] Image Zoom, nur wenn Verweis vorhanden ist.
+- [X] Abstand zwischen Überschrift und Bild verringern.
 
 ### Buttons und Links
 
@@ -151,3 +158,14 @@ Style Sheets für die Anwendung
 
 - [X] Hover Effekt für Summary. (Ggf. erst nach Auslagern der Farbwerte in Variablen. Im Moment herscht Chaos.)
 - [X] Abstände, so dass alle Inhalte vernünftig aussehen.
+
+### Prototypen
+
+- [X] Inventar: Kartenansicht
+- [X] Inventar: Listenansicht
+- [X] Ding Detailansicht
+- [X] Ding Formular
+
+### Typographie
+
+- [ ] Überschriften gerade ziehen
