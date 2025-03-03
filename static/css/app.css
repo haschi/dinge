@@ -90,6 +90,20 @@ select {
   font-size: inherit;
 }
 
+menu,
+ul {
+  li a {
+    text-decoration: none;
+  }
+}
+
+th a,
+td a:empty,
+dd a {
+  text-decoration: none;
+  color: inherit;
+}
+
 /* Typografie */
 
 figcaption,
@@ -235,8 +249,6 @@ main {
     grid-column: full-width;
   }
 }
-
-/* Alles zum Thema header */
 
 /* Styling */
 
@@ -387,7 +399,7 @@ aside {
         a {
           padding: 0 0.5rem;
           color: inherit;
-          text-decoration: none;
+
           display: inline-block;
           width: 100%;
           height: 100%;
@@ -471,41 +483,18 @@ main>img {
   border-radius: 50%;
 }
 
-/* Cards */
-
-/* Kartenansicht Layout*/
+/* Kartenansicht (main > ul)*/
 main>ul {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
   grid-auto-rows: max-content;
   grid-gap: 1.5rem;
   padding: 1.5rem;
+  list-style: none;
 
-  /* Karten sind Listitems in der Auflistung */
+  /* Karten sind Listenelemente einer ungeordneten Liste */
   >li {
     position: relative;
-
-    a {
-      text-decoration: none;
-    }
-
-    /* Der Trick, dass Karten anklickbar sind */
-    a::after {
-      position: absolute;
-      inset-block: 0;
-      inset-inline: 0;
-      cursor: pointer;
-      content: "";
-    }
-  }
-}
-
-/* Effekte */
-/* Bei Karten mit Fokus oder Hover das enthaltene Bild heranzoomen und einen Schatten erzeugen */
-main>ul {
-
-
-  >li {
     --image-scale: 1.001;
     overflow: hidden;
     transform-origin: center;
@@ -513,8 +502,19 @@ main>ul {
     padding-bottom: 1rem;
     border-radius: var(--border-radius-large);
     width: 100%;
-
     color: var(--color-text-low);
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.5);
+    transition: box-shadow 0.3s ease;
+
+    /* Die ganze Karte hervorheben, wenn der Verweis in der Karten den Fokus erhält. */
+    &:focus-within {
+      outline: auto;
+    }
+
+    /* Verweise mit Fokus werden nicht hervorgehoben. */
+    a:focus {
+      outline: none;
+    }
 
     img {
       transform-origin: center;
@@ -528,29 +528,22 @@ main>ul {
       padding-inline: 1rem;
     }
 
-    /* Wenn der Link in der Karte den Fokus hat, die ganze Karte hervorheben, nicht den Link. */
-    &:focus-within {
-      outline: auto;
-    }
-
-    /* Links mit Fokus werden nicht hervorgehoben. */
-    a:focus {
-      outline: none;
+    /* Der Trick, dass eine Karte mit Verweise anklickbar ist. */
+    a::after {
+      position: absolute;
+      inset-block: 0;
+      inset-inline: 0;
+      cursor: pointer;
+      content: "";
     }
   }
 
-  /* Aktive Karten hervorheben */
-  >li:has(a):has(:hover, :focus) {
+  >li:hover,
+  >li:focus-within {
     --img-scale: 1.1;
     box-shadow: 0 8px 12px rgba(0, 0, 0, 0.7);
     background-color: var(--color-background2);
     color: var(--color-text-high);
-  }
-
-  >li {
-    background-color: var(--color-background1);
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.5);
-    transition: box-shadow 0.3s ease;
   }
 }
 
@@ -575,7 +568,6 @@ main table {
       left: 0;
       width: 100%;
       height: 100%;
-      text-decoration: none;
       color: inherit;
       display: block;
       z-index: 1;
@@ -615,7 +607,6 @@ main table {
     a {
       cursor: default;
       color: inherit;
-      text-decoration: none;
     }
   }
 
@@ -756,7 +747,6 @@ dl {
     background-color: inherit;
 
     a {
-      text-decoration: none;
       cursor: default;
 
       &::after {
@@ -1058,6 +1048,26 @@ header {
   padding-inline: 0.5rem;
   text-wrap: nowrap;
 
+  /* Folgende Elemente verschlucken */
+  form,
+  search {
+    display: contents;
+  }
+
+  nav {
+    border: var(--layout-border);
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+
+    ul,
+    menu {
+      display: flex;
+      column-gap: 1rem;
+      list-style-type: none;
+    }
+  }
+
   /* Wenn nur ein Nachfolger existiert, zentriere diesen. */
   &:has(>*:first-child:last-child) {
     justify-content: center;
@@ -1115,35 +1125,5 @@ header {
     border: none;
     background-color: inherit;
     outline: none;
-  }
-}
-
-
-header {
-
-  form,
-  search {
-    display: contents;
-  }
-}
-
-header nav {
-
-  border: var(--layout-border);
-  display: flex;
-  align-items: center;
-  justify-content: flex-start;
-
-  ul,
-  menu {
-    display: flex;
-    column-gap: 1rem;
-    list-style-type: none;
-
-    li {
-      a {
-        text-decoration: none;
-      }
-    }
   }
 }
