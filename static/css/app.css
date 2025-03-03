@@ -24,11 +24,6 @@
   --color-danger-low: hsl(0, 50%, 50%);
   --color-danger-high: hsl(0, 55%, 45%);
 
-  /* Textfarbe für inaktive Elemente */
-  --color2: #8e8e8e;
-
-  --color3: #656565;
-
   /* Hintegrundfarbe */
   --color-background0: #1e1e1e;
   --color-background1: #272727;
@@ -36,15 +31,8 @@
   --color-background3: #3b3b3b;
   --color-background4: #4b4b4b;
 
-
-  /* Hintegrundfarbe für Navigationselemente der Seiteleiste, die aktiv sind oder hover */
-  --color-background-aktiv-focus: #444444;
-
-  /* Hintergrundfarbe der Seitenleiste */
-  --color-background-sidebar: #303030;
-  --color-background-sidebar-hightlight: #3f3f3f;
+  /* TODO: An die Schatten muss ich noch einmal ran. */
   --color-border-sidebar-right: #1f1f1f;
-  --color-trennlinie-sidebar: #4f4f4f;
 
   --border-radius: 3px;
   color-scheme: light dark;
@@ -365,7 +353,7 @@ a:has(b) {
 /* Styles für Buttons . Das hier ist gültig!*/
 
 aside {
-  background-color: var(--color-background-sidebar);
+  background-color: var(--color-background2);
   border-right: 1px solid var(--color-border-sidebar-right);
   font-weight: 500;
 
@@ -407,13 +395,13 @@ aside {
           &:focus-visible,
           &:hover,
           &.active {
-            background-color: var(--color-background-sidebar-hightlight);
+            background-color: var(--color-background3);
           }
         }
       }
 
       &:not(:last-child) {
-        border-bottom: 1px solid var(--color-trennlinie-sidebar);
+        border-bottom: 1px solid var(--color-background4);
       }
     }
   }
