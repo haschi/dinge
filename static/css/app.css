@@ -252,8 +252,8 @@ input[type=reset],
   cursor: default;
   line-height: 1.1;
 
-  color: var(--_button-fg);
-  background-color: var(--_button-bg);
+  color: var(--button-fg);
+  background-color: var(--button-bg);
 
   b,
   strong {
@@ -265,8 +265,8 @@ input[type=reset],
   }
 
   &:hover {
-    color: var(--_button-highlight-fg);
-    background-color: var(--_button_highlight-bg);
+    color: var(--button-highlight-fg);
+    background-color: var(--button-highlight-bg);
   }
 }
 
@@ -275,23 +275,23 @@ a[role=button],
 input[type=button],
 input[type=submit],
 input[type=reset] {
-  --_button-fg: var(--color-text-low);
-  --_button-highlight-fg: var(--color-text-high);
+  --button-fg: var(--color-text-low);
+  --button-highlight-fg: var(--color-text-high);
 }
 
 /* Vorrangige Steuerelemente */
 button:has(em),
 a[role=button]:has(em),
 input[type=submit] {
-  --_button-bg: var(--color-accent-low);
-  --_button_highlight-bg: var(--color-accent-high);
+  --button-bg: var(--color-accent-low);
+  --button-highlight-bg: var(--color-accent-high);
 }
 
 /* Destruktive Steuerelemente */
 button:has(strong),
 a[role=button]:has(strong) {
-  --_button-bg: var(--color-danger-low);
-  --_button_highlight-bg: var(--color-danger-high);
+  --button-bg: var(--color-danger-low);
+  --button-highlight-bg: var(--color-danger-high);
 }
 
 /* Nachrangige Steuerelemente */
@@ -299,23 +299,23 @@ button:has(b),
 a[role=button]:has(b),
 input[type=reset],
 input[type=button] {
-  --_button-bg: var(--color-background3);
-  --_button_highlight-bg: var(--color-background4);
+  --button-bg: var(--color-background3);
+  --button-highlight-bg: var(--color-background4);
 }
 
 /* Kontextfreie Steuerelemente */
 button,
 a[role=button] {
-  --_button-bg: inherit;
-  --_button_highlight-bg: var(--color-background4);
+  --button-bg: inherit;
+  --button-highlight-bg: var(--color-background4);
 }
 
 /* Active mutually exclusive button */
 span[role=button] {
-  --_button-fg: var(--color-text-high);
-  --_button-highlight-fg: var(--color-text-high);
-  --_button-bg: var(--color-background4);
-  --_button_highlight-bg: var(--color-background4);
+  --button-fg: var(--color-text-high);
+  --button-highlight-fg: var(--color-text-high);
+  --button-bg: var(--color-background4);
+  --button-highlight-bg: var(--color-background4);
 }
 
 a[role=button] {
