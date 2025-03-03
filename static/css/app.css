@@ -30,27 +30,12 @@
   --color3: #656565;
 
   /* Hintegrundfarbe */
-  --color-bg: #1e1e1e;
+  --color-background0: #1e1e1e;
+  --color-background1: #272727;
+  --color-background2: #2b2b2b;
+  --color-background3: #3b3b3b;
+  --color-background4: #4b4b4b;
 
-  /* Hintergrund der Kopfzeile / Titelleiste */
-  --color-bg1: #303030;
-
-  --color-rahmen-hell: #3f3f3f;
-  --color-rahmen-dunkel: #161616;
-
-
-  --color-button-text: #fff;
-  --color-button-background1: #3e3e3e;
-  --color-details-background: #353535;
-
-  --color-background0: #272727;
-  --color-background1: #2b2b2b;
-  --color-background2: #3b3b3b;
-  --color-background3: #4b4b4b;
-
-
-  --color-button-background: var(--color-background3);
-  --color-button-background-low: var(--color-background2);
 
   /* Hintegrundfarbe für Navigationselemente der Seiteleiste, die aktiv sind oder hover */
   --color-background-aktiv-focus: #444444;
@@ -80,7 +65,7 @@
 body {
   font-family: var(--font-family);
   color: var(--color-text);
-  background-color: var(--color-bg);
+  background-color: var(--color-background0);
 }
 
 html {
@@ -326,23 +311,23 @@ button:has(b),
 a[role=button]:has(b),
 input[type=reset],
 input[type=button] {
-  --_button-bg: var(--color-button-background-low);
-  --_button_highlight-bg: var(--color-button-background);
+  --_button-bg: var(--color-background3);
+  --_button_highlight-bg: var(--color-background4);
 }
 
 /* Kontextfreie Steuerelemente */
 button,
 a[role=button] {
   --_button-bg: inherit;
-  --_button_highlight-bg: var(--color-button-background);
+  --_button_highlight-bg: var(--color-background4);
 }
 
 /* Active mutually exclusive button */
 span[role=button] {
   --_button-fg: var(--color-text-high);
   --_button-highlight-fg: var(--color-text-high);
-  --_button-bg: var(--color-button-background);
-  --_button_highlight-bg: var(--color-button-background);
+  --_button-bg: var(--color-background4);
+  --_button_highlight-bg: var(--color-background4);
 }
 
 a[role=button] {
@@ -447,11 +432,11 @@ details[open] {
 
   summary {
     border-radius: 10px 10px 0 0;
-    background-color: var(--color-background1);
+    background-color: var(--color-background2);
   }
 
   summary:hover {
-    background-color: var(--color-background2);
+    background-color: var(--color-background3);
   }
 }
 
@@ -459,12 +444,11 @@ details {
 
   box-shadow: 0 0 2px 2px #222222;
   /* background-color: #2b2b2b; */
-  background-color: var(--color-background0);
+  background-color: var(--color-background1);
   border-radius: 10px;
 
   summary {
-    /* background-color: var(--color-details-background); */
-    background-color: var(--color-background0);
+    background-color: var(--color-background1);
     padding: 1rem;
     list-style-type: none;
     cursor: pointer;
@@ -472,7 +456,7 @@ details {
   }
 
   summary:hover {
-    background-color: var(--color-background1);
+    background-color: var(--color-background2);
   }
 
   summary::after {
@@ -573,12 +557,12 @@ main>ul {
   >li:has(a):has(:hover, :focus) {
     --img-scale: 1.1;
     box-shadow: 0 8px 12px rgba(0, 0, 0, 0.7);
-    background-color: var(--color-background1);
+    background-color: var(--color-background2);
     color: var(--color-text-high);
   }
 
   >li {
-    background-color: var(--color-background0);
+    background-color: var(--color-background1);
     box-shadow: 0 4px 6px rgba(0, 0, 0, 0.5);
     transition: box-shadow 0.3s ease;
   }
@@ -617,7 +601,7 @@ main table {
   }
 
   tr:hover {
-    --table-cell-background: var(--color-background0);
+    --table-cell-background: var(--color-background1);
   }
 
   td {
@@ -660,7 +644,7 @@ main table {
   }
 
   th:hover:has(a) {
-    background-color: var(--color-background1);
+    background-color: var(--color-background2);
 
     a {
       color: var(--color-text-high);
@@ -752,7 +736,7 @@ dl {
   }
 
   div {
-    background-color: var(--color-background0);
+    background-color: var(--color-background1);
     margin: 0;
     overflow: hidden;
     border-radius: 0;
@@ -771,7 +755,7 @@ dl {
   }
 
   div:hover {
-    background-color: var(--color-background1);
+    background-color: var(--color-background2);
   }
 
   dt,
@@ -903,7 +887,7 @@ fieldset {
       outline: none;
     }
 
-    background-color: var(--color-background2);
+    background-color: var(--color-background3);
   }
 
   a {
@@ -988,7 +972,7 @@ fieldset {
 
 /* Deaktivierte Felder und Felder mit Fokus nicht hervorheben */
 label:hover:not([disabled]):not(:focus-within) {
-  background: var(--color-background1)
+  background: var(--color-background2)
 }
 
 fieldset {
@@ -1005,7 +989,7 @@ fieldset {
     /* Gesamthöhe des Eingabefeldes mit kleinem Label und Eingabe */
     --content-height: calc((var(--font-size-small) + var(--font-size-normal)) * var(--line-height-normal));
 
-    background-color: var(--color-background0);
+    background-color: var(--color-background1);
     box-shadow: 0 0 1px 1px #222222;
     /*
     Beispiel:
@@ -1168,11 +1152,12 @@ header {
     column-gap: 0.5rem;
     line-height: 1.0;
     border-radius: 4px;
-    background-color: var(--color-bg1);
+    background-color: var(--color-background2);
     padding-inline: 0.5rem;
 
     &:focus-within {
       outline: auto;
+      background-color: var(--color-background3);
     }
 
     input {
