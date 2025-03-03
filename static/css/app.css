@@ -34,7 +34,7 @@
   /* TODO: An die Schatten muss ich noch einmal ran. */
   --color-border-sidebar-right: #1f1f1f;
 
-  --border-radius: 3px;
+  --border-radius: 6px;
   --border-radius-large: 10px;
   color-scheme: light dark;
 }
@@ -247,7 +247,7 @@ input[type=submit],
 input[type=reset],
 [role=button] {
   border: none;
-  border-radius: 6px;
+  border-radius: var(--border-radius);
   padding: 0.5rem 1rem;
   font-weight: 600;
   cursor: default;
@@ -454,8 +454,6 @@ details {
     transform: rotate(270deg);
   }
 }
-
-
 
 details figure {
   overflow-x: auto;
@@ -1078,19 +1076,6 @@ header {
     padding: 0;
   }
 
-
-
-  [role=button],
-  input[type=button],
-  input[type=submit],
-  input[type=reset],
-  input,
-  button {
-    padding: 0.3rem;
-    border-radius: 4px;
-    overflow: auto;
-  }
-
   label,
   div {
     display: flex;
@@ -1111,9 +1096,9 @@ header {
     align-items: center;
     column-gap: 0.5rem;
     line-height: 1.0;
-    border-radius: 4px;
+    border-radius: var(--border-radius);
     background-color: var(--color-background2);
-    padding-inline: 0.5rem;
+    padding: 0.5rem 1rem;
 
     &:focus-within {
       outline: auto;
