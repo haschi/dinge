@@ -35,6 +35,7 @@
   --color-border-sidebar-right: #1f1f1f;
 
   --border-radius: 3px;
+  --border-radius-large: 10px;
   color-scheme: light dark;
 }
 
@@ -419,7 +420,7 @@ details[open] {
   padding-bottom: 1rem;
 
   summary {
-    border-radius: 10px 10px 0 0;
+    border-radius: var(--border-radius-large) var(--border-radius-large) 0 0;
     background-color: var(--color-background2);
   }
 
@@ -431,16 +432,15 @@ details[open] {
 details {
 
   box-shadow: 0 0 2px 2px #222222;
-  /* background-color: #2b2b2b; */
   background-color: var(--color-background1);
-  border-radius: 10px;
+  border-radius: var(--border-radius-large);
 
   summary {
     background-color: var(--color-background1);
     padding: 1rem;
     list-style-type: none;
     cursor: pointer;
-    border-radius: 10px;
+    border-radius: var(--border-radius-large);
   }
 
   summary:hover {
@@ -463,7 +463,7 @@ details figure {
 
 .breakout {
   background-color: #2b2b2b;
-  border-radius: 10px;
+  border-radius: var(--border-radius-large);
   box-shadow: 0 0 2px 2px #222222;
 }
 
@@ -513,7 +513,7 @@ main>ul {
     transform-origin: center;
     background-color: var(--background-color);
     padding-bottom: 1rem;
-    border-radius: 10px;
+    border-radius: var(--border-radius-large);
     width: 100%;
 
     color: var(--color-text-low);
@@ -594,16 +594,6 @@ main table {
 
   td {
     min-height: 3.2rem;
-
-    h1,
-    h2,
-    h3,
-    h4,
-    h5,
-    h6 {
-      /* Das wird nur in layout2.html verwendet. Überschriften finden sonst keine Verwendung in Tabellenzellen.*/
-      margin-block: 0;
-    }
   }
 
   td,
@@ -665,7 +655,7 @@ main table {
   td img {
     height: 2.5rem;
     width: auto;
-    border-radius: 10px;
+    border-radius: var(--border-radius-large);
   }
 }
 
@@ -696,31 +686,38 @@ main figure:has(img) {
     gap: 0.5rem;
     background-color: rgba(0, 0, 0, 0.5);
     padding: 0.5rem;
-    border-radius: 10px;
+    border-radius: var(--border-radius-large);
   }
 }
 
+/* Runde Ecken für Detailansicht und Formulare */
+dl>div:first-child,
+fieldset>label:first-child {
+  border-radius: var(--border-radius-large) var(--border-radius-large) 0 0;
+}
 
+dl>div:last-child,
+fieldset>label:last-child {
+  border-radius: 0 0 var(--border-radius-large) var(--border-radius-large);
+}
+
+dl>div:first-child:last-child,
+fieldset>label:first-child:last-child {
+  border-radius: var(--border-radius-large);
+}
+
+/* Detailansicht Layout */
 
 dl {
 
   display: flex;
   flex-direction: column;
   row-gap: 1px;
-  /* background-color: #2b2b2b; */
-  /* box-shadow: 0 0 1px 1px #222222; */
-  /* display: grid; */
-  /* grid-template-columns: auto 1fr; */
-  /* row-gap: 1px; */
-  /* border-radius: 10px; */
-  /* overflow: hidden; */
 
   /* Gruppierung von dt und dd in einer Zeile */
   &>div {
     display: flex;
     justify-content: space-between;
-    /* display: contents; */
-    /* Behält die Grid-Struktur bei */
   }
 
   div {
@@ -728,18 +725,6 @@ dl {
     margin: 0;
     overflow: hidden;
     border-radius: 0;
-  }
-
-  div:first-child {
-    border-radius: 10px 10px 0 0;
-  }
-
-  div:last-child {
-    border-radius: 0 0 10px 10px;
-  }
-
-  div:first-child:last-child {
-    border-radius: 10px;
   }
 
   div:hover {
@@ -824,7 +809,6 @@ form {
   }
 }
 
-
 fieldset {
   display: flex;
   flex-direction: column;
@@ -832,7 +816,7 @@ fieldset {
 
   /* background-color: #2b2b2b; */
   box-shadow: 0 0 1px 1px #222222;
-  border-radius: 10px;
+  border-radius: var(--border-radius-large);
   border: none;
   /* overflow: hidden; */
 
@@ -844,18 +828,6 @@ fieldset {
 
   /* 14,6667px * 1.3 = 19,06671px */
   line-height: 1.3;
-
-  label:first-child {
-    border-radius: 10px 10px 0 0;
-  }
-
-  label:last-child {
-    border-radius: 0 0 10px 10px;
-  }
-
-  label:first-child:last-child {
-    border-radius: 10px;
-  }
 
   label {
     border: 1px solid transparent;
@@ -949,7 +921,7 @@ fieldset {
     outline: none;
     background-color: inherit;
     box-shadow: 0 4px 6px rgba(0, 0, 0, 0.5);
-    border-radius: 10px;
+    border-radius: var(--border-radius-large);
     min-height: 7rem;
 
     &:has(:hover, :focus) {
