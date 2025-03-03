@@ -36,6 +36,7 @@
 
   --border-radius: 6px;
   --border-radius-large: 10px;
+
   color-scheme: light dark;
 }
 
@@ -169,7 +170,43 @@ figcaption,
 fieldset,
 dl,
 ol>li {
-  margin-block-start: var(--space-small);
+  margin-top: var(--space-small);
+}
+
+button,
+input[type=button],
+input[type=submit],
+input[type=reset],
+[role=button],
+aside>nav menu li a {
+  border-radius: var(--border-radius);
+}
+
+/* Elemente mit abgerundeten Ecken */
+
+details,
+details summary,
+.breakout,
+td img,
+fieldset,
+textarea,
+dl>div:first-child:last-child,
+fieldset>label:first-child:last-child {
+  border-radius: var(--border-radius-large);
+}
+
+/* Nur am oberen Rand abgerundete Ecken */
+details[open]>summary,
+dl>div:first-child,
+fieldset>label:first-child {
+  border-radius: var(--border-radius-large) var(--border-radius-large) 0 0;
+}
+
+/* Nur am unteren Rand abgerundete Ecken */
+details>summary,
+dl>div:last-child,
+fieldset>label:last-child {
+  border-radius: 0 0 var(--border-radius-large) var(--border-radius-large);
 }
 
 /* Anwendungslayout */
@@ -316,6 +353,35 @@ input[type=button] {
   --button-highlight-bg: var(--color-background4);
 }
 
+/* Das Schalter Elemente (<input role=switch>) */
+input[role=switch] {
+  appearance: none;
+  width: 50px;
+  height: 24px;
+  background-color: var(--color-switch-background);
+  border-radius: 24px;
+  cursor: pointer;
+  transition: background-color 0.4s;
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  padding: 3px;
+}
+
+input[role=switch]::before {
+  content: "";
+  width: 18px;
+  height: 18px;
+  background-color: var(--color-switch-foreground);
+  border-radius: 50%;
+  transition: margin-left 0.4s;
+}
+
+input[role=switch]:checked {
+  background-color: var(--color-accent);
+  justify-content: flex-end;
+}
+
 /* Kontextfreie Steuerelemente */
 button,
 a[role=button] {
@@ -369,8 +435,6 @@ aside {
   background-color: var(--color-background2);
   border-right: 1px solid var(--color-border-sidebar-right);
   font-weight: 500;
-
-  /* padding: 0.4rem; */
   min-height: 0;
   overflow-y: auto;
 
@@ -432,7 +496,6 @@ details[open] {
   padding-bottom: 1rem;
 
   summary {
-    border-radius: var(--border-radius-large) var(--border-radius-large) 0 0;
     background-color: var(--color-background2);
   }
 
@@ -445,14 +508,12 @@ details {
 
   box-shadow: 0 0 2px 2px #222222;
   background-color: var(--color-background1);
-  border-radius: var(--border-radius-large);
 
   summary {
     background-color: var(--color-background1);
     padding: 1rem;
     list-style-type: none;
     cursor: pointer;
-    border-radius: var(--border-radius-large);
   }
 
   summary:hover {
@@ -473,7 +534,6 @@ details figure {
 
 .breakout {
   background-color: #2b2b2b;
-  border-radius: var(--border-radius-large);
   box-shadow: 0 0 2px 2px #222222;
 }
 
@@ -500,6 +560,7 @@ main>ul {
     transform-origin: center;
     background-color: var(--background-color);
     padding-bottom: 1rem;
+    /* TODO: Soll das verschoben werden ?*/
     border-radius: var(--border-radius-large);
     width: 100%;
     color: var(--color-text-low);
@@ -555,10 +616,6 @@ main table {
   margin: 1.5rem;
 
   tr {
-
-    /* line-height: 3.2; */
-    /* height: 3.2rem; */
-
     /* Damit die Tabellenzeile anklickbar wird */
     position: relative;
 
@@ -620,31 +677,28 @@ main table {
 
   th:first-child,
   td:first-child {
-    border-top-left-radius: 10px;
-    border-bottom-left-radius: 10px;
+    border-top-left-radius: var(--border-radius-large);
+    border-bottom-left-radius: var(--border-radius-large);
     width: 100%;
   }
 
   th:last-child,
   td:last-child {
-    border-top-right-radius: 10px;
-    border-bottom-right-radius: 10px;
+    border-top-right-radius: var(--border-radius-large);
+    border-bottom-right-radius: var(--border-radius-large);
   }
 
+  /* Erste Spalte ist ein Flex Container. */
   td:first-child {
-
-    /* Erste Spalte ist ein Flex Container. */
     display: flex;
     flex-direction: row;
     align-items: center;
     column-gap: 20px;
   }
 
-
   td img {
     height: 2.5rem;
     width: auto;
-    border-radius: var(--border-radius-large);
   }
 }
 
@@ -652,17 +706,16 @@ main table {
 main figure:has(img) {
   position: relative;
   width: 200px;
-  /* oder welche Breite du möchtest */
   height: 200px;
-  /* oder welche Höhe du möchtest */
-  margin: 1rem auto 0;
   /* Um das Bild zu zentrieren */
+  margin: 1rem auto 0;
+
 
   &>img {
     width: 100%;
     height: 100%;
-    object-fit: cover;
     /* Damit das Bild den ganzen Platz ausfüllt */
+    object-fit: cover;
     border-radius: 50%;
   }
 
@@ -675,25 +728,13 @@ main figure:has(img) {
     gap: 0.5rem;
     background-color: rgba(0, 0, 0, 0.5);
     padding: 0.5rem;
+
+    /* TODO: Soll das wirklich verschoben werden?  */
     border-radius: var(--border-radius-large);
   }
 }
 
-/* Runde Ecken für Detailansicht und Formulare */
-dl>div:first-child,
-fieldset>label:first-child {
-  border-radius: var(--border-radius-large) var(--border-radius-large) 0 0;
-}
 
-dl>div:last-child,
-fieldset>label:last-child {
-  border-radius: 0 0 var(--border-radius-large) var(--border-radius-large);
-}
-
-dl>div:first-child:last-child,
-fieldset>label:first-child:last-child {
-  border-radius: var(--border-radius-large);
-}
 
 /* Detailansicht Layout */
 
@@ -802,12 +843,8 @@ fieldset {
   flex-direction: column;
   gap: 2px;
 
-  /* background-color: #2b2b2b; */
   box-shadow: 0 0 1px 1px #222222;
-  border-radius: var(--border-radius-large);
   border: none;
-  /* overflow: hidden; */
-
   padding: 0;
 
 
@@ -821,17 +858,17 @@ fieldset {
     border: 1px solid transparent;
   }
 
-  /* Anstatt das Steuerelement hervorzuheben, wird das Label hervorgehoben, wenn das Steuerelement im Label den Fokus besitzt. */
+  /* Hebe das Label hervor, statt des fokussierten Kindelements */
   label:focus-within {
-    /* Übernimmt den voreingestellten Stil fokussierter Elemente für das Label */
     outline: auto;
-
-    /* Verhindert die Überlagerung des Outline durch nachfolgende Elemente */
     z-index: 99;
 
-    /* Schaltet die Hervorhebung fokussierter Steuerelemente aus */
+    /* Das Kindelement nicht hervorheben */
     input,
-    select {
+    select,
+    a,
+    textarea,
+    button {
       outline: none;
     }
 
@@ -868,10 +905,6 @@ input[type=color] {
 
 fieldset {
 
-  input[type=number] {
-    appearance: auto;
-  }
-
   /* Die Durchsuchen... Schaltfläche nicht anzeigen */
   input[type=file]::file-selector-button {
     display: none;
@@ -906,10 +939,8 @@ fieldset {
   textarea {
     padding: 0.5rem;
     resize: vertical;
-    outline: none;
     background-color: inherit;
     box-shadow: 0 4px 6px rgba(0, 0, 0, 0.5);
-    border-radius: var(--border-radius-large);
     min-height: 7rem;
 
     &:has(:hover, :focus) {
@@ -1001,33 +1032,7 @@ fieldset {
       margin-left: 1rem;
     }
 
-    input[role=switch] {
-      appearance: none;
-      width: 50px;
-      height: 24px;
-      background-color: var(--color-switch-background);
-      border-radius: 24px;
-      cursor: pointer;
-      transition: background-color 0.4s;
-      display: flex;
-      align-items: center;
-      justify-content: flex-start;
-      padding: 3px;
-    }
 
-    input[role=switch]::before {
-      content: "";
-      width: 18px;
-      height: 18px;
-      background-color: var(--color-switch-foreground);
-      border-radius: 50%;
-      transition: margin-left 0.4s;
-    }
-
-    input[role=switch]:checked {
-      background-color: var(--color-accent);
-      justify-content: flex-end;
-    }
   }
 
   select {
